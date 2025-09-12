@@ -4,12 +4,11 @@ function App() {
 
   return (
     <>
-      <body className="bg-white dark:bg-gray-800 ">
-      <div className='mx-10'>
+      <div className='flex-col w-full'>
         <header className="flex justify-center mb-10">
-        <img src='/logo.png' alt="logo" width="30%"/>
+          <img src='/logo.png' alt="logo" className='h-60' />
         </header>
-        <div className='text-gray-800 dark:text-white text-left flex-content justify-start space-y-2'>
+        <div className='px-10 text-gray-800 dark:text-white text-left flex-content justify-start space-y-2'>
           <p>24 states have passed laws requiring adult sites to verifiy age.</p>
           <p>We agree that children should not have access to sexually explicit material.</p>
           <p>However, we also believe the verification process should be:</p>
@@ -29,7 +28,7 @@ function App() {
         
         
       
-    </body>
+    
     </>
   )
 }
