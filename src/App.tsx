@@ -20,10 +20,13 @@ function App() {
             </ol>
           </div>
           <p>We are partnering with content providers, adult nonprofits and regulatory bodies to make this possible.</p>
-          <p className='text-md mt-10'>Email <a className='text-blue-500 underline' href="mailto:me@djscruggs.com">me@djscruggs.com</a> for more information.</p>
+          <p className='text-md mt-10'>Email <a className='text-blue-500 underline' href="mailto:me@djscruggs.com">me@djscruggs.com</a> for more information, or signup below.</p>
+          
         </div>
       </div>
-        
+      <div className='w-full flex justify-center p-0'>
+        <iframe src="https://cardlessid.substack.com/embed" width="400" height="320"></iframe>
+      </div>
 
         
         
