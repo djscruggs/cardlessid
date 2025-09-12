@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import './App.css';
+import './App.css'
 
-const App = () => {
-  
+function App() {
+
   return (
-    <body className="bg-white dark:bg-gray-800">
+    <>
+      <body className="bg-white dark:bg-gray-800 ">
       <div className='mx-10'>
         <header className="flex justify-center mb-10">
         <img src='/logo.png' alt="logo" width="30%"/>
@@ -30,7 +30,8 @@ const App = () => {
         
       
     </body>
-  );
-};
+    </>
+  )
+}
 
-export default App;
+export default App
