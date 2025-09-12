@@ -25,7 +25,7 @@ No configuration or complicated folder structures, just the files you need to bu
 vite-template-react
 ├── node_modules
 ├── public
-│   ├── favicon.svg
+│   ├── favicon.png
 │   └── robots.txt
 └── src
     ├── App.css
