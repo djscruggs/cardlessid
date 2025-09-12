@@ -1,0 +1,23 @@
+    // tsconfig.json (example)
+    {
+      "compilerOptions": {
+        "target": "ESNext",
+        "useDefineForClassFields": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "allowJs": true, // Set to true for gradual migration
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "ESNext",
+        "moduleResolution": "Node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "types": ["vite/client"] // Add Vite client types
+      },
+      "include": ["src", "vite.config.ts"],
+      "references": [{ "path": "./tsconfig.node.json" }] // If using separate node config
+    }
