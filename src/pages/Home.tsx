@@ -5,7 +5,7 @@ const Home: React.FC = () => {
     <>
       
         
-      <div className='flex-col w-full mt-40'>
+      <div className='flex-col w-full'>
         <header className="flex justify-center mb-10">
           <img src='/logo.png' alt="logo" className='h-60' />
         </header>
@@ -16,16 +16,16 @@ const Home: React.FC = () => {
           <div className='ml-10 text-md'>
             <ol className='list-decimal'>
               <li>Extremely private, with no data stored by the verification provider</li>
-              <li>Only necessary to do one time across <span className='italic'>all</span> web sites</li>
+              <li>Only necessary to do one time across <span className='italic'>all</span> adult web sites</li>
               <li>Provided by a nonprofit that does not retain or monetize your data</li>
             </ol>
           </div>
-          <p>We are partnering with content providers, technology companies and regulatory bodies to make this possible.</p>
-          <p className='text-md text-center'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or signup below.</p>
+          <p>We partner with content and technology providers, nonprofits, media and regulatory bodies to make this possible.</p>
+          <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
           
         </div>
         <div className='w-full flex justify-center p-0 mb-10'>
-          <iframe src="https://cardlessid.substack.com/embed" width="400" height="320"></iframe>
+          <iframe src="https://cardlessid.substack.com/embed" width="400" height="150"></iframe>
         </div>
       </div>
       
