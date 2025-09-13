@@ -1,6 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 const Home: React.FC = () => {
+  const handleClick = () => {
+    // This method opens a new browser tab with the specified URL
+    window.open('https://cardlessid.substack.com/p/what-is-cardless-id', '_blank');
+  };
   return (
     <>
       
@@ -22,7 +26,14 @@ const Home: React.FC = () => {
             </ol>
           </div>
           <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
-          <p>Learn how it works <a className='text-logoblue underline' target="_blank" href="https://cardlessid.substack.com/p/what-is-cardless-id">here</a>.</p>
+          <div className="flex justify-center items-center">
+            <button 
+              className='bg-logoblue p-4 text-white'
+              onClick={handleClick}
+              >
+              How It Works
+              </button>
+          </div>
           <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
         </div>
         <div className='w-full flex justify-center p-0 mb-10'>
