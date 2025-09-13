@@ -15,9 +15,10 @@ const Home: React.FC = () => {
           <p>However, we also believe the verification process should be:</p>
           <div className='ml-10 text-md'>
             <ol className='list-decimal'>
-              <li>Extremely private, with no data stored by the verification provider</li>
+              <li>Extremely private, and not requiring any information except birth date</li>
               <li>Only necessary to do one time across <span className='italic'>all</span> adult web sites</li>
               <li>Provided by a nonprofit that does not retain or monetize your data</li>
+              <li>Free for end users and providers alike</li>
             </ol>
           </div>
           <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
