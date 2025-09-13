@@ -1,14 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-
-// display: flex;
-//   justify-content: space-between;
-//   align-items: center;
-//   padding: 1rem 2rem;
-//   background-color: #f8f9fa;
-//   border-bottom: 1px solid #dee2e6;
-
 const Header: React.FC = () => {
   return (
     <header className="w-full flex justify-between p-1 pb-4">

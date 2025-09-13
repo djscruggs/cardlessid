@@ -3,9 +3,9 @@ const About = () => {
 
   return (
     <>
-    <div className="flex flex-col justify-start  max-w-xl  border">
-      About
-    </div>
+      <div className="flex flex-col justify-start  max-w-xl  border">
+        About
+      </div>
     </>
   )
 }
