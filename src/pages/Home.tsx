@@ -5,7 +5,7 @@ const Home: React.FC = () => {
     <>
       
         
-      <div className='flex-col w-full mt-30'>
+      <div className='flex-col w-full mt-40'>
         <header className="flex justify-center mb-10">
           <img src='/logo.png' alt="logo" className='h-60' />
         </header>
@@ -20,7 +20,7 @@ const Home: React.FC = () => {
               <li>Provided by a nonprofit that does not retain or monetize your data</li>
             </ol>
           </div>
-          <p>We are partnering with content providers, adult nonprofits and regulatory bodies to make this possible.</p>
+          <p>We are partnering with content providers, technology companies and regulatory bodies to make this possible.</p>
           <p className='text-md text-center'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or signup below.</p>
           
         </div>
