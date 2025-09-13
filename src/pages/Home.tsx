@@ -20,7 +20,7 @@ const Home: React.FC = () => {
               <li>Provided by a nonprofit that does not retain or monetize your data</li>
             </ol>
           </div>
-          <p>We partner with content and technology providers, nonprofits, media and regulatory bodies to make this possible.</p>
+          <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
           <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
           
         </div>
