@@ -10,6 +10,7 @@ const Header: React.FC = () => {
         </div>
         <nav className='flex flex-grow justify-end pr-4'>
           <ul className='flex items-center justify-end space-x-8 text-logoblue'>
+            {/* <li><Link to="/whatisit">What Is it?</Link></li> */}
             {/* <li><Link to="/">Home</Link></li> */}
             {/* <li><Link to="/about">About</Link></li> */}
             {/* <li><Link to="/contact">Contact</Link></li> */}

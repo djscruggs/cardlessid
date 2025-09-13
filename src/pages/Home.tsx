@@ -22,8 +22,8 @@ const Home: React.FC = () => {
             </ol>
           </div>
           <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
+          <p>Learn how it works <a className='text-logoblue underline' target="_blank" href="https://cardlessid.substack.com/p/what-is-cardless-id">here</a>.</p>
           <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
-          
         </div>
         <div className='w-full flex justify-center p-0 mb-10'>
           <iframe src="https://cardlessid.substack.com/embed" width="400" height="150"></iframe>
