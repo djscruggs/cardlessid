@@ -9,7 +9,7 @@ const Home: React.FC = () => {
         <header className="flex justify-center mb-10">
           <img src='/logo.png' alt="logo" className='h-60' />
         </header>
-        <div className='px-10 text-gray-800 dark:text-white text-left flex-content justify-start space-y-2'>
+        <div className='px-10 text-gray-800  text-left flex-content justify-start space-y-2'>
           <p>24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.</p>
           <p>We agree that children should not have access to sexually explicit material.</p>
           <p>However, we also believe the verification process should be:</p>
