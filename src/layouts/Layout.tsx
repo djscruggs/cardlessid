@@ -9,15 +9,20 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const paths = ['/','/demo'];
+  const showHeader = !paths.includes(location.pathname)
+  console.log( location.pathname)
   return (
     <div className='flex flex-col w-screen h-screen'>
-      {location.pathname != '/' &&
+      {showHeader &&
         <Header />
       }
-      <main className='w-full p-4  flex flex-col justify-center'>
+      <main className={`w-full ${showHeader ? 'p-4' : 'p-0'} flex flex-col justify-center`}>
         {children}
       </main>
+      {showHeader &&
       <Footer />
+      }
     </div>
   );
 };
