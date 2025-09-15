@@ -11,6 +11,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const isDemo = location.pathname.includes('demo')
   const showHeader = location.pathname != '/' && !isDemo
+  const showFooter = !isDemo
 
   return (
     <div className='flex flex-col w-screen h-screen'>
@@ -25,9 +26,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <main className={`w-full ${showHeader ? 'p-4' : 'p-0'} flex flex-col justify-center flex-grow`}>
         {children}
       </main>
-      {showHeader &&
-      <Footer />
-      }
+      {showFooter &&
+        <Footer />
+        }
     </div>
   
   );

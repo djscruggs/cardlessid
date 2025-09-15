@@ -136,7 +136,7 @@ const Demo: React.FC = () => {
         <p className='text-red-500 my-4'>{error}</p>
       }
 
-      <div className='relative max-w-5xl mx-auto mt-6'>
+      <div className='relative max-w-5xl mx-auto mt-6 my-12'>
         <Modal open={modal} onClose={toggleModal}  center>
           <div
             className="flex flex-col items-center justify-center rounded-md"
