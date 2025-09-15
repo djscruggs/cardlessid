@@ -21,8 +21,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/whatisit" element={<What />} />
           <Route path="/demo" element={<Demo />} />
-          <Route path="/verify/:uid" element={<Verify />} />
-          <Route path="/verify" element={<Verify />} />
+          <Route path="/demo/verify/:uid" element={<Verify />} />
+          <Route path="/demo/verify" element={<Verify />} />
         </Routes>
       </Layout>
     </Router>

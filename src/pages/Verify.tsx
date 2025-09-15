@@ -10,9 +10,13 @@ const Verify: React.FC = () => {
   }
   const location = useLocation();
   const uid = location.pathname.split('/').pop();
-  console.log(uid)
   const [error] = useState(!uid || uid == 'verify')
-  
+  const wallets = ['metamask', 'coinbase','pera','phantom']
+  const isDev = window.location.hostname === 'localhost'
+  const baseUrl = isDev ? 'http://localhost:5173' : 'https://cardlessid.org';
+  const onTap = () =>{
+    console.log('tapped')
+  }
 
   
   return (
@@ -39,12 +43,28 @@ const Verify: React.FC = () => {
           )}
         </div>
         <Modal open={modal} onClose={toggleModal}  center>
-                  <div
-                    className="flex flex-col items-center justify-center rounded-md"
-                  >
-                    Uid is {uid}
-                  </div>
-                </Modal>
+            <div
+              className="flex flex-col items-center justify-center rounded-md max-w-md"
+            >
+            <div className='space-y-2 mb-4 mt-6'>
+            <p>Since this is a demo, we won't do a full verification. However, if you did it would give you the option of verifying for the first time, or using one of our supported wallets. </p>  
+            <p className='text-center'>Click or tap one of the logos below.</p>
+            </div>
+           <div
+              className="grid grid-cols-2 gap-10"
+            >
+           {wallets.map(wallet => (
+              <img 
+                key={wallet} 
+                src={`${baseUrl}/wallets/${wallet}.png`} 
+                alt={`${wallet} wallet`} 
+                onClick={onTap}
+                className='h-30 w-30 opacity-50 hover:opacity-100 cursor-pointer'
+              />
+            ))}
+            </div>
+            </div>
+          </Modal>
       </div>
       
     </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { getDatabase, ref, set, get, child } from "firebase/database";
@@ -41,7 +42,7 @@ const videos = [
 
 const Demo: React.FC = () => {
   const [modal, setModal] = useState(false);
-  const [data, setData] = useState<{ verified: boolean} | null>(null);;
+  const [data, setData] = useState({ verified: false});;
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
   let uid = localStorage.getItem('uid');
@@ -59,15 +60,10 @@ const Demo: React.FC = () => {
           setModal(false)
         }
       } else {
-        const dataToSave = { verified: false };
-        set(child(dbRef, uniqueId), dataToSave)
-          .then(() => {
-            console.log("Data successfully written!");
-          })
+        set(child(dbRef, uniqueId), data)
           .catch((writeError) => {
             setError("Write failed: " + writeError.message);
           });
-        setError("No data found. Initializing data...");
       }
     }).catch((readError) => {
       setError("Read failed: " + readError.message);
@@ -98,7 +94,7 @@ const Demo: React.FC = () => {
       });
   }, []);
   const isDev = window.location.hostname === 'localhost'
-  const baseUrl = isDev ? 'http://localhost:5173/verify/' : 'https://cardlessid.org/verify/';
+  const baseUrl = isDev ? 'http://localhost:5173/demo/verify/' : 'https://cardlessid.org/demo/verify/';
   const fullUrl = baseUrl + uid;
   const toggleModal = () => {
     setModal(!modal);
@@ -111,9 +107,6 @@ const Demo: React.FC = () => {
   return (
     <div >
       
-      <div className="pt-8">
-        <img src="/logospicy.png" className="h-[160px] mx-auto block" />
-      </div>
       {error &&
         <p className='text-red-500 my-4'>{error}</p>
       }
@@ -128,10 +121,11 @@ const Demo: React.FC = () => {
               alt="QR Code for verification"
               className="w-40 h-40 bg-gray-300"
             />
-            {isDev && 
-            <p>{fullUrl}</p>
-            }
-            <p className="mt-4 text-lg font-semibold text-gray-800">Scan QR Code to Verify Your Age</p>
+            <div className = 'mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center'>
+            <p>Scan QR Code to Verify Your Age</p>
+            <p className='italic'>or</p>
+            <p><Link to ={fullUrl} className='text-logoblue underline'>Click here</Link> to verify on the web</p>
+            </div>
           </div>
         </Modal>
         <div className="grid grid-cols-6 gap-3">
