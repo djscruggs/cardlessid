@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from '../firebase-config.ts'
+const Spinner = lazy(() => import('../components/Spinner.tsx'));
 
 const videos = [
   {"id": "meDRHqG2djI", "title": "Ty Dolla $ign - Spicy (feat. Post Malone)"},
@@ -41,69 +42,92 @@ const videos = [
 
 
 const Demo: React.FC = () => {
-  const [modal, setModal] = useState(false);
-  const [data, setData] = useState({ verified: false});;
+  const [modal, setModal] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  const generateId = (): string => {
+    // Generates a random string of numbers and letters
+    const randomPart = Math.random().toString(36).substring(2, 8);
+
+    // Gets the current timestamp
+    const timestampPart = Date.now().toString().slice(-4);
+
+    // Combines and shortens the parts to 6-8 characters
+    const generatedId = (randomPart + timestampPart).slice(0, 8);
+
+    return generatedId;
+  };
+  const _vid = localStorage.getItem('vid') || generateId();
+  localStorage.setItem('vid', _vid);
+
+  const [data, setData] = useState({ verified: false, vid: _vid });
   const [error, setError] = useState('');
-  const [verified, setVerified] = useState(false);
-  let uid = localStorage.getItem('uid');
-  if(!uid){
-    uid = Date.now().toString(36);
-    localStorage.setItem('uid', uid);
-  }
-  const loadData = (dbRef: any, uniqueId: string) => {
-    get(child(dbRef, uniqueId)).then((snapshot) => {
+  const auth = getAuth(firebaseApp);
+  const dbRef = ref(getDatabase(firebaseApp));
+  signInAnonymously(auth)
+
+  const loadData = async (vid: string) => {
+    if (data.verified) {
+      return;
+    }
+    try {
+      const snapshot = await get(child(dbRef, vid));
+
       if (snapshot.exists()) {
         const fetchedData = snapshot.val();
-        setData(fetchedData);
-        setVerified(fetchedData.verified); 
-        if(fetchedData.verified){
-          setModal(false)
-        }
+        setData({ vid: vid, verified: fetchedData.verified });
+
+        setLoading(false);
       } else {
-        set(child(dbRef, uniqueId), data)
-          .catch((writeError) => {
-            setError("Write failed: " + writeError.message);
-          });
+        await set(child(dbRef, vid), { verified: false });
+        setData({ vid: vid, verified: false });
+        setLoading(false);
       }
-    }).catch((readError) => {
-      setError("Read failed: " + readError.message);
-    });
+    } catch (error) {
+      if (error instanceof Error) {
+        setError('Operation failed: ' + error.message);
+      } else {
+        setError('Operation failed: ' + String(error));
+      }
+      setLoading(false);
+    }
   };
-  useEffect((): void => {
-    const auth = getAuth(firebaseApp);
-    const dbRef = ref(getDatabase(firebaseApp));
+  const restart = (): void => {
+    localStorage.removeItem('vid');
+    const newVid = generateId();
+    localStorage.setItem('vid', newVid);
+    setData({ verified: false, vid: newVid });
+  };
+  useEffect(() => {
+    // Initial data load on page visit
+    loadData(data.vid);
 
-    // Sign in anonymously to get an auth token
-    signInAnonymously(auth)
-      .then(() => {
-        // Initial data load on page visit
-        loadData(dbRef, uid);
+    // Start polling only if not yet verified
+    if (!data.verified) {
+      const intervalId = setInterval(() => {
+        loadData(data.vid);
+      }, 2000);
 
-        // Start polling only if not yet verified
-        if (!verified) {
-          const intervalId = setInterval(() => {
-            loadData(dbRef, uid);
-          }, 2000);
+      // Cleanup function to clear the interval
+      return () => clearInterval(intervalId);
+    }
+  }, [data.vid, data.verified]); // Dependency array now includes data.vid and data.verified to trigger re-run
 
-          // Cleanup function to clear the interval
-          return () => clearInterval(intervalId);
-        }
-      })
-      .catch((authError) => {
-        setError("Authentication failed: " + authError.message);
-      });
-  }, []);
-  const isDev = window.location.hostname === 'localhost'
-  const baseUrl = isDev ? 'http://localhost:5173/demo/verify/' : 'https://cardlessid.org/demo/verify/';
-  const fullUrl = baseUrl + uid;
+  const isDev = window.location.hostname === 'localhost';
+  const baseUrl = isDev
+    ? 'http://localhost:5173/demo/verify/'
+    : 'https://cardlessid.org/demo/verify/';
+  const fullUrl = baseUrl + data.vid;
   const toggleModal = () => {
     setModal(!modal);
+  };
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center">
+        <Spinner />
+      </div>
+    );
   }
-  useEffect(()=>{
-    setVerified(data?.verified ? true : false)
-  },[data])
-
-  
   return (
     <div >
       
@@ -116,22 +140,39 @@ const Demo: React.FC = () => {
           <div
             className="flex flex-col items-center justify-center rounded-md"
           >
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`}
-              alt="QR Code for verification"
-              className="w-40 h-40 bg-gray-300"
-            />
-            <div className = 'mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center'>
-            <p>Scan QR Code to Verify Your Age</p>
-            <p className='italic'>or</p>
-            <p><Link to ={fullUrl} className='text-logoblue underline'>Click here</Link> to verify on the web</p>
+          {data.verified ? (
+            <div className='space-y-4 flex mt-4 flex-col items-center justify-center'>
+             <p> You are verified! No other action is necessary.</p>
+             <p> If you want to demo the process again, click Restart.</p>
+                <button 
+                    className='bg-logoblue p-2 text-white text-xl rounded-full cursor-pointer'
+                    onClick={restart}
+                  >
+                  Restart
+                </button>
+             
+             </div>
+           ) : (
+
+            <>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`}
+                alt="QR Code for verification"
+                className="w-40 h-40 bg-gray-300"
+              />
+              <div className = 'mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center'>
+                <p>Scan QR Code to Verify Your Age</p>
+                <p className='italic'>or</p>
+                <p><Link to ={fullUrl} target='_blank' className='text-logoblue underline'>Click here</Link> to verify on the web</p>
+              </div>
+              </>            
+            )}
             </div>
-          </div>
         </Modal>
         <div className="grid grid-cols-6 gap-3">
           {Array.from({ length: 30 }).map((_, index) => (
               <div key={videos[index].id} onClick={toggleModal} className="w-36 h-36 bg-gray-300 flex items-center justify-center rounded-lg cursor-pointer">
-                {!verified  ? (
+                {!data.verified  ? (
                   <span className="text-gray-600 text-sm pointer-cursor text-center">Verify Age to View</span>
                    ) : (
                   <img 

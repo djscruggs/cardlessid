@@ -1,11 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
   const handleClick = () => {
     // This method opens a new browser tab with the specified URL
     window.open('https://cardlessid.substack.com/p/what-is-cardless-id', '_blank');
   };
+  const navigate = useNavigate()
+  const goToDemo = () => {
+    navigate('/demo')
+  }
   return (
     <>
       <div className='flex-col w-full'>
@@ -25,13 +29,19 @@ const Home: React.FC = () => {
               </ol>
             </div>
             <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center space-x-4">
               <button 
                 className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
                 onClick={handleClick}
                 >
                 Learn More
-                </button>
+              </button>
+              <button 
+                className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
+                onClick={goToDemo}
+                >
+                Try the Demo
+              </button>
             </div>
             <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
           </div>

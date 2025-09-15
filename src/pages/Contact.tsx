@@ -17,10 +17,10 @@ const Contact: React.FC = () => {
         form.current,
         'CUs0nfElnWZlGwWWM' // Replace with your EmailJS public key
       )
-      .then((result) => {
+      .then(() => {
           setStatus('Message sent successfully!');
           form.current?.reset();
-      }, (error) => {
+      }, () => {
           setStatus('Failed to send message.');
       });
     }
