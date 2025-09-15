@@ -68,10 +68,10 @@ const Verify: React.FC = () => {
       setLoading(false);
     }
   };
+  signInAnonymously(auth)
   useEffect(() => {
     const initialize = async () => {
     try {
-      await signInAnonymously(auth);
       await loadData(dbRef, vid);
     } catch (authError) {
       if (authError instanceof Error) {

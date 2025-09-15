@@ -1,5 +1,5 @@
 import React, { useEffect, useState, lazy } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { getDatabase, ref, set, get, child } from "firebase/database";
@@ -44,6 +44,7 @@ const videos = [
 const Demo: React.FC = () => {
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const generateId = (): string => {
     // Generates a random string of numbers and letters
@@ -144,13 +145,21 @@ const Demo: React.FC = () => {
             <div className='space-y-4 flex mt-4 flex-col items-center justify-center'>
              <p> You are verified! No other action is necessary.</p>
              <p> If you want to demo the process again, click Restart.</p>
+             <div className='flex items-center justify-between'>
                 <button 
                     className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
                     onClick={restart}
                   >
                   Restart
                 </button>
-             
+                <span className='mx-6'>or </span>
+                <button 
+                    className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
+                    onClick={()=>navigate('/')}
+                  >
+                  Go Home
+                </button>
+             </div>
              </div>
            ) : (
 
