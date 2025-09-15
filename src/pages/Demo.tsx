@@ -29,7 +29,7 @@ const videos = [
   {"id": "lY17HYygJ5A", "title": "EXTREME 1 Hour Spicy Food Tiktok Compilation"},
   {"id": "hLs-DSWP7d8", "title": "ONLY 5 MINUTES TO EAT THIS DEATHLY SPICY TACO ..."},
   {"id": "uNQMzH28OUQ", "title": "Extreme Spicy VS Sour Snacks Challenge"},
-  {"id": "yXifSv0tl4", "title": "TRYING EVERY SPICY FOOD CHALLENGE"},
+  {"id": "p6vAtnL1KQQ", "title": "Surviving The Hot Ones Challenge"},
   {"id": "0MLTox4SMPE", "title": "Eating 100 SPICY FOODS in 24 HOURS..."},
   {"id": "ubIZVs9lpbo", "title": "LukeDidThat Spicy Challenge Compilation (Part 9)"},
   {"id": "iJ0s5RZBht8", "title": "We Play Extreme Spicy Cup Pong (Spicy Pepper Challenge)"},
@@ -40,46 +40,58 @@ const videos = [
 
 
 const Demo: React.FC = () => {
-  const [modal, setModal] = useState(true);
-  const [data, setData] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [data, setData] = useState<{ verified: boolean} | null>(null);;
   const [error, setError] = useState('');
-  const [saved,setSaved] = useState(false);
-  const [verified, setVerified] = useState(true);
+  const [verified, setVerified] = useState(false);
   let uid = localStorage.getItem('uid');
   if(!uid){
     uid = Date.now().toString(36);
     localStorage.setItem('uid', uid);
   }
+  const loadData = (dbRef: any, uniqueId: string) => {
+    get(child(dbRef, uniqueId)).then((snapshot) => {
+      if (snapshot.exists()) {
+        const fetchedData = snapshot.val();
+        setData(fetchedData);
+        setVerified(fetchedData.verified); 
+        if(fetchedData.verified){
+          setModal(false)
+        }
+      } else {
+        const dataToSave = { verified: false };
+        set(child(dbRef, uniqueId), dataToSave)
+          .then(() => {
+            console.log("Data successfully written!");
+          })
+          .catch((writeError) => {
+            setError("Write failed: " + writeError.message);
+          });
+        setError("No data found. Initializing data...");
+      }
+    }).catch((readError) => {
+      setError("Read failed: " + readError.message);
+    });
+  };
   useEffect((): void => {
-    console.log('useEffect')
     const auth = getAuth(firebaseApp);
     const dbRef = ref(getDatabase(firebaseApp));
 
     // Sign in anonymously to get an auth token
     signInAnonymously(auth)
       .then(() => {
-        // Once authenticated, you can perform read/write operations
-        const uniqueId = uid; // Your dynamic ID
-        get(child(dbRef, uniqueId)).then((snapshot) => {
-          if (snapshot.exists()) {
-            setData(snapshot.val());
-            console.log(snapshot.val())
-            setSaved(true);
-          } else {
-            console.log('does not exist')
-            const dataToSave = { verified: false };
-            set(child(dbRef, uniqueId), dataToSave)
-              .then(() => {
-                console.log("Data successfully written!");
-              })
-              .catch((writeError) => {
-                setError("Write failed: " + writeError.message);
-              });
-            setError("No data found.");
-          }
-        }).catch((readError) => {
-          setError("Read failed: " + readError.message);
-        });
+        // Initial data load on page visit
+        loadData(dbRef, uid);
+
+        // Start polling only if not yet verified
+        if (!verified) {
+          const intervalId = setInterval(() => {
+            loadData(dbRef, uid);
+          }, 2000);
+
+          // Cleanup function to clear the interval
+          return () => clearInterval(intervalId);
+        }
       })
       .catch((authError) => {
         setError("Authentication failed: " + authError.message);
@@ -91,6 +103,9 @@ const Demo: React.FC = () => {
   const toggleModal = () => {
     setModal(!modal);
   }
+  useEffect(()=>{
+    setVerified(data?.verified ? true : false)
+  },[data])
 
   
   return (
@@ -121,23 +136,19 @@ const Demo: React.FC = () => {
         </Modal>
         <div className="grid grid-cols-6 gap-3">
           {Array.from({ length: 30 }).map((_, index) => (
-            <>
-            
-              <div key={index} onClick={toggleModal} className="w-36 h-36 bg-gray-300 flex items-center justify-center rounded-lg cursor-pointer">
+              <div key={videos[index].id} onClick={toggleModal} className="w-36 h-36 bg-gray-300 flex items-center justify-center rounded-lg cursor-pointer">
                 {!verified  ? (
                   <span className="text-gray-600 text-sm pointer-cursor text-center">Verify Age to View</span>
                    ) : (
                   <img 
                     src={`https://img.youtube.com/vi/${videos[index].id}/hqdefault.jpg`} 
                     alt={videos[index].title}
+                    onClick={()=>window.open('https://www.youtube.com/watch?v=' + videos[index].id, '_blank')}
                     className="h-36 w-36 rounded-md"
                   />
                   
                 )}
               </div>
-          
-
-            </>
           ))}
         </div>
       </div>
