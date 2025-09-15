@@ -145,7 +145,7 @@ const Demo: React.FC = () => {
              <p> You are verified! No other action is necessary.</p>
              <p> If you want to demo the process again, click Restart.</p>
                 <button 
-                    className='bg-logoblue p-2 text-white text-xl rounded-full cursor-pointer'
+                    className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
                     onClick={restart}
                   >
                   Restart
