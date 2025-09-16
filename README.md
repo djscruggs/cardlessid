@@ -11,9 +11,7 @@ We agree that children should never have access to sexually explicit material. H
 
 We partner with content companies, technology providers, media and regulators to make this possible.
 
-This site serves as a zero-knowledge proof-based verification tool and information clearing house for all interested parties.
-
-This project is in active development. We're collaborating with partners to integrate existing decentralized identity tools that give end users maximum control of what information is shared. This partnership ensures cross-chain compatibility with all major blockchain networks.
+This project is in active development. We're collaborating with partners to integrate existing decentralized identity tools that give end users maximum control of what information is shared. This ensures compatibility with all major blockchain networks.
 
 ## How to Contribute
 
