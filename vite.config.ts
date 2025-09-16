@@ -8,11 +8,11 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
-  server: {
-    host: '0.0.0.0', // This allows connections from all network interfaces
-    hmr: {
-      host: '*.ngrok-free.app', // Add your ngrok URL here
-      clientPort: 443, // The default port for HTTPS
-    },
-  },
+  // server: {
+  //   host: '0.0.0.0', // This allows connections from all network interfaces
+  //   hmr: {
+  //     host: '*.ngrok-free.app', // Add your ngrok URL here
+  //     clientPort: 443, // The default port for HTTPS
+  //   },
+  // },
 })

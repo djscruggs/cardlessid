@@ -21,12 +21,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {isDemo &&
         <div className="pt-8">
           <a href="/" className="absolute top-24 left-4 md:left-30 text-logoblue hover:underline text-sm font-semibold">
-            &laquo; Back
+            &laquo; Home
           </a>
           <img src="/logospicy.png" className="h-[160px] mx-auto block" />
         </div>
       }
-      <main className={`w-full ${showHeader ? 'p-4' : 'p-0'} flex flex-col justify-center flex-grow pt-0`}>
+      <main className={`w-full ${showHeader ? 'p-4' : 'p-0'} flex flex-col justify-start flex-grow`}>
         {children}
       </main>
       {showFooter &&

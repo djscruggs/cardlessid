@@ -41,12 +41,16 @@ const videos = [
   {"id": "k8IcJ0L6kdU", "title": "SPICY JUICY BIG CHICKEN & EGG MOMOS WITH SPICY ..."}
 ]
 
-
+interface vData {
+  verified: boolean, 
+  vid:string 
+}
 const Demo: React.FC = () => {
   usePageTitle('SpicyVids Demo | Cardless ID');
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [step, setStep] = useState(1)
 
   const isDev = !window.location.hostname.includes('cardlessid.org')
 
@@ -118,10 +122,6 @@ const Demo: React.FC = () => {
     }
   }, [data.vid, data.verified]); // Dependency array now includes data.vid and data.verified to trigger re-run
 
-  const baseUrl = isDev
-    ? 'http://localhost:5173/demo/verify/'
-    : 'https://cardlessid.org/demo/verify/';
-  const fullUrl = baseUrl + data.vid;
   const toggleModal = () => {
     setModal(!modal);
   };
@@ -141,45 +141,24 @@ const Demo: React.FC = () => {
 
       <div className='max-w-5xl mx-auto mt-6 my-12 flex items-center justify-center '>
         <Modal open={modal} onClose={toggleModal}  center>
-          <div
-            className="flex flex-col items-center justify-center rounded-md"
-          >
-          {data.verified ? (
-            <div className='space-y-4 flex mt-4 flex-col items-center justify-center'>
-             <p> You are verified! No other action is necessary.</p>
-             <p> If you want to demo the process again, click Restart.</p>
-             <div className='flex items-center justify-between'>
-                <button 
-                    className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
-                    onClick={restart}
-                  >
-                  Restart
-                </button>
-                <span className='mx-6'>or </span>
-                <button 
-                    className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
-                    onClick={()=>navigate('/')}
-                  >
-                  Go Home
-                </button>
-             </div>
-             </div>
-           ) : (
-
-            <>
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`}
-                alt="QR Code for verification"
-                className="w-40 h-40 bg-gray-300"
-              />
-              <div className = 'mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center'>
-                <p>Scan QR Code to Verify Your Age</p>
-                <p className='italic'>or</p>
-                <p><Link to ={fullUrl} target='_blank' className='text-logoblue underline'>Click here</Link> to verify on the web</p>
+          <div className="flex flex-col items-center justify-center rounded-md">
+            {step == 1 && !data.verified &&
+            <div className='space-y-2 max-w-sm mt-6 flex flex-col items-center justify-center'>
+              <p className='text-left'>This demonstration shows what it's like to "log in" to an age-restricted site.</p>
+              <p>You will <em>not</em> be asked to provide your name, email or any other information.</p>
+              <p>Instead you will use a crypto wallet that has your birth date encrypted within it.</p>
+              <button 
+                className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
+                onClick={()=>setStep(2)}
+              >
+                Start Demo
+              </button>
               </div>
-              </>            
-            )}
-            </div>
+            }
+            {(step == 2 || data.verified) && <Step2 isDev={isDev} data={data} restart={restart} />}
+            
+            
+          </div>
         </Modal>
         <div className="grid  grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
           {Array.from({ length: 30 }).map((_, index) => (
@@ -206,3 +185,54 @@ const Demo: React.FC = () => {
   );
 }
 export default Demo;
+
+const Step2 = ({isDev, data, restart}: {isDev: boolean, data: vData, restart: ()=>void})=> {
+  const baseUrl = isDev
+    ? 'http://localhost:5173/demo/verify/'
+    : 'https://cardlessid.org/demo/verify/';
+  const fullUrl = baseUrl + data.vid;
+  const navigate = useNavigate();
+  const cutoff = new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  
+  return(
+    <>
+      {data.verified ? (
+        <div className='space-y-4 flex mt-4 flex-col items-center justify-center'>
+        <p> You are verified! No other action is necessary.</p>
+        <p> If you want to demo the process again, click Restart.</p>
+        <div className='flex items-center justify-between'>
+            <button 
+                className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
+                onClick={restart}
+              >
+              Restart
+            </button>
+            <span className='mx-6'>or </span>
+            <button 
+                className='bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer'
+                onClick={()=>navigate('/')}
+              >
+              Go Home
+            </button>
+        </div>
+        </div>
+      ) : (
+
+        <>
+          <p className='text-center text-xl mt-6 max-w-md'>Your birthday must be on or before</p>
+          <p className='text-center text-xl font-bold my-4 text-red-500'>{cutoff}</p>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullUrl)}`}
+            alt="QR Code for verification"
+            className="w-40 h-40 bg-gray-300"
+          />
+          <div className = 'mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center'>
+            <p>Scan QR Code to Verify Your Age</p>
+            <p className='italic'>or</p>
+            <p><Link to ={fullUrl} target='_blank' className='text-logoblue underline'>Click here</Link> to verify on the web</p>
+          </div>
+          </>            
+        )}
+    </>
+    )
+}

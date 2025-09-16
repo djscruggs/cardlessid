@@ -14,8 +14,8 @@ const Header: React.FC = () => {
         <nav className='flex-grow md:order-2 md:ml-auto'>
           <ul className='flex items-center justify-center md:justify-end md:mr-10 space-x-8 text-logoblue'>
             <li><Link to="/">Home</Link></li>
+            <li><Link to="/about">About</Link></li>            
             <li><Link to="/demo">Demo</Link></li>
-            {/* <li><Link to="/about">About</Link></li> */}
             <li><Link to="/contact">Contact</Link></li>
           </ul>
         </nav>
