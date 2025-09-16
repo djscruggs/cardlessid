@@ -39,7 +39,7 @@ const Home: React.FC = () => {
                 className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
                 onClick={goToDemo}
                 >
-                Try the Demo
+                Try Demo
               </button>
             </div>
             <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>

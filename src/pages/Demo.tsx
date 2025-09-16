@@ -134,9 +134,9 @@ const Demo: React.FC = () => {
   return (
     <div >
       
-      {error &&
+      {/* {error &&
         <p className='text-red-500 my-4'>{error}</p>
-      }
+      } */}
 
       <div className='max-w-5xl mx-auto mt-6 my-12 flex items-center justify-center '>
         <Modal open={modal} onClose={toggleModal}  center>
@@ -180,11 +180,14 @@ const Demo: React.FC = () => {
             )}
             </div>
         </Modal>
-        <div className="grid  grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
+        <div className="grid  grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
           {Array.from({ length: 30 }).map((_, index) => (
               <div key={videos[index].id} onClick={toggleModal} className="w-36 h-36 bg-gray-300 flex items-center justify-center rounded-lg cursor-pointer">
                 {!data.verified  ? (
-                  <span className="text-gray-600 text-sm pointer-cursor text-center">Click to Verify Age</span>
+                  <span className="text-gray-600 text-sm pointer-cursor text-center">
+                    <span className="hidden md:inline">Click to Verify Age</span> 
+                    <span className="inline md:hidden">Tap to Verify Age</span> 
+                    </span>
                    ) : (
                   <img 
                     src={`https://img.youtube.com/vi/${videos[index].id}/hqdefault.jpg`} 
