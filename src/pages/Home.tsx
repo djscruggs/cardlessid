@@ -15,9 +15,6 @@ const Home: React.FC = () => {
   return (
     <>
       <div className='flex-col w-full'>
-        <header className="flex justify-center mb-4">
-          <img src='/logo.png' alt="logo" className='h-60' />
-        </header>
         <div className='px-10 text-gray-800  text-2xl  flex flex-col items-center space-y-2'>
           <div className='max-w-3xl text-left mt-4 space-y-4'>
             <p>24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.</p>
@@ -31,7 +28,7 @@ const Home: React.FC = () => {
               </ol>
             </div>
             <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
-            <div className="flex justify-center items-center space-x-4">
+            <div className="flex justify-center items-center space-x-4 my-10">
               <button 
                 className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
                 onClick={handleClick}
@@ -47,7 +44,7 @@ const Home: React.FC = () => {
             </div>
             <p className='text-md text-center mb-2'><Link className='text-logoblue underline' to="/contact">Contact us</Link> for more information, or sign up below to receive our newsletter.</p>
           </div>
-          <div className='w-full flex justify-center p-0 mb-10'>
+          <div className='w-full flex justify-center p-0 mb-10 mt-4'>
             <iframe src="https://cardlessid.substack.com/embed" width="400" height="150"></iframe>
           </div>
         </div>

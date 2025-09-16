@@ -45,7 +45,7 @@ const Contact: React.FC = () => {
           <label htmlFor="message">Message</label>
           <textarea id="message" name="message" required></textarea>
         </div>
-        <button type="submit" className='bg-logoblue hover:bg-green-700 text-white'>Send Message</button>
+        <button type="submit" className='bg-logoblue hover:bg-green-700 text-white rounded-full'>Send Message</button>
       </form>
       
       
