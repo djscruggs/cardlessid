@@ -128,6 +128,7 @@ const Verify: React.FC = () => {
                   <>
                   <div className='space-y-2 mb-4 mt-6'>
                     <p>Since this is a demo, we won't do a full verification. However, if you did it would give you the option of verifying for the first time, or using one of our partner wallets. </p>  
+                    <p className='text-center font-bold'>No personal information is <em>ever</em> shared with the web site.</p>  
                     <p className='text-center'>Click or tap one of the logos below.</p>
                   </div>
                   <div className="grid grid-cols-2 gap-10">
