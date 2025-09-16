@@ -19,7 +19,7 @@ This project is in active development. We're collaborating with partners to buil
 
 ## How to Contribute
 
-This is an open-source project, and we welcome all contributions. Whether you're interested in documentation, front-end development, or anything else, we'd love to have you. For now, just reach out to me by email (me@djscruggs.com) or on Telegram (@djscruggs) to discuss how you can get involved.
+This is an open-source project, and we welcome all contributions. Whether you're interested in documentation, front-end development, or anything else, we'd love to have you. Reach out to me by email (me@djscruggs.com) or on Telegram (@djscruggs) to discuss how you can get involved.
 
 ## Tech Stack
 
