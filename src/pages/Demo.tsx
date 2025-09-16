@@ -118,7 +118,6 @@ const Demo: React.FC = () => {
     }
   }, [data.vid, data.verified]); // Dependency array now includes data.vid and data.verified to trigger re-run
 
-  const isDev = window.location.hostname === 'localhost';
   const baseUrl = isDev
     ? 'http://localhost:5173/demo/verify/'
     : 'https://cardlessid.org/demo/verify/';
