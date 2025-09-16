@@ -134,9 +134,9 @@ const Demo: React.FC = () => {
   return (
     <div >
       
-      {/* {error &&
-        <p className='text-red-500 my-4'>{error}</p>
-      } */}
+      {error &&
+        <p className='text-red-500 my-4 hidden'>{error}</p>
+      }
 
       <div className='max-w-5xl mx-auto mt-6 my-12 flex items-center justify-center '>
         <Modal open={modal} onClose={toggleModal}  center>
