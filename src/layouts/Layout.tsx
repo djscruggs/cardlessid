@@ -20,6 +20,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
       {isDemo &&
         <div className="pt-8">
+          <a href="/" className="absolute top-24 left-8 md:left-30 text-logoblue hover:underline text-sm font-semibold">
+        &laquo; Back
+      </a>
           <img src="/logospicy.png" className="h-[160px] mx-auto block" />
         </div>
       }

@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import emailjs from '@emailjs/browser';
 import './Contact.css';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Contact: React.FC = () => {
+  usePageTitle('Contact | Cardless ID');
   const form = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState('');
 

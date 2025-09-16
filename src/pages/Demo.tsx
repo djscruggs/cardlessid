@@ -5,6 +5,7 @@ import { Modal } from 'react-responsive-modal';
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from '../firebase-config.ts'
+import usePageTitle from '../hooks/usePageTitle.ts';
 const Spinner = lazy(() => import('../components/Spinner.tsx'));
 
 const videos = [
@@ -42,6 +43,7 @@ const videos = [
 
 
 const Demo: React.FC = () => {
+  usePageTitle('SpicyVids Demo | Cardless ID');
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();

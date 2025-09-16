@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import usePageTitle from '../hooks/usePageTitle';
 
 const Home: React.FC = () => {
+  usePageTitle('Home | Cardless ID');
   const handleClick = () => {
     // This method opens a new browser tab with the specified URL
     window.open('https://cardlessid.substack.com/p/what-is-cardless-id', '_blank');
