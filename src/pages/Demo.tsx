@@ -49,7 +49,6 @@ const Demo: React.FC = () => {
   usePageTitle('SpicyVids Demo | Cardless ID');
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const [step, setStep] = useState(1)
 
   const isDev = !window.location.hostname.includes('cardlessid.org')
