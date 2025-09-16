@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <img src="/logospicy.png" className="h-[160px] mx-auto block" />
         </div>
       }
-      <main className={`w-full ${showHeader ? 'p-4' : 'p-0'} flex flex-col justify-center flex-grow`}>
+      <main className={`w-full ${showHeader ? 'p-2 md:p4' : 'p-0'} flex flex-col justify-center flex-grow`}>
         {children}
       </main>
       {showFooter &&
