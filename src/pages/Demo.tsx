@@ -48,6 +48,8 @@ const Demo: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const isDev = !window.location.hostname.includes('cardlessid.org')
+
   const generateId = (): string => {
     // Generates a random string of numbers and letters
     const randomPart = Math.random().toString(36).substring(2, 8);
@@ -135,7 +137,7 @@ const Demo: React.FC = () => {
     <div >
       
       {error &&
-        <p className='text-red-500 my-4 hidden'>{error}</p>
+        <p className={`text-red-500 my-4 ${isDev ? '' : 'hidden'}`}>{error}</p>
       }
 
       <div className='max-w-5xl mx-auto mt-6 my-12 flex items-center justify-center '>
