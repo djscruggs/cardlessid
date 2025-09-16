@@ -30,13 +30,13 @@ const Home: React.FC = () => {
             <p>We partner with content companies, technology providers, media and regulators to make this possible.</p>
             <div className="flex justify-center items-center space-x-4 my-10">
               <button 
-                className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
+                className='bg-logoblue p-2 md:p-4 text-white text-sm sm:text-2xl rounded-full cursor-pointer'
                 onClick={handleClick}
                 >
                 Learn More
               </button>
               <button 
-                className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
+                className='bg-logoblue p-2 md:p-4 text-white text-sm sm:text-2xl rounded-full cursor-pointer'
                 onClick={goToDemo}
                 >
                 Try Demo
