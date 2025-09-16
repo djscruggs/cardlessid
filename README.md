@@ -1,70 +1,70 @@
-# React + TypeScript + Vite
+# Cardless ID
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## What is Cardless ID
 
-Currently, two official plugins are available:
+24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+We agree that children should never have access to sexually explicit material. However, we also believe the verification process should be:
 
-## Expanding the ESLint configuration
+1. Extremely private, and not require any information except birth date
+1. Only necessary to do one time across all *adult* web sites
+1. Provided by a nonprofit that does not retain or monetize your data
+1. Free for end users and providers alike
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+We partner with content companies, technology providers, media and regulators to make this possible.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+This site serves as a zero-knowledge proof-based verification tool and information clearing house for all interested parties.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+This project is in active development. We're collaborating with partners to build the core zero-knowledge proof components, which will be integrated here upon completion. This partnership ensures cross-chain compatibility with all major blockchain networks.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## How to Contribute
+
+This is an open-source project, and we welcome all contributions. Whether you're interested in documentation, front-end development, or anything else, we'd love to have you. For now, just reach out to me by email (me@djscruggs.com) or on Telegram (@djscruggs) to discuss how you can get involved.
+
+## Tech Stack
+
+This project is built with the following technologies:
+
+-   **[Vite](https://vitejs.dev/)**: A next-generation frontend tooling that provides a faster and leaner development experience.
+-   **[React](https://reactjs.org/)**: A JavaScript library for building user interfaces.
+-   **[TypeScript](https://www.typescriptlang.org/)**: A typed superset of JavaScript that compiles to plain JavaScript.
+-   **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
+-   **[Firebase](https://firebase.google.com/)**: A platform for building web and mobile applications, used here for backend services.
+-   **[React Router](https://reactrouter.com/)**: A declarative routing library for React.
+-   **[EmailJS](https://www.emailjs.com/)**: A service to send emails directly from client-side JavaScript.
+
+## Getting Started
+
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+-   npm
+    ```sh
+    npm install npm@latest -g
+    ```
+
+### Installation
+
+1.  Clone the repo
+    ```sh
+    git clone https://github.com/your_username_/Project-Name.git
+    ```
+2.  Install NPM packages
+    ```sh
+    npm install
+    ```
+3.  Start the development server
+    ```sh
+    npm run dev
+    ```
+
+Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+
+## Linting and Formatting
+
+This project uses ESLint for linting. You can run the linter with:
+
+```sh
+npm run lint
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
- 
