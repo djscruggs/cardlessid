@@ -18,7 +18,7 @@ const Home: React.FC = () => {
         <div className='px-10 text-gray-800  text-2xl  flex flex-col items-center space-y-2'>
           <div className='max-w-3xl text-left mt-4 space-y-4'>
             <p>24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.</p>
-            <p>We agree that children should not have access to sexually explicit material. However, we also believe the verification process should be:</p>
+            <p>We agree that children should never have access to sexually explicit material. However, we also believe the verification process should be:</p>
             <div className='ml-10 text-md'>
               <ol className='list-decimal'>
                 <li>Extremely private, and not require any information except birth date</li>
