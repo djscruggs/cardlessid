@@ -1,7 +1,5 @@
 # Cardless ID
 
-## What is Cardless ID
-
 24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.
 
 We agree that children should never have access to sexually explicit material. However, we also believe the verification process should be:
