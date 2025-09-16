@@ -114,7 +114,7 @@ const Verify: React.FC = () => {
                   )}
                 </>
               ) : (
-                <p className='max-w-lg'>You are verified. You can close this window and return to your main browser.</p>
+                <p className='max-w-lg mt-10'>You are verified. You can close this window and return to your main browser.</p>
               )}
             </>
           )}

@@ -126,7 +126,7 @@ const Demo: React.FC = () => {
   };
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center">
+      <div className="flex flex-col justify-center items-center mt-2">
         <Spinner />
       </div>
     );
@@ -138,7 +138,7 @@ const Demo: React.FC = () => {
         <p className={`text-red-500 my-4 ${isDev ? '' : 'hidden'}`}>{error}</p>
       }
 
-      <div className='max-w-5xl mx-auto mt-6 my-12 flex items-center justify-center '>
+      <div className='max-w-5xl mx-auto mt-10 my-12 flex items-center justify-center'>
         <Modal open={modal} onClose={toggleModal}  center>
           <div className="flex flex-col items-center justify-center rounded-md">
             {step == 1 && !data.verified &&
