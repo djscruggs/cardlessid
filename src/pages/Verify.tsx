@@ -143,9 +143,6 @@ const Verify: React.FC = () => {
                   <>
                   {step == 2 &&
                     <div className='relative'>
-                      <div className='absolute top-134 left-40'>
-                      {loading && <Spinner />}
-                      </div>
                       <div className='mt-4'>
                         <PhoneVerification wallet={wallet} age={18} onConfirm={confirm} />
                       </div>

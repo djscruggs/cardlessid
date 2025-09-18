@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import Phone from './Phone'
+import Spinner from './Spinner'
 
 const PhoneVerification: React.FC<{ age?: number, wallet: string, onConfirm: ()=> void }> = ({ age = 18, wallet = '', onConfirm }) => {
   const [checked, setChecked] = useState(true)
   const toggleCheck = () => {
     setChecked(!checked)
   }
+  const [confirming, setConfirming] = useState(false)
+  
   const confirm = () =>{
+    setConfirming(true)
     onConfirm()
   }
   const wallets = ['metamask', 'coinbase','pera','phantom']
@@ -16,7 +20,6 @@ const PhoneVerification: React.FC<{ age?: number, wallet: string, onConfirm: ()=
   return (
     <Phone>
       <div className='p-1 px-4 flex flex-col h-full'>
-
         <div className='text-left'>
           <div className='font-bold my-2 text-md'>Verify your age</div>
           <div className='text-sm space-y-2'>
@@ -58,13 +61,19 @@ const PhoneVerification: React.FC<{ age?: number, wallet: string, onConfirm: ()=
           </div>
           
         </div>
+        
         <button 
           className='bg-blue-700 text-white text-md rounded-md p-2 mt-auto mb-2 cursor-pointer disabled:bg-gray-400 disabled:cursor-default'
-          disabled={!checked}
+          disabled={!checked || confirming}
           onClick={confirm}
         >
-          Confirm
+          {confirming ? 
+            <Spinner /> 
+            :
+            <span>Confirm</span>
+          }
         </button>
+        
       </div>
     </Phone>
   )
