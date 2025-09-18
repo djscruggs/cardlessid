@@ -3,6 +3,7 @@ import 'react-responsive-modal/styles.css';
 import { Modal } from 'react-responsive-modal';
 import { useLocation } from 'react-router-dom';
 const Spinner = lazy(() => import('../components/Spinner.tsx'));
+import PhoneVerification from '../components/PhoneVerification.tsx'
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from '../firebase-config.ts'
@@ -10,11 +11,13 @@ import { firebaseApp } from '../firebase-config.ts'
 
 const Verify: React.FC = () => {
   const [modal, setModal] = useState(true);
+  const [wallet,setWallet] = useState('')
   const [step,setStep] = useState(1)
   const [loading, setLoading] = useState(true);
   const toggleModal = () => {
     if(modal == true){
       setTapped('')
+      setStep(1)
     }
     setModal(!modal)
   }
@@ -37,15 +40,11 @@ const Verify: React.FC = () => {
       setLoading(true)
       if(!wallets.includes(tapped)){
         setTapped(wallet)
-        // set(child(dbRef, vid), {verified: true})
-        // .catch((writeError) => {
-        //   setError("Write failed: " + writeError.message);
-        // });
         setTimeout(() => {
-          // loadData(dbRef, vid);
           setStep(2)
+          setWallet(wallet)
           setLoading(false)
-        }, 2000);
+        }, 1500);
 
       }
   }
@@ -147,7 +146,9 @@ const Verify: React.FC = () => {
                       <div className='absolute top-134 left-40'>
                       {loading && <Spinner />}
                       </div>
-                      <img src="/phone.png" className='max-h-200 w-94 max-w-screen -mb-5 cursor-pointer' onClick={confirm}/>
+                      <div className='mt-4'>
+                        <PhoneVerification wallet={wallet} age={18} onConfirm={confirm} />
+                      </div>
                     </div>
                     }
                   {step == 1 &&

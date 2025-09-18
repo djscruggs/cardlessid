@@ -1,10 +1,17 @@
 import { useState } from 'react'
 import Phone from './Phone'
 
-const PhoneVerification: React.FC<{ age?: number, wallet: string }> = ({ age = 18, wallet = '' }) => {
+const PhoneVerification: React.FC<{ age?: number, wallet: string, onConfirm: ()=> void }> = ({ age = 18, wallet = '', onConfirm }) => {
   const [checked, setChecked] = useState(true)
   const toggleCheck = () => {
     setChecked(!checked)
+  }
+  const confirm = () =>{
+    onConfirm()
+  }
+  const wallets = ['metamask', 'coinbase','pera','phantom']
+  if(!wallets.includes(wallet)){
+    return <p className='text-red'>Error: invalid wallet subbmited: {wallet}</p>
   }
   return (
     <Phone>
@@ -54,6 +61,7 @@ const PhoneVerification: React.FC<{ age?: number, wallet: string }> = ({ age = 1
         <button 
           className='bg-blue-700 text-white text-md rounded-md p-2 mt-auto mb-2 cursor-pointer disabled:bg-gray-400 disabled:cursor-default'
           disabled={!checked}
+          onClick={confirm}
         >
           Confirm
         </button>
