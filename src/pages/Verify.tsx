@@ -147,7 +147,7 @@ const Verify: React.FC = () => {
                       <div className='absolute top-134 left-40'>
                       {loading && <Spinner />}
                       </div>
-                      <img src="/phone.png" className='h-200 -mb-5' onClick={confirm}/>
+                      <img src="/phone.png" className='h-200 min-w-94 -mb-5' onClick={confirm}/>
                     </div>
                     }
                   {step == 1 &&
