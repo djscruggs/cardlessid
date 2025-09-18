@@ -3,7 +3,7 @@ import PhoneVerification from '../components/PhoneVerification'
 const PhoneExample: React.FC<{ age?: number, wallet: string }> = ({ age = 18, wallet = '' }) => {
   
   return (
-    <PhoneVerification wallet="phantom" />
+    <PhoneVerification wallet={wallet} age={age} onConfirm={()=>alert('confirmed')} />
       
   )
 }
