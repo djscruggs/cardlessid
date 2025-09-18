@@ -137,7 +137,7 @@ const Verify: React.FC = () => {
         </div>
         <Modal open={modal} onClose={toggleModal}  center>
           
-          <div className="flex flex-col items-center justify-center rounded-md max-w-md">
+          <div className="flex flex-col items-center justify-center rounded-md max-w-screen md:max-w-md ">
               {data.verified ? (
                 <p className='my-8 max-w-sm'>You are verified. You can close this window and return to your main browser.</p>
                  ) : (
