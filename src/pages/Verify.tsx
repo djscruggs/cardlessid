@@ -10,6 +10,7 @@ import { firebaseApp } from '../firebase-config.ts'
 
 const Verify: React.FC = () => {
   const [modal, setModal] = useState(true);
+  const [step,setStep] = useState(1)
   const [loading, setLoading] = useState(true);
   const toggleModal = () => {
     if(modal == true){
@@ -33,18 +34,33 @@ const Verify: React.FC = () => {
   const dbRef = ref(getDatabase(firebaseApp));
   const [tapped, setTapped] = useState('')
   const onTap = (wallet:string) =>{
+      setLoading(true)
       if(!wallets.includes(tapped)){
         setTapped(wallet)
-        set(child(dbRef, vid), {verified: true})
-        .catch((writeError) => {
-          setError("Write failed: " + writeError.message);
-        });
+        // set(child(dbRef, vid), {verified: true})
+        // .catch((writeError) => {
+        //   setError("Write failed: " + writeError.message);
+        // });
         setTimeout(() => {
-          loadData(dbRef, vid);
-        }, 5000);
+          // loadData(dbRef, vid);
+          setStep(2)
+          setLoading(false)
+        }, 2000);
 
       }
   }
+ const confirm = () => {
+  setLoading(true);
+  set(child(dbRef, vid), { verified: true })
+    .catch((writeError) => {
+      setModal(false);
+      setError("Write failed: " + writeError.message);
+    });
+  setTimeout(() => {
+    loadData(dbRef, vid);
+  }, 2000);
+};
+  
   
   const loadData = async (dbRef:any, uniqueId:string) => {
     try {
@@ -90,14 +106,12 @@ const Verify: React.FC = () => {
     <div >
       <div>
         <div className="flex flex-col justify-center items-center">
-          {loading ? (
-            <Spinner />
-          ) : (
             <>
-              {!verified ? (
+              {!loading && !verified ? (
                 <>
                   {!error ? (
                     <>
+                      <>
                       <p className='my-8'>Click below to verify your age.</p>
                       <button 
                         className='bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer'
@@ -105,6 +119,8 @@ const Verify: React.FC = () => {
                       >
                         Verify Now
                       </button>
+                      </>
+                      
                     </>
                   ) : (
                     <div className='flex flex-col'>
@@ -117,7 +133,7 @@ const Verify: React.FC = () => {
                 <p className='max-w-lg mt-10'>You are verified. You can close this window and return to your main browser.</p>
               )}
             </>
-          )}
+          
         </div>
         <Modal open={modal} onClose={toggleModal}  center>
           
@@ -126,32 +142,44 @@ const Verify: React.FC = () => {
                 <p className='my-8 max-w-sm'>You are verified. You can close this window and return to your main browser.</p>
                  ) : (
                   <>
-                  <div className='space-y-2 mb-4 mt-6'>
-                    <p>Since this is a demo, we won't do a full verification. However, if you did it would give you the option of verifying for the first time, or using one of our partner wallets. </p>  
-                    <p className='text-center font-bold'>No personal information is <em>ever</em> shared with the web site.</p>  
-                    <p className='text-center'>Click or tap one of the logos below.</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-10">
-                  {wallets.map(wallet => (
+                  {step == 2 &&
+                    <div className='relative'>
+                      <div className='absolute top-134 left-40'>
+                      {loading && <Spinner />}
+                      </div>
+                      <img src="/phone.png" className='h-200 -mb-5' onClick={confirm}/>
+                    </div>
+                    }
+                  {step == 1 &&
                     <>
-                      {tapped == wallet ? (
-                        <div className='flex items-center justify-center'>
-                        <Spinner />
-                        </div>
-                      ) : (
-                  
-                        <img 
-                          key={wallet} 
-                          src={`${baseUrl}/wallets/${wallet}.png`} 
-                          alt={`${wallet} wallet`} 
-                          onClick={() => onTap(wallet)}
-                          className={`h-30 w-30 opacity-50 ${tapped == ''  ? 'hover:opacity-100 cursor-pointer' : ''}`}
-                        />
-                    )}
+                    <div className='space-y-2 mb-4 mt-6'>
+                      <p>Since this is a demo, we won't do a full verification. However, if you did it would give you the option of verifying for the first time, or using one of our partner wallets. </p>  
+                      <p className='text-center font-bold'>No personal information is <em>ever</em> shared with the web site.</p>  
+                      <p className='text-center'>Click or tap one of the logos below.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-10">
+                    {wallets.map(wallet => (
+                      <>
+                        {tapped == wallet ? (
+                          <div className='flex items-center justify-center'>
+                          <Spinner />
+                          </div>
+                        ) : (
+                    
+                          <img 
+                            key={wallet} 
+                            src={`${baseUrl}/wallets/${wallet}.png`} 
+                            alt={`${wallet} wallet`} 
+                            onClick={() => onTap(wallet)}
+                            className={`h-30 w-30 opacity-50 ${tapped == ''  ? 'hover:opacity-100 cursor-pointer' : ''}`}
+                          />
+                      )}
+                      </>
+                      ))}
+                    </div>
                     </>
-                    ))}
-                  </div>
-                  </>
+                  }
+                </>
               )}
           </div>
           
