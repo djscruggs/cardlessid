@@ -7,6 +7,7 @@ import What from './pages/What';
 import About from './pages/About'
 const Demo = lazy(() => import('./pages/Demo'));
 const Verify = lazy(() => import( './pages/Verify'));
+const PhoneExample = lazy(() => import( './pages/PhoneExample'));
 import './App.css';
 
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/demo" element={<Demo />} />
           <Route path="/demo/verify/:vid" element={<Verify />} />
           <Route path="/demo/verify" element={<Verify />} />
+          <Route path="/phone" element={<PhoneExample wallet='phantom' />} />
         </Routes>
       </Layout>
     </Router>
