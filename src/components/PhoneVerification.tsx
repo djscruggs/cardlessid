@@ -5,13 +5,26 @@ const PhoneVerification: React.FC<{
   wallet: string;
   onConfirm: () => void;
 }> = ({ age = 18, wallet = "", onConfirm }) => {
+  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const isMobile = Boolean(
+    userAgent.match(
+      /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
+    )
+  );
+
   return (
-    <div className="mockup-phone w-sm">
-      <div className="mockup-phone-camera"></div>
-      <div className="mockup-phone-display bg-white text-black p-4 place-content-center h-full">
+    <>
+      {isMobile ? (
         <ConfirmScreen age={age} wallet={wallet} onConfirm={onConfirm} />
-      </div>
-    </div>
+      ) : (
+        <div className="mockup-phone w-sm">
+          <div className="mockup-phone-camera"></div>
+          <div className="mockup-phone-display bg-white text-black p-4 place-content-center h-full">
+            <ConfirmScreen age={age} wallet={wallet} onConfirm={onConfirm} />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 export default PhoneVerification;
