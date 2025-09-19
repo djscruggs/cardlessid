@@ -104,7 +104,9 @@ const Verify: React.FC = () => {
                 {!error ? (
                   <>
                     <>
-                      <p className="my-8">Click below to verify your age.</p>
+                      <p className="mt-20 mb-8">
+                        Click below to verify your age.
+                      </p>
                       <button
                         className="bg-logoblue p-4 text-white text-2xl rounded-full cursor-pointer"
                         onClick={toggleModal}
@@ -137,7 +139,14 @@ const Verify: React.FC = () => {
         </div>
 
         <dialog open={modal} onClose={toggleModal} className="modal">
-          <div className="text-base max-w-xl text-left flex flex-col items-center bg-white p-4 rounded-lg">
+          <div className="relative text-base max-w-xl text-left flex flex-col items-center bg-white p-4 rounded-lg">
+            <button
+              className="btn btn-sm btn-circle btn-ghost absolute right-1 top-1"
+              onClick={() => setModal(false)}
+              type="button"
+            >
+              ✕
+            </button>
             {data.verified ? (
               <p className="my-8 max-w-sm">
                 You are verified. You can close this window and return to your

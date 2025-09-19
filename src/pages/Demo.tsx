@@ -162,13 +162,20 @@ const Demo: React.FC = () => {
         <p className={`text-red-500 my-4 ${isDev ? "" : "hidden"}`}>{error}</p>
       )}
 
-      <div className="max-w-5xl  mt-10 my-12 flex items-center justify-center">
+      <div className="  mt-10 my-12 flex items-center justify-center relative">
         <dialog
           open={modal}
           onClose={toggleModal}
           className="modal bg-white text-base text-left mx-auto"
         >
-          <div className="flex flex-col items-center justify-center rounded-md bg-white p-4 border border-black text-md">
+          <div className="relative flex flex-col items-center justify-center rounded-md bg-white p-4 border border-black text-md">
+            <button
+              className="btn btn-sm btn-circle btn-ghost absolute right-1 top-1"
+              onClick={() => setModal(false)}
+              type="button"
+            >
+              ✕
+            </button>
             {step == 1 && !data.verified && (
               <div className="space-y-2 max-w-sm mt-6 flex flex-col items-center justify-center">
                 <p className="text-left">
