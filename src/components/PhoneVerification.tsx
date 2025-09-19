@@ -19,7 +19,7 @@ const PhoneVerification: React.FC<{ age?: number, wallet: string, onConfirm: ()=
   }
   return (
     <Phone>
-      <div className='p-1 px-4 flex flex-col h-full'>
+      <div className='p-1 px-4 flex flex-col h-full bg-white'>
         <div className='text-left'>
           <div className='font-bold my-2 text-md'>Verify your age</div>
           <div className='text-sm space-y-2'>
