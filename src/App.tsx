@@ -25,7 +25,7 @@ function App() {
           <Route path="/demo" element={<Demo />} />
           <Route path="/demo/verify/:vid" element={<Verify />} />
           <Route path="/demo/verify" element={<Verify />} />
-          <Route path="/phone" element={<PhoneExample wallet='phantom' />} />
+          <Route path="/demo/phone" element={<PhoneExample wallet='phantom' />} />
         </Routes>
       </Layout>
     </Router>

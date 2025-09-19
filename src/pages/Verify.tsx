@@ -1,6 +1,4 @@
 import React, { useState, useEffect,lazy } from 'react';
-import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
 import { useLocation } from 'react-router-dom';
 const Spinner = lazy(() => import('../components/Spinner.tsx'));
 import PhoneVerification from '../components/PhoneVerification.tsx'
@@ -102,7 +100,7 @@ const Verify: React.FC = () => {
   
   
   return (
-    <div >
+    <div>
       <div>
         <div className="flex flex-col justify-center items-center">
             <>
@@ -134,43 +132,43 @@ const Verify: React.FC = () => {
             </>
           
         </div>
-        <Modal open={modal} onClose={toggleModal}  center>
+        
+          <dialog open={modal} onClose={toggleModal}  className='modal'>
           
-          <div className="flex flex-col items-center justify-center rounded-md max-w-screen md:max-w-md ">
+          <div className="text-base max-w-xl text-left flex flex-col items-center bg-white p-4 rounded-lg">
               {data.verified ? (
                 <p className='my-8 max-w-sm'>You are verified. You can close this window and return to your main browser.</p>
                  ) : (
                   <>
                   {step == 2 &&
-                    <div className='relative'>
-                      <div className='mt-4'>
+                      <div className='flex flex-col items-center justify-center'>
                         <PhoneVerification wallet={wallet} age={18} onConfirm={confirm} />
                       </div>
-                    </div>
+                    
                     }
                   {step == 1 &&
                     <>
                     <div className='space-y-2 mb-4 mt-6'>
                       <p>Since this is a demo, we won't do a full verification. However, if you did it would give you the option of verifying for the first time, or using one of our partner wallets. </p>  
                       <p className='text-center font-bold'>No personal information is <em>ever</em> shared with the web site.</p>  
-                      <p className='text-center'>Click or tap one of the logos below.</p>
+                      <p className='text-center'>Click or tap one of the wallet logos below.</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-10">
+                    <div className="grid grid-cols-2 gap-10 max-w-sm">
                     {wallets.map(wallet => (
                       <>
                         {tapped == wallet ? (
-                          <div className='flex items-center justify-center'>
+                          <div key={wallet} className='flex items-center justify-center'>
                           <Spinner />
                           </div>
                         ) : (
-                    
                           <img 
                             key={wallet} 
                             src={`${baseUrl}/wallets/${wallet}.png`} 
                             alt={`${wallet} wallet`} 
                             onClick={() => onTap(wallet)}
-                            className={`h-30 w-30 opacity-50 ${tapped == ''  ? 'hover:opacity-100 cursor-pointer' : ''}`}
+                            className={` rounded-md h-30 w-30 opacity-50 ${tapped == ''  ? 'hover:opacity-100 cursor-pointer' : ''}`}
                           />
+                          
                       )}
                       </>
                       ))}
@@ -181,7 +179,8 @@ const Verify: React.FC = () => {
               )}
           </div>
           
-        </Modal>
+          </dialog>
+        
       </div>
       
     </div>

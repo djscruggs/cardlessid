@@ -12,13 +12,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isDemo = location.pathname.includes('demo')
   const showHeader = location.pathname != '/' && !isDemo
   const showFooter = !isDemo
+  const isPhone = location.pathname.includes('phone')
 
   return (
     <div className='flex flex-col w-screen h-screen'>
-      {!isDemo &&
+      {!isDemo && !isPhone &&
         <Header />
       }
-      {isDemo &&
+      {isDemo && !isPhone &&
         <div className="pt-8">
           <a href="/" className="absolute top-24 left-4 md:left-30 text-logoblue hover:underline text-sm font-semibold">
             &laquo; Home

@@ -1,7 +1,5 @@
 import React, { useEffect, useState, lazy } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import 'react-responsive-modal/styles.css';
-import { Modal } from 'react-responsive-modal';
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from '../firebase-config.ts'
@@ -139,8 +137,8 @@ const Demo: React.FC = () => {
       }
 
       <div className='max-w-5xl mx-auto mt-10 my-12 flex items-center justify-center'>
-        <Modal open={modal} onClose={toggleModal}  center>
-          <div className="flex flex-col items-center justify-center rounded-md">
+        <dialog open={modal} onClose={toggleModal} className='modal bg-white text-base text-left' >
+          <div className="flex flex-col items-center justify-center rounded-md bg-white p-4 border border-black text-md">
             {step == 1 && !data.verified &&
             <div className='space-y-2 max-w-sm mt-6 flex flex-col items-center justify-center'>
               <p className='text-left'>This demonstration shows what it's like to "log in" to an age-restricted site.</p>
@@ -158,7 +156,7 @@ const Demo: React.FC = () => {
             
             
           </div>
-        </Modal>
+        </dialog>
         <div className="grid  grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-3">
           {Array.from({ length: 30 }).map((_, index) => (
               <div key={videos[index].id} onClick={toggleModal} className="w-36 h-36 bg-gray-300 flex items-center justify-center rounded-lg cursor-pointer">
