@@ -17,7 +17,7 @@ const PhoneVerification: React.FC<{
       {isMobile ? (
         <ConfirmScreen age={age} wallet={wallet} onConfirm={onConfirm} />
       ) : (
-        <div className="mockup-phone w-sm">
+        <div className="mockup-phone w-sm max-h-svh">
           <div className="mockup-phone-camera"></div>
           <div className="mockup-phone-display bg-white text-black p-4 place-content-center h-full">
             <ConfirmScreen age={age} wallet={wallet} onConfirm={onConfirm} />
@@ -51,10 +51,10 @@ const ConfirmScreen: React.FC<{
     );
   }
   return (
-    <div className="flex flex-col justify-between flex-grow h-full ">
-      <div className="text-left mt-14 space-y-10 ">
+    <div className="flex flex-col justify-between flex-grow max-h-[90vh]">
+      <div className="text-left mt-14 space-y-10  ">
         <div className="font-bold my-2 text-xl">Verify your age</div>
-        <div className="text-sm space-y-4">
+        <div className="text-sm space-y-3">
           <p>
             Spicy Vids is requesting you to verify that you are older than {age}
           </p>
@@ -67,7 +67,7 @@ const ConfirmScreen: React.FC<{
             </a>
           </p>
         </div>
-        <div className="space-y-6 mt-2 p-4 bg-gray-100 rounded-md">
+        <div className="space-y-6  p-4 bg-gray-100 rounded-md">
           <p className="font-bold text-sm">Shared attestation</p>
           <div className="flex items-center space-x-3">
             <img
@@ -107,7 +107,7 @@ const ConfirmScreen: React.FC<{
         </div>
       </div>
       <button
-        className="bg-blue-700 w-full text-white text-md rounded-md p-2 mt-auto mb-12 cursor-pointer disabled:bg-gray-400 disabled:cursor-default"
+        className="bg-blue-700 w-full text-white text-md rounded-md p-2 mt-2 cursor-pointer disabled:bg-gray-400 disabled:cursor-default"
         disabled={!checked || confirming}
         onClick={confirm}
       >
