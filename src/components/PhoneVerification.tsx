@@ -52,7 +52,7 @@ const ConfirmScreen: React.FC<{
   }
   return (
     <div className="flex flex-col justify-between flex-grow max-h-[90vh]">
-      <div className="text-left mt-14 space-y-10  ">
+      <div className="text-left space-y-10  ">
         <div className="font-bold my-2 text-xl">Verify your age</div>
         <div className="text-sm space-y-3">
           <p>
