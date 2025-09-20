@@ -74,9 +74,8 @@ const Demo: React.FC = () => {
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
-  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
   const isMobile = Boolean(
-    userAgent.match(
+    navigator?.userAgent?.match(
       /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
     )
   );
@@ -182,35 +181,24 @@ const Demo: React.FC = () => {
               ✕
             </button>
             {step == 1 && !data.verified && (
-              <div className="space-y-2 max-w-sm md:max-w-screen mt-6 flex flex-col items-center justify-center">
-                {isMobile && (
-                  <>
-                    <p className="text-left">
-                      This demonstration shows what it's like to "log in" to an
-                      age-restricted site.
-                    </p>
+              <div className="space-y-2 max-w-sm  mt-6 flex flex-col items-center justify-center">
+                <>
+                  <p className="text-left">
+                    This demo shows the "log in" process to age-restricted site.
+                  </p>
 
-                    <p>
-                      You will <em>not</em> be asked to provide your name, email
-                      or any other information.
-                    </p>
-                    <p>
-                      Instead you will use a crypto wallet that has your birth
-                      date encrypted within it.
-                    </p>
-                  </>
-                )}
-                {!isMobile && (
-                  <>
-                    <p className="text-left text-2xl font-bold">
-                      This diagram shows the process. Click "Start Demo" to
-                      begin.
-                    </p>
-                    <img src="/diagram.png" className="max-w-4xl" />
-                  </>
-                )}
+                  <p>
+                    You will <em>not</em> be asked to provide your name, email
+                    or any other information.
+                  </p>
+                  <p>
+                    Instead you will use a crypto wallet that has your birth
+                    date encrypted inside.
+                  </p>
+                </>
+
                 <button
-                  className="bg-logoblue p-2 px-6 text-white text-xl rounded-full cursor-pointer"
+                  className="bg-logoblue p-2 px-6 mt-4 text-white text-xl rounded-full cursor-pointer"
                   onClick={() => setStep(2)}
                 >
                   Start Demo

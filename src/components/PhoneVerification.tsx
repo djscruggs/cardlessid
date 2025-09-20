@@ -5,9 +5,8 @@ const PhoneVerification: React.FC<{
   wallet: string;
   onConfirm: () => void;
 }> = ({ age = 18, wallet = "", onConfirm }) => {
-  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
   const isMobile = Boolean(
-    userAgent.match(
+    navigator?.userAgent?.match(
       /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
     )
   );
