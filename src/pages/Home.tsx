@@ -11,11 +11,7 @@ const Home: React.FC = () => {
       "_blank"
     );
   };
-  // const isMobile = Boolean(
-  //   navigator?.userAgent?.match(
-  //     /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
-  //   )
-  // );
+
   const navigate = useNavigate();
   const goToDemo = () => {
     navigate("/demo");
@@ -52,7 +48,7 @@ const Home: React.FC = () => {
               We partner with content companies, technology providers, media and
               regulators to make this possible.
             </p>
-            <div className="md:hidden">
+            <div className="md:hidden w-full">
               <Carousel />
             </div>
             <img
@@ -90,10 +86,12 @@ const Home: React.FC = () => {
 const Carousel = () => {
   return (
     <>
-      <NavButtons />
-      <div className="carousel carousel-top bg-white rounded-box space-x-4 p-4">
+      <div className="flex justify-center w-full">
+        <p className="italic text-gray-500 text-md">&laquo; swipe &raquo;</p>
+      </div>
+      <div className="carousel carousel-top bg-white rounded-box p-4">
         {/* The first image, smaller */}
-        <div id="item1" className="carousel-item h-72">
+        <div id="item1" className="carousel-item h-72 w-full min-w-sm">
           <img
             src="/diagrams/diagram1.png"
             className="rounded-box object-contain w-full"
@@ -101,37 +99,20 @@ const Carousel = () => {
         </div>
 
         {/* The middle image, larger */}
-        <div id="item2" className="carousel-item h-[640px]">
+        <div id="item2" className="carousel-item h-[640px] w-full">
           <img src="/diagrams/diagram2.png" className="object-contain w-full" />
         </div>
 
         {/* The third image, smaller */}
-        <div id="item3" className="carousel-item h-84">
+        <div id="item3" className="carousel-item h-84 w-full">
           <img
             src="/diagrams/diagram3.png"
             className="rounded-box object-contain w-full"
           />
         </div>
       </div>
-      <NavButtons />
     </>
   );
 };
-
-function NavButtons() {
-  return (
-    <div className="flex justify-center w-full py-2 gap-2">
-      <a href="#item1" className="btn btn-xs">
-        1
-      </a>
-      <a href="#item2" className="btn btn-xs">
-        2
-      </a>
-      <a href="#item3" className="btn btn-xs">
-        3
-      </a>
-    </div>
-  );
-}
 
 export default Home;
