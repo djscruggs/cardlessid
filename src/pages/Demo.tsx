@@ -4,7 +4,6 @@ import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from "../firebase-config.ts";
 import usePageTitle from "../hooks/usePageTitle.ts";
-const Spinner = lazy(() => import("../components/Spinner.tsx"));
 
 const videos = [
   { id: "meDRHqG2djI", title: "Ty Dolla $ign - Spicy (feat. Post Malone)" },
@@ -152,7 +151,7 @@ const Demo: React.FC = () => {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center mt-2">
-        <Spinner />
+        <span className="loading loading-spinner loading-lg primary"></span>
       </div>
     );
   }

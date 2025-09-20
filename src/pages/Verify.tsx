@@ -1,6 +1,5 @@
 import React, { useState, useEffect, lazy } from "react";
 import { useLocation } from "react-router-dom";
-const Spinner = lazy(() => import("../components/Spinner.tsx"));
 import PhoneVerification from "../components/PhoneVerification.tsx";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
@@ -188,7 +187,7 @@ const Verify: React.FC = () => {
                               key={wallet}
                               className="flex items-center justify-center"
                             >
-                              <Spinner />
+                              <span className="loading loading-spinner loading-lg"></span>
                             </div>
                           ) : (
                             <img
