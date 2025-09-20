@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import PhoneVerification from "../components/PhoneVerification.tsx";
 import { getDatabase, ref, set, get, child } from "firebase/database";
