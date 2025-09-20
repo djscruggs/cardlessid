@@ -93,7 +93,7 @@ const Carousel = () => {
       <NavButtons />
       <div className="carousel carousel-top bg-white rounded-box space-x-4 p-4">
         {/* The first image, smaller */}
-        <div id="item1" className="carousel-item h-90">
+        <div id="item1" className="carousel-item h-80">
           <img
             src="/diagrams/diagram1.png"
             className="rounded-box object-contain w-full"
@@ -101,12 +101,12 @@ const Carousel = () => {
         </div>
 
         {/* The middle image, larger */}
-        <div id="item2" className="carousel-item h-[800px]">
+        <div id="item2" className="carousel-item h-[700px]">
           <img src="/diagrams/diagram2.png" className="object-contain w-full" />
         </div>
 
         {/* The third image, smaller */}
-        <div id="item3" className="carousel-item h-96">
+        <div id="item3" className="carousel-item h-84">
           <img
             src="/diagrams/diagram3.png"
             className="rounded-box object-contain w-full"
