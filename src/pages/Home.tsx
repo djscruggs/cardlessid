@@ -57,7 +57,7 @@ const Home: React.FC = () => {
             </div>
             <img
               src="/diagrams/diagram-full.png"
-              className="hidden md:block max-w-4xl md:pr-50"
+              className="hidden md:block max-w-4xl md:pr-40"
             />
             <div className="flex justify-center items-center space-x-4 my-10">
               <button
@@ -89,18 +89,49 @@ const Home: React.FC = () => {
 
 const Carousel = () => {
   return (
-    <div className="carousel carousel-center bg-white rounded-box  space-x-4 p-4">
-      <div className="carousel-item bg-white">
-        <img src="/diagrams/diagram1.png" className="rounded-box pb-120" />
+    <>
+      <NavButtons />
+      <div className="carousel carousel-top bg-white rounded-box space-x-4 p-4">
+        {/* The first image, smaller */}
+        <div id="item1" className="carousel-item h-90">
+          <img
+            src="/diagrams/diagram1.png"
+            className="rounded-box object-contain w-full"
+          />
+        </div>
+
+        {/* The middle image, larger */}
+        <div id="item2" className="carousel-item h-[800px]">
+          <img src="/diagrams/diagram2.png" className="object-contain w-full" />
+        </div>
+
+        {/* The third image, smaller */}
+        <div id="item3" className="carousel-item h-96">
+          <img
+            src="/diagrams/diagram3.png"
+            className="rounded-box object-contain w-full"
+          />
+        </div>
       </div>
-      <div className="carousel-item">
-        <img src="/diagrams/diagram2.png" />
-      </div>
-      <div className="carousel-item bg-white">
-        <img src="/diagrams/diagram3.png" className="rounded-box pb-60 " />
-      </div>
-    </div>
+      <NavButtons />
+    </>
   );
 };
+
+function NavButtons() {
+  return (
+    <div className="flex justify-center w-full py-2 gap-2">
+      <a href="#item1" className="btn btn-xs">
+        1
+      </a>
+      <a href="#item2" className="btn btn-xs">
+        2
+      </a>
+      <a href="#item3" className="btn btn-xs">
+        3
+      </a>
+    </div>
+  );
+}
 
 export default Home;
