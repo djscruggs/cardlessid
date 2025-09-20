@@ -74,11 +74,11 @@ const Demo: React.FC = () => {
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
-  const isMobile = Boolean(
-    navigator?.userAgent?.match(
-      /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
-    )
-  );
+  // const isMobile = Boolean(
+  //   navigator?.userAgent?.match(
+  //     /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
+  //   )
+  // );
 
   const isDev = !window.location.hostname.includes("cardlessid.org");
 
