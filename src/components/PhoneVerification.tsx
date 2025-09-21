@@ -69,12 +69,15 @@ const ConfirmScreen: React.FC<{
         <div className="space-y-6  p-4 bg-gray-100 rounded-md">
           <p className="font-bold text-sm">Shared attestation</p>
           <div className="flex items-center space-x-3">
-            <img
+            {/* <img
               src={`/wallets/${wallet}.png`}
               className="w-10 h-10 border border-gray-200 rounded-full"
-            />
+            /> */}
+            <div className="border border-gray-200 rounded-full h-11 w-11 flex items-center justify-center bg-white">
+              <img src={`/favicon.png`} className="w-8 h-8 mb-2" />
+            </div>
             <div className="">
-              <div className="text-sm font-bold">Digital ID</div>
+              <div className="text-sm font-bold">Cardless ID</div>
               <div className="text-sm">John Doe</div>
             </div>
           </div>
