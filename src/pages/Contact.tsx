@@ -1,30 +1,34 @@
-import React, { useRef, useState } from 'react';
-import emailjs from '@emailjs/browser';
-import './Contact.css';
-import usePageTitle from '../hooks/usePageTitle';
+import React, { useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
+import "./Contact.css";
+import usePageTitle from "../hooks/usePageTitle";
 
 const Contact: React.FC = () => {
-  usePageTitle('Contact | Cardless ID');
+  usePageTitle("Contact | Cardless ID");
   const form = useRef<HTMLFormElement>(null);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState("");
 
   const sendEmail = (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Sending...');
+    setStatus("Sending...");
 
     if (form.current) {
-      emailjs.sendForm(
-        'service_gd8ahdd', // Replace with your EmailJS service ID
-        'template_96tq9fl', // Replace with your EmailJS template ID
-        form.current,
-        'CUs0nfElnWZlGwWWM' // Replace with your EmailJS public key
-      )
-      .then(() => {
-          setStatus('Message sent successfully!');
-          form.current?.reset();
-      }, () => {
-          setStatus('Failed to send message.');
-      });
+      emailjs
+        .sendForm(
+          "service_gd8ahdd", // Replace with your EmailJS service ID
+          "template_96tq9fl", // Replace with your EmailJS template ID
+          form.current,
+          "CUs0nfElnWZlGwWWM" // Replace with your EmailJS public key
+        )
+        .then(
+          () => {
+            setStatus("Message sent successfully!");
+            form.current?.reset();
+          },
+          () => {
+            setStatus("Failed to send message.");
+          }
+        );
     }
   };
 
@@ -32,9 +36,15 @@ const Contact: React.FC = () => {
     <div className="flex flex-col items-center w-full max-w-4xl">
       <h2>Contact Us</h2>
       {status && <p className="status-message text-green-700">{status}</p>}
-      <form ref={form} onSubmit={sendEmail} className="contact-form text-left w-full max-w-xl">
+      <form
+        ref={form}
+        onSubmit={sendEmail}
+        className="contact-form text-left w-full max-w-xl"
+      >
         <div className="form-group">
-          <label htmlFor="user_name" className='text-left'>Name</label>
+          <label htmlFor="user_name" className="text-left">
+            Name
+          </label>
           <input type="text" id="user_name" name="user_name" required />
         </div>
         <div className="form-group">
@@ -45,10 +55,13 @@ const Contact: React.FC = () => {
           <label htmlFor="message">Message</label>
           <textarea id="message" name="message" required></textarea>
         </div>
-        <button type="submit" className='bg-logoblue hover:bg-green-700 text-white rounded-full'>Send Message</button>
+        <button
+          type="submit"
+          className="bg-logoblue hover:bg-green-700 text-white rounded-full p-4"
+        >
+          Send Message
+        </button>
       </form>
-      
-      
     </div>
   );
 };
