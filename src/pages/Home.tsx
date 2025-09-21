@@ -11,7 +11,6 @@ const Home: React.FC = () => {
       "_blank"
     );
   };
-  const [zoom, setZoom] = useState(false);
   const navigate = useNavigate();
   const goToDemo = () => {
     navigate("/demo");
@@ -51,20 +50,11 @@ const Home: React.FC = () => {
             <div className="md:hidden w-full">
               <Carousel />
             </div>
-            {!zoom && (
-              <img
-                src="/diagrams/diagram-full.png"
-                className="hidden md:block max-w-4xl md:pr-40 cursor-pointer"
-                onClick={() => setZoom(true)}
-              />
-            )}
-            <dialog open={zoom} className="w-screen h-screen">
-              <img
-                src="/diagrams/diagram-full.png"
-                className="hidden md:block cursor-pointer"
-                onClick={() => setZoom(false)}
-              />
-            </dialog>
+            <img
+              src="/diagrams/diagram-full.png"
+              className="hidden md:block max-w-4xl md:pr-40"
+            />
+
             <div className="flex justify-center items-center space-x-4 my-10">
               <button
                 className="bg-logoblue p-2 px-4 md:p-4 text-white text-2xl rounded-full cursor-pointer"
