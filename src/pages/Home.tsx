@@ -91,7 +91,7 @@ const Carousel = () => {
       </div>
       <div className="carousel carousel-top bg-white rounded-box p-4">
         {/* The first image, smaller */}
-        <div id="item1" className="carousel-item h-72 w-full min-w-sm">
+        <div id="item1" className="carousel-item h-72 w-full">
           <img
             src="/diagrams/diagram1.png"
             className="rounded-box object-contain w-full"
