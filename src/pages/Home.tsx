@@ -89,9 +89,9 @@ const Carousel = () => {
       <div className="flex justify-center w-full">
         <p className="italic text-gray-500 text-md">&laquo; swipe &raquo;</p>
       </div>
-      <div className="carousel carousel-top bg-white rounded-box p-4">
+      <div className="carousel carousel-top bg-white rounded-box ">
         {/* The first image, smaller */}
-        <div id="item1" className="carousel-item h-72 w-full">
+        <div id="item1" className="carousel-item h-72 w-full mx-6">
           <img
             src="/diagrams/diagram1.png"
             className="rounded-box object-contain w-full"
@@ -99,12 +99,12 @@ const Carousel = () => {
         </div>
 
         {/* The middle image, larger */}
-        <div id="item2" className="carousel-item h-[640px] w-full">
+        <div id="item2" className="carousel-item h-[640px] w-full mx-6">
           <img src="/diagrams/diagram2.png" className="object-contain w-full" />
         </div>
 
         {/* The third image, smaller */}
-        <div id="item3" className="carousel-item h-84 w-full">
+        <div id="item3" className="carousel-item h-84 w-full mx-6">
           <img
             src="/diagrams/diagram3.png"
             className="rounded-box object-contain w-full"
