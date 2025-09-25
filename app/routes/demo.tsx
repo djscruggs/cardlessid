@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, type LoaderFunction } from "react-router";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from "../firebase.config";
@@ -9,65 +9,9 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "SpicyVids Demo" }];
 }
 
-const videos = [
-  { id: "meDRHqG2djI", title: "Ty Dolla $ign - Spicy (feat. Post Malone)" },
-  { id: "Os_heh8vPfs", title: "aespa ‘Spicy’ MV" },
-  { id: "QMwJtMJLXE0", title: "CL - SPICY (Official Video)" },
-  { id: "vSH7Y92snVM", title: "Julia Cole - Spicy (Official Music Video)" },
-  {
-    id: "hvjytRyt27c",
-    title: "Herve Pagez & Diplo - Spicy (feat. Charli XCX)",
-  },
-  { id: "7cSaPi-UDjM", title: "Jenny 69 - SPICY (Official Music Video)" },
-  {
-    id: "5Ep8M8D8mkw",
-    title: "Boris Brejcha - Spicy feat. Ginger (Official Video)",
-  },
-  { id: "798vylI5tTY", title: "Nas - Spicy ft. Fivio Foreign & A$AP Ferg" },
-  {
-    id: "o850kcXxc9w",
-    title: "Extreme Spicy Food Tiktok Compilation (2 Hour Edition)",
-  },
-  { id: "WicBv6wkjsk", title: "Extreme Spicy Food Tiktok Compilation 6" },
-  { id: "vGKnPlNe1Eo", title: "Spicy | Official Music Video" },
-  { id: "vhUcgLsLCEQ", title: "Spicy Spicy Hot!" },
-  { id: "FCLY_efnC58", title: "Why Do We Like Spicy Food?" },
-  { id: "qvbPcd0g6bU", title: "The Best Spicy Foods Around The World" },
-  { id: "5Hlmj9RyJww", title: "Extreme Spicy Color Food + ASMR" },
-  { id: "Rh7dRl0LTis", title: "WORLD'S MOST SPICY FOOD CHALLENGE" },
-  {
-    id: "jaw9E_GeZP4",
-    title: "[2 HOUR] of The Best LukeDidThat Spicy Food Challenges",
-  },
-  {
-    id: "84suEyONyMg",
-    title: "LukeDidThat Spicy Challenge Compilation (Part 5)",
-  },
-  { id: "VbfanRktD6U", title: "Giant SPICY vs SOUR Foods Challenge" },
-  { id: "tyiD1DUUucM", title: "Extreme Spicy VS Sour Food Challenge!" },
-  { id: "lY17HYygJ5A", title: "EXTREME 1 Hour Spicy Food Tiktok Compilation" },
-  {
-    id: "hLs-DSWP7d8",
-    title: "ONLY 5 MINUTES TO EAT THIS DEATHLY SPICY TACO ...",
-  },
-  { id: "uNQMzH28OUQ", title: "Extreme Spicy VS Sour Snacks Challenge" },
-  { id: "p6vAtnL1KQQ", title: "Surviving The Hot Ones Challenge" },
-  { id: "0MLTox4SMPE", title: "Eating 100 SPICY FOODS in 24 HOURS..." },
-  {
-    id: "ubIZVs9lpbo",
-    title: "LukeDidThat Spicy Challenge Compilation (Part 9)",
-  },
-  {
-    id: "iJ0s5RZBht8",
-    title: "We Play Extreme Spicy Cup Pong (Spicy Pepper Challenge)",
-  },
-  { id: "MIy59ajlgI4", title: "SPICY VS EXTREME SPICY FOOD CHALLENGE" },
-  { id: "0w142VfmBRg", title: "ASMR EATING SPICY PANIPURI, DAHIPURI, ..." },
-  {
-    id: "k8IcJ0L6kdU",
-    title: "SPICY JUICY BIG CHICKEN & EGG MOMOS WITH SPICY ...",
-  },
-];
+export const loader: LoaderFunction = async ({ request }) => {
+  return { result: true };
+};
 const generateId = (): string => {
   // Generates a random string of numbers and letters
   const randomPart = Math.random().toString(36).substring(2, 8);
@@ -321,3 +265,63 @@ const Step2 = ({
     </>
   );
 };
+
+const videos = [
+  { id: "meDRHqG2djI", title: "Ty Dolla $ign - Spicy (feat. Post Malone)" },
+  { id: "Os_heh8vPfs", title: "aespa ‘Spicy’ MV" },
+  { id: "QMwJtMJLXE0", title: "CL - SPICY (Official Video)" },
+  { id: "vSH7Y92snVM", title: "Julia Cole - Spicy (Official Music Video)" },
+  {
+    id: "hvjytRyt27c",
+    title: "Herve Pagez & Diplo - Spicy (feat. Charli XCX)",
+  },
+  { id: "7cSaPi-UDjM", title: "Jenny 69 - SPICY (Official Music Video)" },
+  {
+    id: "5Ep8M8D8mkw",
+    title: "Boris Brejcha - Spicy feat. Ginger (Official Video)",
+  },
+  { id: "798vylI5tTY", title: "Nas - Spicy ft. Fivio Foreign & A$AP Ferg" },
+  {
+    id: "o850kcXxc9w",
+    title: "Extreme Spicy Food Tiktok Compilation (2 Hour Edition)",
+  },
+  { id: "WicBv6wkjsk", title: "Extreme Spicy Food Tiktok Compilation 6" },
+  { id: "vGKnPlNe1Eo", title: "Spicy | Official Music Video" },
+  { id: "vhUcgLsLCEQ", title: "Spicy Spicy Hot!" },
+  { id: "FCLY_efnC58", title: "Why Do We Like Spicy Food?" },
+  { id: "qvbPcd0g6bU", title: "The Best Spicy Foods Around The World" },
+  { id: "5Hlmj9RyJww", title: "Extreme Spicy Color Food + ASMR" },
+  { id: "Rh7dRl0LTis", title: "WORLD'S MOST SPICY FOOD CHALLENGE" },
+  {
+    id: "jaw9E_GeZP4",
+    title: "[2 HOUR] of The Best LukeDidThat Spicy Food Challenges",
+  },
+  {
+    id: "84suEyONyMg",
+    title: "LukeDidThat Spicy Challenge Compilation (Part 5)",
+  },
+  { id: "VbfanRktD6U", title: "Giant SPICY vs SOUR Foods Challenge" },
+  { id: "tyiD1DUUucM", title: "Extreme Spicy VS Sour Food Challenge!" },
+  { id: "lY17HYygJ5A", title: "EXTREME 1 Hour Spicy Food Tiktok Compilation" },
+  {
+    id: "hLs-DSWP7d8",
+    title: "ONLY 5 MINUTES TO EAT THIS DEATHLY SPICY TACO ...",
+  },
+  { id: "uNQMzH28OUQ", title: "Extreme Spicy VS Sour Snacks Challenge" },
+  { id: "p6vAtnL1KQQ", title: "Surviving The Hot Ones Challenge" },
+  { id: "0MLTox4SMPE", title: "Eating 100 SPICY FOODS in 24 HOURS..." },
+  {
+    id: "ubIZVs9lpbo",
+    title: "LukeDidThat Spicy Challenge Compilation (Part 9)",
+  },
+  {
+    id: "iJ0s5RZBht8",
+    title: "We Play Extreme Spicy Cup Pong (Spicy Pepper Challenge)",
+  },
+  { id: "MIy59ajlgI4", title: "SPICY VS EXTREME SPICY FOOD CHALLENGE" },
+  { id: "0w142VfmBRg", title: "ASMR EATING SPICY PANIPURI, DAHIPURI, ..." },
+  {
+    id: "k8IcJ0L6kdU",
+    title: "SPICY JUICY BIG CHICKEN & EGG MOMOS WITH SPICY ...",
+  },
+];

@@ -1,7 +1,7 @@
 import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
 
 const World = () => {
-  const APP_ID = import.meta.env.VITE_WORLDCOIN_APP_ID;
+  const APP_ID = process.env.VITE_WORLDCOIN_APP_ID;
   const ACTION = "age-verification-over-18";
   const handleVerify = async (proof: any) => {
     console.log(proof);

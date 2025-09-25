@@ -5,7 +5,7 @@ export async function action({ req, res }: any) {
   console.log(payload);
 
   try {
-    const appId = import.meta.env.WORLDCOIN_APP_ID;
+    const appId = process.env.WORLDCOIN_APP_ID;
     const verifyRes = await fetch(
       "https://developer.worldcoin.org/api/v1/verify/" + appId,
       {
