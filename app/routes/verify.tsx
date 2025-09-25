@@ -18,6 +18,7 @@ const Verify: React.FC = () => {
   const [wallet, setWallet] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [confirming, setConfirming] = useState(false);
   const toggleModal = () => {
     if (modal == true) {
       setTapped("");
@@ -48,14 +49,15 @@ const Verify: React.FC = () => {
       }, 1500);
     }
   };
-  const confirm = () => {
-    setLoading(true);
+  const confirm = async () => {
+    setConfirming(true);
     set(child(dbRef, vid), { verified: true }).catch((writeError) => {
       setModal(false);
       setError("Write failed: " + writeError.message);
     });
     setTimeout(() => {
-      loadData(dbRef, vid);
+      setData({ verified: true });
+      setConfirming(true);
     }, 2000);
   };
 
@@ -163,6 +165,7 @@ const Verify: React.FC = () => {
                       wallet={wallet}
                       age={18}
                       onConfirm={confirm}
+                      confirming={confirming}
                     />
                   </div>
                 )}

@@ -4,6 +4,7 @@ const PhoneVerification: React.FC<{
   age?: number;
   wallet: string;
   onConfirm: () => void;
+  confirming: boolean;
 }> = ({ age = 18, wallet = "", onConfirm }) => {
   const isMobile = Boolean(
     navigator?.userAgent?.match(
@@ -39,11 +40,10 @@ const ConfirmScreen: React.FC<{
   };
   const [confirming, setConfirming] = useState(false);
 
-  const confirm = () => {
+  const confirm = async () => {
     setConfirming(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       onConfirm();
-      setConfirming(false);
     }, 1500);
   };
   const wallets = ["metamask", "coinbase", "pera", "phantom"];
