@@ -5,6 +5,7 @@ import {
   useLoaderData,
   useSubmit,
   useLocation,
+  type ActionFunctionArgs,
 } from "react-router";
 import PhoneVerification from "~/components/PhoneVerification";
 import { getDatabase, ref, set, get, child } from "firebase/database";
@@ -15,10 +16,20 @@ import type { Route } from "./+types/home";
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verify Your Age" }];
 }
-export async function action(): Promise<{ ok: boolean }> {
-  console.log("top of action");
-
-  return { ok: true };
+export async function action({
+  request,
+}: ActionFunctionArgs): Promise<{ ok: boolean }> {
+  try {
+    const body = await request.formData();
+    const auth = getAuth(firebaseApp);
+    const dbRef = ref(getDatabase(firebaseApp));
+    signInAnonymously(auth);
+    await set(child(dbRef, body.get("vid")), { verified: true });
+    return { ok: true };
+  } catch (error) {
+    console.log("Error in action function", error);
+    return { ok: false };
+  }
 }
 export async function loader({
   params,
@@ -50,7 +61,7 @@ const Verify: React.FC = () => {
   const [modal, setModal] = useState(true);
   const [wallet, setWallet] = useState("");
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const toggleModal = () => {
     if (modal == true) {
       setTapped("");
@@ -58,8 +69,7 @@ const Verify: React.FC = () => {
     }
     setModal(!modal);
   };
-  const [data, setData] = useState(loaded);
-  const [verified, setVerified] = useState(false);
+  const [data, setData] = useState({ verified: false });
   const vid = params.vid || "";
   let _error = "";
   if (!vid) {
@@ -68,8 +78,6 @@ const Verify: React.FC = () => {
   const [error, setError] = useState(_error);
   const wallets = ["metamask", "coinbase", "pera", "phantom"];
   const baseUrl = isDev ? "http://localhost:5173" : "https://cardlessid.org";
-  const auth = getAuth(firebaseApp);
-  const dbRef = ref(getDatabase(firebaseApp));
   const [tapped, setTapped] = useState("");
   const onTap = (wallet: string) => {
     setLoading(true);
@@ -85,18 +93,10 @@ const Verify: React.FC = () => {
   const location = useLocation();
   const submit = useSubmit();
   const confirm = async () => {
-    console.log("confirming to path " + location.pathname);
-    setLoading(true);
-
-    await submit(
-      { quizTimedOut: true },
-      { action: location.pathname, method: "POST" }
-    );
-
-    console.log("done");
+    await submit({ vid: vid }, { action: location.pathname, method: "POST" });
   };
   useEffect(() => {
-    console.log("change", loaded);
+    setData(loaded);
   }, [loaded]);
 
   return (
@@ -104,7 +104,7 @@ const Verify: React.FC = () => {
       <div>
         <div className="flex flex-col justify-center items-center">
           <>
-            {!loading && !verified ? (
+            {!loading && !data.verified ? (
               <>
                 {!error ? (
                   <>

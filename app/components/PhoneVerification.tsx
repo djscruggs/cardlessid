@@ -41,7 +41,10 @@ const ConfirmScreen: React.FC<{
 
   const confirm = () => {
     setConfirming(true);
-    onConfirm();
+    setTimeout(() => {
+      onConfirm();
+      setConfirming(false);
+    }, 1500);
   };
   const wallets = ["metamask", "coinbase", "pera", "phantom"];
   if (!wallets.includes(wallet)) {

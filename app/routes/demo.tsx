@@ -68,7 +68,16 @@ const videos = [
     title: "SPICY JUICY BIG CHICKEN & EGG MOMOS WITH SPICY ...",
   },
 ];
+const generateId = (): string => {
+  // Generates a random string of numbers and letters
+  const randomPart = Math.random().toString(36).substring(2, 8);
+  const timestampPart = Date.now().toString().slice(-4);
 
+  // Combines and shortens the parts to 6-8 characters
+  const generatedId = (randomPart + timestampPart).slice(0, 8);
+
+  return generatedId;
+};
 interface vData {
   verified: boolean;
   vid: string;
@@ -84,17 +93,6 @@ const Demo: React.FC = () => {
   // );
   const lData = useRouteLoaderData("root");
   const isDev = !lData?.hostname.includes("cardlessid.org");
-
-  const generateId = (): string => {
-    // Generates a random string of numbers and letters
-    const randomPart = Math.random().toString(36).substring(2, 8);
-    const timestampPart = Date.now().toString().slice(-4);
-
-    // Combines and shortens the parts to 6-8 characters
-    const generatedId = (randomPart + timestampPart).slice(0, 8);
-
-    return generatedId;
-  };
 
   const [data, setData] = useState({ verified: false, vid: "" });
   const [error, setError] = useState("");
@@ -136,6 +134,7 @@ const Demo: React.FC = () => {
   };
   useEffect(() => {
     // Initial data load on page visit
+    // look to see if there is already a vid stored locally, if not create one and push to db
     let _vid = localStorage.getItem("vid") || generateId();
     loadData(_vid);
     localStorage.setItem("vid", _vid);
