@@ -18,6 +18,9 @@ export function meta() {
 export async function action({
   request,
 }: ActionFunctionArgs): Promise<{ ok: boolean }> {
+  console.log("POST config");
+  console.log(firebaseConfig);
+
   try {
     const body = await request.formData();
     const auth = getAuth(firebaseApp);
@@ -38,7 +41,6 @@ export async function loader({
   if (!params.vid) {
     throw "No verification ID provided";
   }
-  console.log(firebaseConfig);
   try {
     const auth = getAuth(firebaseApp);
     const dbRef = ref(getDatabase(firebaseApp));
@@ -48,7 +50,6 @@ export async function loader({
     let data;
     if (snapshot.exists()) {
       data = snapshot.val();
-      console.log("snapshot data", data);
       return data;
     } else {
       throw "Invalid verification ID submitted";
