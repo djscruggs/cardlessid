@@ -24,7 +24,7 @@ export async function action({
     const auth = getAuth(firebaseApp);
     const dbRef = ref(getDatabase(firebaseApp));
     signInAnonymously(auth);
-    await set(child(dbRef, body.get("vid")), { verified: true });
+    await set(child(dbRef, body.get("vid") as string), { verified: true });
     return { ok: true };
   } catch (error) {
     console.log("Error in action function", error);
@@ -93,7 +93,7 @@ const Verify: React.FC = () => {
   const location = useLocation();
   const submit = useSubmit();
   const confirm = async () => {
-    await submit({ vid: vid }, { action: location.pathname, method: "POST" });
+    submit({ vid: vid }, { action: location.pathname, method: "POST" });
   };
   useEffect(() => {
     setData(loaded);
