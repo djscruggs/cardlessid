@@ -21,46 +21,9 @@ This is an open-source project, and we welcome all contributions. Whether you're
 
 This project is built with the following technologies:
 
-- **[Vite](https://vitejs.dev/)**: A next-generation frontend tooling that provides a faster and leaner development experience.
-- **[React](https://reactjs.org/)**: A JavaScript library for building user interfaces.
-- **[TypeScript](https://www.typescriptlang.org/)**: A typed superset of JavaScript that compiles to plain JavaScript.
-- **[Tailwind CSS](https://tailwindcss.com/)**: A utility-first CSS framework for rapid UI development.
-- **[Firebase](https://firebase.google.com/)**: A platform for building web and mobile applications, used here for backend services.
-- **[React Router](https://reactrouter.com/)**: A declarative routing library for React.
-- **[EmailJS](https://www.emailjs.com/)**: A service to send emails directly from client-side JavaScript.
-
-## Getting Started
-
-To get a local copy up and running, follow these simple steps.
-
-### Prerequisites
-
-- npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
-### Installation
-
-1.  Clone the repo
-    ```sh
-    git clone https://github.com/your_username_/Project-Name.git
-    ```
-2.  Install NPM packages
-    ```sh
-    npm install
-    ```
-3.  Start the development server
-    ```sh
-    npm run dev
-    ```
-
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
-
-## Linting and Formatting
-
-This project uses ESLint for linting. You can run the linter with:
-
-```sh
-npm run lint
-```
+- **[React Router, framework version](https://reactrouter.com/start/modes#framework)**:
+- **[TypeScript](https://www.typescriptlang.org/)**
+- **[Tailwind CSS](https://tailwindcss.com/)**
+- **[Firebase](https://firebase.google.com/)**
+- **[React Router](https://reactrouter.com/)**
+- **[EmailJS](https://www.emailjs.com/)**
