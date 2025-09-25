@@ -97,9 +97,10 @@ const ConfirmScreen: React.FC<{
           <div className="bg-white p-2 rounded-sm flex items-center space-x-4">
             <input
               type="checkbox"
+              value="confirmed"
               className="h-6 w-6 rounded-md "
               checked={checked}
-              onClick={toggleCheck}
+              onChange={toggleCheck}
             />
             <div className="">
               <p className="text-sm text-gray-400">AGE RANGE</p>

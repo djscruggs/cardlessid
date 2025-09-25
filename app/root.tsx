@@ -19,6 +19,11 @@ export const links: Route.LinksFunction = () => [
     crossOrigin: "anonymous",
   },
   {
+    rel: "icon",
+    href: "/favicon.png",
+    type: "image/png",
+  },
+  {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
@@ -53,6 +58,7 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  console.log(error);
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
@@ -66,12 +72,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
     stack = error.stack;
+  } else if (typeof error == "string") {
+    details = error;
   }
 
   return (
     <main className="pt-16 p-4 container mx-auto  items-center flex flex-col">
       <h1>{message}</h1>
-      <p>{details}</p>
+      <p className="my-10 text-red-500">{details}</p>
       {stack && (
         <pre className="w-full p-4 overflow-x-auto">
           <code>{stack}</code>

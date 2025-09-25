@@ -12,6 +12,7 @@
     "@emailjs/browser": "^4.4.1",
     "@react-router/node": "^7.7.1",
     "@react-router/serve": "^7.7.1",
+    "@worldcoin/idkit": "^2.4.1",
     "emailjs": "^4.0.3",
     "firebase": "^12.3.0",
     "isbot": "^5.1.27",

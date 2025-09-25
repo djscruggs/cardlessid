@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useRouteLoaderData, useParams } from "react-router";
+import {
+  useRouteLoaderData,
+  useParams,
+  useLoaderData,
+  useSubmit,
+  useLocation,
+} from "react-router";
 import PhoneVerification from "~/components/PhoneVerification";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
@@ -9,10 +15,37 @@ import type { Route } from "./+types/home";
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Verify Your Age" }];
 }
+export async function action(): Promise<{ ok: boolean }> {
+  console.log("top of action");
+
+  return { ok: true };
+}
+export async function loader({
+  params,
+}: {
+  params: { vid: string };
+}): Promise<{ verified: boolean }> {
+  if (!params.vid) {
+    throw "No verification ID provided";
+  }
+  const auth = getAuth(firebaseApp);
+  const dbRef = ref(getDatabase(firebaseApp));
+  signInAnonymously(auth);
+  const snapshot = await get(child(dbRef, params.vid));
+
+  let data;
+  if (snapshot.exists()) {
+    data = snapshot.val();
+  } else {
+    throw "Invalid verification ID submitted";
+  }
+  return data;
+}
 
 const Verify: React.FC = () => {
   const lData = useRouteLoaderData("root");
   const isDev = !lData?.hostname.includes("cardlessid.org");
+  const loaded = useLoaderData();
   const params = useParams();
   const [modal, setModal] = useState(true);
   const [wallet, setWallet] = useState("");
@@ -25,7 +58,7 @@ const Verify: React.FC = () => {
     }
     setModal(!modal);
   };
-  const [data, setData] = useState({ verified: false });
+  const [data, setData] = useState(loaded);
   const [verified, setVerified] = useState(false);
   const vid = params.vid || "";
   let _error = "";
@@ -49,55 +82,22 @@ const Verify: React.FC = () => {
       }, 1500);
     }
   };
-  const confirm = () => {
+  const location = useLocation();
+  const submit = useSubmit();
+  const confirm = async () => {
+    console.log("confirming to path " + location.pathname);
     setLoading(true);
-    set(child(dbRef, vid), { verified: true }).catch((writeError) => {
-      setModal(false);
-      setError("Write failed: " + writeError.message);
-    });
-    setTimeout(() => {
-      loadData(dbRef, vid);
-    }, 2000);
-  };
 
-  const loadData = async (dbRef: any, uniqueId: string) => {
-    try {
-      const snapshot = await get(child(dbRef, uniqueId));
+    await submit(
+      { quizTimedOut: true },
+      { action: location.pathname, method: "POST" }
+    );
 
-      if (snapshot.exists()) {
-        const fetchedData = snapshot.val();
-        setData(fetchedData);
-        setVerified(fetchedData.verified);
-      } else {
-        await set(child(dbRef, uniqueId), data);
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        setError("Authentication failed: " + error.message);
-      } else {
-        // Handle cases where the error is not an Error object (e.g., a string)
-        setError("Authentication failed: " + String(error));
-      }
-    } finally {
-      setLoading(false);
-    }
+    console.log("done");
   };
-  signInAnonymously(auth);
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        await loadData(dbRef, vid);
-      } catch (authError) {
-        if (authError instanceof Error) {
-          setError("Authentication failed: " + authError.message);
-        } else {
-          // Handle cases where the error is not an Error object (e.g., a string)
-          setError("Authentication failed: " + String(authError));
-        }
-      }
-    };
-    initialize();
-  }, []);
+    console.log("change", loaded);
+  }, [loaded]);
 
   return (
     <div>

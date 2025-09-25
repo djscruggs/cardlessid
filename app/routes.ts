@@ -12,4 +12,8 @@ export default [
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
   ...prefix("api", [index("routes/api/hello.ts")]),
+  ...prefix("api", [
+    route("verify-worldcoin", "routes/api/verify-worldcoin.ts"),
+  ]),
+  ...prefix("app", [route("worldcoin", "routes/app/worldcoin.tsx")]),
 ] satisfies RouteConfig;

@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
 import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
 
 const World = () => {
-  const APP_ID = "app_b965e6945fca3490e3c3765d3968d2cf";
+  const APP_ID = import.meta.env.VITE_WORLDCOIN_APP_ID;
   const ACTION = "age-verification-over-18";
   const handleVerify = async (proof: any) => {
     console.log(proof);
-    const res = await fetch("/api/verify", {
+    const res = await fetch("/api/verify-worldcoin", {
       // route to your backend will depend on implementation
       method: "POST",
       headers: {
