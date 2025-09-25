@@ -10,7 +10,7 @@ import {
 import PhoneVerification from "~/components/PhoneVerification";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
-import { firebaseApp } from "~/firebase.config";
+import { firebaseApp, firebaseConfig } from "~/firebase.config";
 
 export function meta() {
   return [{ title: "Verify Your Age" }];
@@ -38,6 +38,7 @@ export async function loader({
   if (!params.vid) {
     throw "No verification ID provided";
   }
+  console.log(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const dbRef = ref(getDatabase(firebaseApp));
   signInAnonymously(auth);
