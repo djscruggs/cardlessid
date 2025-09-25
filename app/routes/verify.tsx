@@ -48,6 +48,7 @@ export async function loader({
     let data;
     if (snapshot.exists()) {
       data = snapshot.val();
+      console.log("snapshot data", data);
       return data;
     } else {
       throw "Invalid verification ID submitted";
