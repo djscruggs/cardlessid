@@ -39,18 +39,23 @@ export async function loader({
     throw "No verification ID provided";
   }
   console.log(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const dbRef = ref(getDatabase(firebaseApp));
-  signInAnonymously(auth);
-  const snapshot = await get(child(dbRef, params.vid));
+  try {
+    const auth = getAuth(firebaseApp);
+    const dbRef = ref(getDatabase(firebaseApp));
+    signInAnonymously(auth);
+    const snapshot = await get(child(dbRef, params.vid));
 
-  let data;
-  if (snapshot.exists()) {
-    data = snapshot.val();
-  } else {
-    throw "Invalid verification ID submitted";
+    let data;
+    if (snapshot.exists()) {
+      data = snapshot.val();
+      return data;
+    } else {
+      throw "Invalid verification ID submitted";
+    }
+  } catch (error) {
+    console.log(error);
+    return { verified: false };
   }
-  return data;
 }
 
 const Verify: React.FC = () => {
