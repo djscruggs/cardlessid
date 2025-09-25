@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, type LoaderFunction } from "react-router";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
@@ -9,7 +9,7 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "SpicyVids Demo" }];
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async () => {
   return { result: true };
 };
 const generateId = (): string => {

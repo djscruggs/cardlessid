@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   useRouteLoaderData,
   useParams,
@@ -11,9 +11,8 @@ import PhoneVerification from "~/components/PhoneVerification";
 import { getDatabase, ref, set, get, child } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from "~/firebase.config";
-import type { Route } from "./+types/home";
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [{ title: "Verify Your Age" }];
 }
 export async function action({

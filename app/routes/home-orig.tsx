@@ -1,5 +1,4 @@
-import React from "react";
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [
     { title: "Home | Cardless ID " },
     { name: "description", content: "Welcome to Cardless ID!" },

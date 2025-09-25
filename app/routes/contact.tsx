@@ -1,8 +1,7 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
 
-import type { Route } from "./+types/home";
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [{ title: "Contact Cardless ID" }];
 }
 

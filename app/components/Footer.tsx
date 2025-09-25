@@ -1,5 +1,3 @@
-import React from "react";
-
 const Footer: React.FC = () => {
   return (
     <footer className="my-2 justify-center">

@@ -1,13 +1,10 @@
-import React from "react";
-import { useNavigate, useLoaderData } from "react-router";
-import type { Route } from "./+types/home";
+import { useNavigate } from "react-router";
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [{ title: "Home | Cardless ID" }];
 }
 
 const Home: React.FC = () => {
-  const data = useLoaderData();
   const handleClick = () => {
     // This method opens a new browser tab with the specified URL
     window.open(
