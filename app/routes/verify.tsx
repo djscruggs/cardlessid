@@ -22,10 +22,10 @@ export async function action({
   console.log(firebaseConfig);
 
   try {
-    const body = await request.formData();
     const auth = getAuth(firebaseApp);
     const dbRef = ref(getDatabase(firebaseApp));
     signInAnonymously(auth);
+    const body = await request.formData();
     await set(child(dbRef, body.get("vid") as string), { verified: true });
     return { ok: true };
   } catch (error) {
@@ -38,6 +38,8 @@ export async function loader({
 }: {
   params: { vid: string };
 }): Promise<{ verified: boolean }> {
+  console.log("GET config");
+  console.log(firebaseConfig);
   if (!params.vid) {
     throw "No verification ID provided";
   }
