@@ -1,45 +1,41 @@
-export async function action({ req, res }: any) {
-  const payload = await req.json();
-  const { proof, merkle_root, nullifier_hash, verification_level } = req.body;
-
-  console.log(payload);
-
+import type { ActionFunctionArgs } from "react-router";
+export async function action({ request }: ActionFunctionArgs) {
+  const payload = await request.json();
   try {
-    const appId = process.env.WORLDCOIN_APP_ID;
-    const verifyRes = await fetch(
-      "https://developer.worldcoin.org/api/v1/verify/" + appId,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nullifier_hash,
-          merkle_root,
-          proof,
-          verification_level,
-          action: "age-verification-over-18",
-        }),
-      }
-    );
+    const appId = import.meta.env.VITE_WORLDCOIN_APP_ID;
+    const { proof, merkle_root, nullifier_hash, verification_level } = payload;
+
+    const url = "https://developer.worldcoin.org/api/v2/verify/" + appId;
+    const verifyRes = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nullifier_hash,
+        merkle_root,
+        proof,
+        verification_level,
+        action: "age-verification-over-18",
+      }),
+    });
 
     if (verifyRes.ok) {
-      const { verified } = await verifyRes.json();
-      if (verified) {
+      const res = await verifyRes.json();
+      if (res.success) {
         // Store nullifier_hash to prevent reuse
         // Grant access to user
-        res.json({ success: true });
+        return { ok: true };
       } else {
-        res.status(400).json({ error: "Invalid proof" });
+        throw new Response("Invalid proof", { status: 400 });
       }
     } else {
-      res.status(400).json({ error: "Verification failed" });
+      throw new Response("Verification failed", { status: 400 });
     }
   } catch (error) {
-    res.status(500).json({ error: "Verification error" });
+    throw new Response("Unknown verification error", { status: 500 });
   }
-  return { ok: true };
 }
 
-export async function loader({ req }: any) {
+export async function loader() {
   const data = {};
   return { id: data };
 }
