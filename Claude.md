@@ -10,7 +10,7 @@ The goal is to use a third party tool still TBD to verify someone’s identity, 
 
 **Technology Stack**
 
-The site is built in Typescript with Remix/React Router V7. The database is firebase. The only information stored in the database is the wallet address, and whether it has been verified by the third party. It uses tailwind for CSS
+The site is built in Typescript with React Router V7. The database is firebase. The only information stored in the database is the wallet address, and whether it has been verified by the third party. It uses tailwind for CSS and DaisyUI for common UI elements
 
 **File Structure**
 
@@ -20,12 +20,13 @@ The site is root /app
 
 Import paths should use ~ as an alias for /app
 
+There is an example credential in app/components/credentials/w3c-minimal.ts
+
 .
 ├── app
 │   ├── app.css
 │   ├── firebase.config.ts
 │   ├── hooks
-
 │   ├── components
 │   ├── layouts
 │   ├── root.tsx

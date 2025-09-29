@@ -15,5 +15,8 @@ export default [
   ...prefix("api", [
     route("verify-worldcoin", "routes/api/verify-worldcoin.ts"),
   ]),
-  ...prefix("app", [route("worldcoin", "routes/app/worldcoin.tsx")]),
+  ...prefix("app", [
+    route("worldcoin", "routes/app/worldcoin.tsx"),
+    route("create-credential", "routes/app/create-credential.tsx"),
+  ]),
 ] satisfies RouteConfig;
