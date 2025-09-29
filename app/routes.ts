@@ -18,5 +18,7 @@ export default [
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
     route("create-credential", "routes/app/create-credential.tsx"),
+    route("verify/:txId", "routes/app/verify.$txId.tsx"),
+    route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
   ]),
 ] satisfies RouteConfig;

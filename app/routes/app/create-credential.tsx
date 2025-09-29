@@ -103,16 +103,41 @@ export async function action({ request }: ActionFunctionArgs) {
     },
   };
 
+  // Store credential on-chain
+  let transactionId = null;
+  let blockchainProof = null;
+  
+  try {
+    // For demo purposes, we'll simulate on-chain storage
+    // In production, you'd need the private key to sign transactions
+    const credentialData = JSON.stringify(credential);
+    transactionId = `simulated-tx-${crypto.randomUUID()}`;
+    
+    // Simulate blockchain confirmation
+    blockchainProof = {
+      transactionId,
+      blockHeight: Math.floor(Math.random() * 1000000) + 1000000,
+      timestamp: new Date().toISOString(),
+      network: 'testnet',
+      explorerUrl: `/app/verify/${transactionId}`, // Link to our verification page instead
+      isSimulated: true // Flag to indicate this is simulated
+    };
+    
+  } catch (error) {
+    console.error('Error storing credential on-chain:', error);
+    // Continue without blockchain storage for now
+  }
+
   return { 
     credential, 
-    success: true 
+    success: true,
+    blockchainProof
   };
 }
 
 const CreateCredential = () => {
   const actionData = useActionData<typeof action>();
   const loaderData = useLoaderData<typeof loader>();
-  console.log(loaderData);
   
   const appWalletAddress = import.meta.env.VITE_APP_WALLET_ADDRESS;
   const issuerId = appWalletAddress ? `did:algorand:${appWalletAddress}` : "Wallet address not configured";
@@ -130,8 +155,9 @@ const CreateCredential = () => {
 
   const [showQR, setShowQR] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [isStoringOnChain, setIsStoringOnChain] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -381,6 +407,31 @@ const CreateCredential = () => {
               </div>
             )}
             
+            {actionData?.blockchainProof && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="text-sm font-semibold text-green-800 mb-2">
+                  ✅ {actionData.blockchainProof.isSimulated ? 'Simulated Blockchain Storage' : 'Stored on Blockchain'}
+                </h3>
+                <div className="text-xs text-green-700 space-y-1">
+                  <p><strong>Transaction ID:</strong> {actionData.blockchainProof.transactionId}</p>
+                  <p><strong>Block Height:</strong> {actionData.blockchainProof.blockHeight}</p>
+                  <p><strong>Network:</strong> {actionData.blockchainProof.network}</p>
+                  <p><strong>Timestamp:</strong> {new Date(actionData.blockchainProof.timestamp).toLocaleString()}</p>
+                  {actionData.blockchainProof.isSimulated && (
+                    <p className="text-orange-600"><strong>Note:</strong> This is a simulated transaction for demonstration</p>
+                  )}
+                  <a 
+                    href={actionData.blockchainProof.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-800 underline"
+                  >
+                    {actionData.blockchainProof.isSimulated ? 'View Proof →' : 'View on AlgoExplorer →'}
+                  </a>
+                </div>
+              </div>
+            )}
+            
             <div className="space-x-2">
               <button
                 onClick={() => setShowQR(true)}
@@ -397,6 +448,16 @@ const CreateCredential = () => {
               >
                 Copy to Clipboard
               </button>
+              {actionData?.blockchainProof && (
+                <button
+                  onClick={() => {
+                    window.open(`/app/verify/${actionData.blockchainProof?.transactionId}`, '_blank');
+                  }}
+                  className="btn btn-success"
+                >
+                  View Proof
+                </button>
+              )}
             </div>
           </div>
         )}

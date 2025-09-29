@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  algorand-node:
+    image: algorand/stable:latest
+    container_name: algorand-localnet
+    ports:
+      - "4001:4001"  # algod API
+      - "4002:4002"  # algod API (admin)
+      - "8980:8980"  # indexer API
+    volumes:
+      - algorand-data:/opt/algorand/node/data
+      - ./genesis.json:/opt/algorand/node/genesis.json
+    environment:
+      - ALGORAND_DATA=/opt/algorand/node/data
+    command: >
+      sh -c "
+        cp /opt/algorand/node/genesis.json /opt/algorand/node/data/ &&
+        /opt/algorand/node/algod -d /opt/algorand/node/data -l 0.0.0.0:8080
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4001/v2/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  algorand-indexer:
+    image: algorand/indexer:latest
+    container_name: algorand-indexer
+    ports:
+      - "8980:8980"
+    depends_on:
+      - algorand-node
+    environment:
+      - ALGORAND_DATA=/opt/algorand/node/data
+      - ALGOD_ADDR=http://algorand-node:4001
+    volumes:
+      - algorand-data:/opt/algorand/node/data
+
+volumes:
+  algorand-data:
+

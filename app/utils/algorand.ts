@@ -54,7 +54,7 @@ export async function getAccountInfo(address: string) {
 export async function getAccountBalance(address: string): Promise<number> {
   try {
     const accountInfo = await getAccountInfo(address);
-    return accountInfo.amount || 0;
+    return Number(accountInfo.amount || 0);
   } catch (error) {
     console.error('Error fetching account balance:', error);
     return 0;
@@ -86,8 +86,8 @@ export async function createCredentialTransaction(
     
     // Create transaction
     const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      from: fromAddress,
-      to: fromAddress, // Send to self (this is just to store data)
+      sender: fromAddress,
+      receiver: fromAddress, // Send to self (this is just to store data)
       amount: 0, // No ALGO transfer, just data storage
       note: note,
       suggestedParams: suggestedParams,
@@ -97,9 +97,9 @@ export async function createCredentialTransaction(
     const signedTxn = txn.signTxn(privateKey);
     
     // Submit transaction
-    const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
+    const response = await algodClient.sendRawTransaction(signedTxn).do();
     
-    return txId;
+    return response.txid;
   } catch (error) {
     console.error('Error creating credential transaction:', error);
     throw error;
