@@ -20,6 +20,7 @@
     "@emailjs/browser": "^4.4.1",
     "@react-router/node": "^7.7.1",
     "@react-router/serve": "^7.7.1",
+    "@vercel/react-router": "^1.2.3",
     "@worldcoin/idkit": "^2.4.1",
     "algosdk": "^3.5.2",
     "emailjs": "^4.0.3",
