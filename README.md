@@ -27,3 +27,4 @@ This project is built with the following technologies:
 - **[Firebase](https://firebase.google.com/)**
 - **[React Router](https://reactrouter.com/)**
 - **[EmailJS](https://www.emailjs.com/)**
+ 
