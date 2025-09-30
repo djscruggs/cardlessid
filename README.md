@@ -27,4 +27,31 @@ This project is built with the following technologies:
 - **[Firebase](https://firebase.google.com/)**
 - **[React Router](https://reactrouter.com/)**
 - **[EmailJS](https://www.emailjs.com/)**
- 
+
+## Firebase Setup
+
+### Database Indexes
+
+For optimal performance, add these indexes to your Firebase Realtime Database:
+
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project
+3. Navigate to **Realtime Database** → **Rules** tab
+4. Add the following indexes:
+
+```json
+{
+  "rules": {
+    "verifications": {
+      ".indexOn": ["compositeHash"]
+    },
+    "announcements": {
+      ".indexOn": ["createdAt"]
+    }
+  }
+}
+```
+
+These indexes are critical for:
+- **compositeHash**: Efficient duplicate credential detection
+- **createdAt**: Fast announcement sorting by date

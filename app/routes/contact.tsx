@@ -38,7 +38,6 @@ const Contact: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center w-full mt-10 ">
-      <h2>Contact Us</h2>
       {status && <p className="status-message text-green-700">{status}</p>}
       <form
         ref={form}
