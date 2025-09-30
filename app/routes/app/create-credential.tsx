@@ -1,5 +1,5 @@
-import { type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
-import { Form, useActionData, useLoaderData } from "react-router";
+import { type LoaderFunctionArgs } from "react-router";
+import { useLoaderData } from "react-router";
 import { useState } from "react";
 import CredentialQR from "~/components/CredentialQR";
 
@@ -16,171 +16,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return {
     issuerId,
-  };
-}
-
-export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const subjectId = formData.get("subjectId") as string;
-  const birthDate = formData.get("birthDate") as string;
-  const governmentId = formData.get("governmentId") as string;
-  const idType = formData.get("idType") as string;
-  const state = formData.get("state") as string;
-  const firstName = formData.get("firstName") as string;
-  const middleName = formData.get("middleName") as string;
-  const lastName = formData.get("lastName") as string;
-
-  // Get app wallet address from environment - this is ALWAYS the issuer
-  const appWalletAddress = import.meta.env.VITE_APP_WALLET_ADDRESS;
-  if (!appWalletAddress) {
-    throw new Error("VITE_APP_WALLET_ADDRESS environment variable is required");
-  }
-  const issuerId = `did:algorand:${appWalletAddress}`;
-
-  // Validate that birthday is at least 13 years ago
-  if (birthDate) {
-    const birthDateObj = new Date(birthDate);
-    const today = new Date();
-    const thirteenYearsAgo = new Date(
-      today.getFullYear() - 13,
-      today.getMonth(),
-      today.getDate()
-    );
-
-    if (birthDateObj > thirteenYearsAgo) {
-      return {
-        error: "Birth date must be at least 13 years ago",
-        success: false,
-      };
-    }
-  }
-
-  // Generate a UUID for the credential
-  const credentialId = `urn:uuid:${crypto.randomUUID()}`;
-
-  // Get current date for issuance
-  const issuanceDate = new Date().toISOString();
-
-  // Hash the identifiers to prevent duplicate verifications
-  const governmentIdHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(governmentId)
-  );
-
-  // Hash personal information for privacy
-  const firstNameHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(firstName)
-  );
-  const middleNameHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(middleName)
-  );
-  const lastNameHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(lastName)
-  );
-  const birthDateHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(birthDate)
-  );
-
-  // Create composite hash for main duplicate detection
-  const compositeData = `${firstName}|${middleName}|${lastName}|${birthDate}`;
-  const compositeHash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(compositeData)
-  );
-
-  const credential = {
-    "@context": [
-      "https://www.w3.org/ns/credentials/v2",
-      "https://www.w3.org/ns/credentials/examples/v2",
-    ],
-    id: credentialId,
-    type: ["VerifiableCredential", "BirthDateCredential"],
-    issuer: {
-      id: issuerId,
-    },
-    issuanceDate: issuanceDate,
-    credentialSubject: {
-      id: subjectId,
-      // All personal data is hashed for privacy
-      "cardlessid:governmentIdHash": Array.from(
-        new Uint8Array(governmentIdHash)
-      )
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:firstNameHash": Array.from(new Uint8Array(firstNameHash))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:middleNameHash": Array.from(new Uint8Array(middleNameHash))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:lastNameHash": Array.from(new Uint8Array(lastNameHash))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:birthDateHash": Array.from(new Uint8Array(birthDateHash))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:compositeHash": Array.from(new Uint8Array(compositeHash))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join(""),
-      "cardlessid:idType": idType, // "passport" or "drivers_license"
-      "cardlessid:state": state, // US state or territory
-    },
-    proof: {
-      // This is the cryptographic signature - placeholder for now
-      type: "Ed25519Signature2020",
-      created: issuanceDate,
-      verificationMethod: `${issuerId}#key-1`,
-      proofPurpose: "assertionMethod",
-      proofValue: "placeholder-signature-value",
-    },
-  };
-
-  // Store credential on-chain
-  let transactionId = null;
-  let blockchainProof = null;
-
-  try {
-    // For demo purposes, we'll simulate on-chain storage
-    // In production, you'd need the private key to sign transactions
-    const credentialData = JSON.stringify(credential);
-    transactionId = `simulated-tx-${crypto.randomUUID()}`;
-
-    // Simulate blockchain confirmation
-    blockchainProof = {
-      transactionId,
-      blockHeight: Math.floor(Math.random() * 1000000) + 1000000,
-      timestamp: new Date().toISOString(),
-      network: "testnet",
-      explorerUrl: `/app/verify/${transactionId}`, // Link to our verification page instead
-      isSimulated: true, // Flag to indicate this is simulated
-    };
-  } catch (error) {
-    console.error("Error storing credential on-chain:", error);
-    // Continue without blockchain storage for now
-  }
-
-  return {
-    credential,
-    success: true,
-    blockchainProof,
+    appWalletAddress,
   };
 }
 
 const CreateCredential = () => {
-  const actionData = useActionData<typeof action>();
   const loaderData = useLoaderData<typeof loader>();
 
-  const appWalletAddress = import.meta.env.VITE_APP_WALLET_ADDRESS;
-  const issuerId = appWalletAddress
-    ? `did:algorand:${appWalletAddress}`
-    : "Wallet address not configured";
-
   const [formData, setFormData] = useState({
-    subjectId: `did:cardlessid:user:${crypto.randomUUID()}`,
+    walletAddress: "",
     birthDate: "",
     governmentId: "",
     idType: "drivers_license",
@@ -192,7 +36,9 @@ const CreateCredential = () => {
 
   const [showQR, setShowQR] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [isStoringOnChain, setIsStoringOnChain] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiResponse, setApiResponse] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -202,6 +48,66 @@ const CreateCredential = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    // Validate birth date is at least 13 years ago
+    const birthDateObj = new Date(formData.birthDate);
+    const today = new Date();
+    const thirteenYearsAgo = new Date(
+      today.getFullYear() - 13,
+      today.getMonth(),
+      today.getDate()
+    );
+
+    if (birthDateObj > thirteenYearsAgo) {
+      setError("Birth date must be at least 13 years ago");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate required fields
+    if (
+      !formData.walletAddress ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.birthDate ||
+      !formData.governmentId ||
+      !formData.idType ||
+      !formData.state
+    ) {
+      setError("Please fill in all required fields");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/credentials-issue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to create credential");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setApiResponse(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -214,15 +120,15 @@ const CreateCredential = () => {
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-sm text-blue-800">
             <strong>Issuer:</strong>{" "}
-            {appWalletAddress ? (
+            {loaderData.appWalletAddress ? (
               <a
-                href={`https://explorer.perawallet.app/address/${appWalletAddress}/`}
+                href={`https://explorer.perawallet.app/address/${loaderData.appWalletAddress}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
               >
-                {appWalletAddress.substring(0, 4)}...
-                {appWalletAddress.substring(appWalletAddress.length - 4)}
+                {loaderData.appWalletAddress.substring(0, 4)}...
+                {loaderData.appWalletAddress.substring(loaderData.appWalletAddress.length - 4)}
               </a>
             ) : (
               "Wallet address not configured"
@@ -230,18 +136,20 @@ const CreateCredential = () => {
           </p>
         </div>
 
-        <Form method="post" className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
-            <label className="label" htmlFor="subjectId">
-              <span className="label-text">Subject ID (DID)</span>
+            <label className="label" htmlFor="walletAddress">
+              <span className="label-text">Wallet Address (Algorand)</span>
             </label>
             <input
               type="text"
-              id="subjectId"
-              name="subjectId"
-              value={formData.subjectId}
-              readOnly
-              className="input input-bordered w-full bg-gray-100"
+              id="walletAddress"
+              name="walletAddress"
+              value={formData.walletAddress}
+              onChange={handleInputChange}
+              placeholder="Enter your Algorand wallet address"
+              className="input input-bordered w-full"
+              required
             />
           </div>
 
@@ -422,18 +330,18 @@ const CreateCredential = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-full">
-            Create Credential
+          <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Creating Credential..." : "Create Credential"}
           </button>
-        </Form>
+        </form>
 
-        {actionData?.error && (
+        {error && (
           <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {actionData.error}
+            {error}
           </div>
         )}
 
-        {actionData?.success && actionData.credential && (
+        {apiResponse?.success && apiResponse.credential && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -449,56 +357,14 @@ const CreateCredential = () => {
 
             {showDetails && (
               <div className="bg-gray-100 p-4 rounded-md overflow-x-auto mb-4">
-                <pre className="text-sm text-gray-800 whitespace-pre-wrap">
-                  {JSON.stringify(actionData.credential, null, 2)}
+                <h3 className="text-sm font-semibold mb-2">Credential:</h3>
+                <pre className="text-sm text-gray-800 whitespace-pre-wrap mb-4">
+                  {JSON.stringify(apiResponse.credential, null, 2)}
                 </pre>
-              </div>
-            )}
-
-            {actionData?.blockchainProof && (
-              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h3 className="text-sm font-semibold text-green-800 mb-2">
-                  ✅{" "}
-                  {actionData.blockchainProof.isSimulated
-                    ? "Simulated Blockchain Storage"
-                    : "Stored on Blockchain"}
-                </h3>
-                <div className="text-xs text-green-700 space-y-1">
-                  <p>
-                    <strong>Transaction ID:</strong>{" "}
-                    {actionData.blockchainProof.transactionId}
-                  </p>
-                  <p>
-                    <strong>Block Height:</strong>{" "}
-                    {actionData.blockchainProof.blockHeight}
-                  </p>
-                  <p>
-                    <strong>Network:</strong>{" "}
-                    {actionData.blockchainProof.network}
-                  </p>
-                  <p>
-                    <strong>Timestamp:</strong>{" "}
-                    {new Date(
-                      actionData.blockchainProof.timestamp
-                    ).toLocaleString()}
-                  </p>
-                  {actionData.blockchainProof.isSimulated && (
-                    <p className="text-orange-600">
-                      <strong>Note:</strong> This is a simulated transaction for
-                      demonstration
-                    </p>
-                  )}
-                  <a
-                    href={actionData.blockchainProof.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-600 hover:text-green-800 underline"
-                  >
-                    {actionData.blockchainProof.isSimulated
-                      ? "View Proof →"
-                      : "View on AlgoExplorer →"}
-                  </a>
-                </div>
+                <h3 className="text-sm font-semibold mb-2">Personal Data (stored locally in wallet):</h3>
+                <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                  {JSON.stringify(apiResponse.personalData, null, 2)}
+                </pre>
               </div>
             )}
 
@@ -511,35 +377,26 @@ const CreateCredential = () => {
               </button>
               <button
                 onClick={() => {
+                  const dataToClip = {
+                    credential: apiResponse.credential,
+                    personalData: apiResponse.personalData
+                  };
                   navigator.clipboard.writeText(
-                    JSON.stringify(actionData.credential, null, 2)
+                    JSON.stringify(dataToClip, null, 2)
                   );
-                  alert("Credential copied to clipboard!");
+                  alert("Credential and personal data copied to clipboard!");
                 }}
                 className="btn btn-outline"
               >
                 Copy to Clipboard
               </button>
-              {actionData?.blockchainProof && (
-                <button
-                  onClick={() => {
-                    window.open(
-                      `/app/verify/${actionData.blockchainProof?.transactionId}`,
-                      "_blank"
-                    );
-                  }}
-                  className="btn btn-success"
-                >
-                  View Proof
-                </button>
-              )}
             </div>
           </div>
         )}
 
-        {showQR && actionData?.credential && (
+        {showQR && apiResponse?.credential && (
           <CredentialQR
-            credential={actionData.credential}
+            credential={apiResponse.credential}
             onClose={() => setShowQR(false)}
           />
         )}

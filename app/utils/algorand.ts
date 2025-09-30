@@ -51,6 +51,26 @@ export async function getAccountInfo(address: string) {
   }
 }
 
+export async function isValidAlgorandAddress(address: string): Promise<boolean> {
+  try {
+    // First check format
+    if (!algosdk.isValidAddress(address)) {
+      return false;
+    }
+
+    // Then check if account exists on-chain
+    await algodClient.accountInformation(address).do();
+    return true;
+  } catch (error: any) {
+    // Account doesn't exist on-chain or other error
+    if (error.status === 404) {
+      return false;
+    }
+    console.error('Error validating Algorand address:', error);
+    return false;
+  }
+}
+
 export async function getAccountBalance(address: string): Promise<number> {
   try {
     const accountInfo = await getAccountInfo(address);

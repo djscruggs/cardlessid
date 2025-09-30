@@ -17,7 +17,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       version: "1.0.0",
       documentation: "https://cardlessid.org/docs/credential-schema",
       description:
-        "Cardless ID uses W3C Verifiable Credentials with hashed personal information for privacy-preserving age verification.",
+        "Cardless ID uses W3C Verifiable Credentials with hashed personal information for on-chain verification. The mobile wallet stores both the credential (with hashes) and the original unhashed data locally for user access.",
       fields: {
         "cardlessid:governmentIdHash": {
           type: "string",
@@ -63,7 +63,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       },
       usage: {
         verification:
-          "Verifiers should validate the proof signature against the issuer's public key and check birthDateHash against required age thresholds",
+          "Verifiers should validate the proof signature against the issuer's public key and check birthDateHash against required age thresholds. Hashed fields enable on-chain verification without exposing personal data.",
+        wallet:
+          "Mobile wallets receive both the credential (with hashes for on-chain use) and the unhashed personal data (for local storage and user access).",
         extension:
           "Additional claims can be added using custom namespaces while preserving core cardlessid: fields",
       },

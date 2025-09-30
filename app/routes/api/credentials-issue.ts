@@ -1,9 +1,11 @@
 import type { ActionFunctionArgs } from "react-router";
 import {
   getVerification,
+  saveVerification,
   updateCredentialIssued,
   checkDuplicateCredential,
 } from "~/utils/firebase.server";
+import { isValidAlgorandAddress } from "~/utils/algorand";
 
 /**
  * Endpoint for mobile app to request credential after verification
@@ -20,7 +22,8 @@ import {
  *   state: string (US state code)
  * }
  *
- * Returns W3C Verifiable Credential with hashed personal data
+ * Returns W3C Verifiable Credential with hashed personal data for on-chain verification.
+ * The mobile wallet stores both the credential (with hashes) and the original unhashed data locally.
  */
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
@@ -76,16 +79,27 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Check if wallet has been verified
+    // Validate Algorand address format (58 characters, base32)
+    const algorandAddressRegex = /^[A-Z2-7]{58}$/;
+    if (!algorandAddressRegex.test(walletAddress)) {
+      return Response.json(
+        {
+          error: "Invalid Algorand wallet address format",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if wallet has already been verified
     const verification = await getVerification(walletAddress);
 
-    if (!verification) {
+    if (verification) {
       return Response.json(
         {
           error:
-            "Wallet address not verified. Please complete identity verification first.",
+            "This wallet address has already been verified and issued a credential.",
         },
-        { status: 403 }
+        { status: 409 }
       );
     }
 
@@ -187,12 +201,22 @@ export async function action({ request }: ActionFunctionArgs) {
       },
     };
 
-    // Mark credential as issued with composite hash for future duplicate checks
+    // Save verification record with composite hash for duplicate detection
+    await saveVerification(walletAddress, true);
     await updateCredentialIssued(walletAddress, compositeHash);
 
     return {
       success: true,
       credential,
+      personalData: {
+        firstName,
+        middleName,
+        lastName,
+        birthDate,
+        governmentId,
+        idType,
+        state,
+      },
       issuedAt: issuanceDate,
     };
   } catch (error) {

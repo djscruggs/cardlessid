@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, type LoaderFunction } from "react-router";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import { getDatabase, ref, set, get, child, remove } from "firebase/database";
 import { getAuth, signInAnonymously } from "firebase/auth";
 import { firebaseApp } from "../firebase.config";
 import type { Route } from "./+types/home";
@@ -71,6 +71,10 @@ const Demo: React.FC = () => {
     }
   };
   const restart = (): void => {
+    const currentId = localStorage.getItem("vid");
+    if (currentId) {
+      remove(child(dbRef, currentId));
+    }
     localStorage.removeItem("vid");
     const newVid = generateId();
     localStorage.setItem("vid", newVid);
