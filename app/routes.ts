@@ -11,9 +11,13 @@ export default [
   route("contact", "routes/contact.tsx"),
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
-  ...prefix("api", [index("routes/api/hello.ts")]),
   ...prefix("api", [
+    index("routes/api/hello.ts"),
     route("verify-worldcoin", "routes/api/verify-worldcoin.ts"),
+    route("verify-webhook", "routes/api/verify-webhook.ts"),
+    route("credentials-issue", "routes/api/credentials-issue.ts"),
+    route("announcements", "routes/api/announcements.ts"),
+    route("credential-schema", "routes/api/credential-schema.ts"),
   ]),
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
