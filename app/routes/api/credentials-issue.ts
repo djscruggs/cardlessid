@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { getVerification, updateCredentialIssued, checkDuplicateCredential } from "~/utils/firebase.server";
 
 /**
@@ -21,7 +20,7 @@ import { getVerification, updateCredentialIssued, checkDuplicateCredential } fro
  */
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, { status: 405 });
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
   try {
@@ -38,11 +37,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Validate required inputs
     if (!walletAddress) {
-      return json({ error: "Missing walletAddress" }, { status: 400 });
+      return Response.json({ error: "Missing walletAddress" }, { status: 400 });
     }
 
     if (!firstName || !lastName || !birthDate || !governmentId || !idType || !state) {
-      return json({ error: "Missing required fields" }, { status: 400 });
+      return Response.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Validate birthDate is at least 13 years ago
@@ -51,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const thirteenYearsAgo = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
 
     if (birthDateObj > thirteenYearsAgo) {
-      return json({
+      return Response.json({
         error: "Birth date must be at least 13 years ago",
       }, { status: 400 });
     }
@@ -60,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const verification = await getVerification(walletAddress);
 
     if (!verification) {
-      return json(
+      return Response.json(
         { error: "Wallet address not verified. Please complete identity verification first." },
         { status: 403 }
       );
@@ -76,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Check for duplicate credentials
     const isDuplicate = await checkDuplicateCredential(compositeHash);
     if (isDuplicate) {
-      return json({
+      return Response.json({
         error: "A credential with this identity information has already been issued.",
       }, { status: 409 });
     }
@@ -141,15 +140,15 @@ export async function action({ request }: ActionFunctionArgs) {
     // Mark credential as issued with composite hash for future duplicate checks
     await updateCredentialIssued(walletAddress, compositeHash);
 
-    return json({
+    return {
       success: true,
       credential,
       issuedAt: issuanceDate,
-    });
+    };
 
   } catch (error) {
     console.error("Credential issuance error:", error);
-    return json(
+    return Response.json(
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error)
@@ -161,5 +160,5 @@ export async function action({ request }: ActionFunctionArgs) {
 
 // Prevent GET requests
 export async function loader() {
-  return json({ error: "Method not allowed" }, { status: 405 });
+  return Response.json({ error: "Method not allowed" }, { status: 405 });
 }

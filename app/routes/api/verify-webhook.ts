@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { saveVerification } from "~/utils/firebase.server";
 
 /**
@@ -19,7 +18,7 @@ import { saveVerification } from "~/utils/firebase.server";
  */
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, { status: 405 });
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
   try {
@@ -29,24 +28,24 @@ export async function action({ request }: ActionFunctionArgs) {
     const { walletAddress, verified, provider } = payload;
 
     if (!walletAddress) {
-      return json({ error: "Missing walletAddress" }, { status: 400 });
+      return Response.json({ error: "Missing walletAddress" }, { status: 400 });
     }
 
     if (typeof verified !== "boolean") {
-      return json({ error: "Missing or invalid verified status" }, { status: 400 });
+      return Response.json({ error: "Missing or invalid verified status" }, { status: 400 });
     }
 
     // Only save if verification was successful
     if (verified) {
       await saveVerification(walletAddress, false); // credentialIssued will be set to true later
 
-      return json({
+      return {
         success: true,
         message: "Verification recorded successfully",
         walletAddress,
-      });
+      };
     } else {
-      return json({
+      return Response.json({
         success: false,
         message: "Verification failed",
         walletAddress,
@@ -55,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   } catch (error) {
     console.error("Webhook processing error:", error);
-    return json(
+    return Response.json(
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error)
@@ -67,5 +66,5 @@ export async function action({ request }: ActionFunctionArgs) {
 
 // Prevent GET requests
 export async function loader() {
-  return json({ error: "Method not allowed" }, { status: 405 });
+  return Response.json({ error: "Method not allowed" }, { status: 405 });
 }

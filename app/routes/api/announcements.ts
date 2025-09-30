@@ -1,5 +1,4 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { json } from "react-router";
 import { getAnnouncements } from "~/utils/firebase.server";
 
 /**
@@ -16,20 +15,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const limit = limitParam ? parseInt(limitParam, 10) : 10;
 
     if (isNaN(limit) || limit < 1 || limit > 50) {
-      return json({ error: "Invalid limit parameter. Must be between 1 and 50" }, { status: 400 });
+      return Response.json(
+        { error: "Invalid limit parameter. Must be between 1 and 50" },
+        { status: 400 }
+      );
     }
 
     const announcements = await getAnnouncements(limit);
 
-    return json({
+    return {
       success: true,
       announcements,
       count: announcements.length,
-    });
+    };
 
   } catch (error) {
     console.error("Announcements fetch error:", error);
-    return json(
+    return Response.json(
       {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error)
@@ -41,5 +43,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Prevent POST/PUT/DELETE requests
 export async function action() {
-  return json({ error: "Method not allowed" }, { status: 405 });
+  return Response.json({ error: "Method not allowed" }, { status: 405 });
 }

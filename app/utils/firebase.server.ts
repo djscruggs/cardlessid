@@ -1,7 +1,29 @@
-import { getDatabase, ref, get, set, push } from "firebase/database";
-import { firebaseApp } from "~/firebase.config";
+import admin from "firebase-admin";
 
-const db = getDatabase(firebaseApp);
+// Initialize Firebase Admin SDK
+// Uses environment variables or service account file
+let app: admin.app.App;
+
+try {
+  // Try to get existing app
+  app = admin.app();
+} catch (error) {
+  // App doesn't exist, initialize it
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+  if (!serviceAccountJson) {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON environment variable is required");
+  }
+
+  const serviceAccount = JSON.parse(serviceAccountJson);
+
+  app = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: process.env.FIREBASE_DATABASE_URL || "https://cardlessid-default-rtdb.firebaseio.com",
+  });
+}
+
+const db = app.database();
 
 // Types
 export interface Verification {
@@ -14,7 +36,7 @@ export interface Announcement {
   id: string;
   title: string;
   message: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   createdAt: number;
 }
 
@@ -26,19 +48,19 @@ export async function saveVerification(
   walletAddress: string,
   credentialIssued: boolean = false
 ): Promise<void> {
-  const verificationRef = ref(db, `verifications/${walletAddress}`);
+  const verificationRef = db.ref(`verifications/${walletAddress}`);
   const verification: Verification = {
     verifiedAt: Date.now(),
     credentialIssued,
   };
-  await set(verificationRef, verification);
+  await verificationRef.set(verification);
 }
 
 export async function getVerification(
   walletAddress: string
 ): Promise<Verification | null> {
-  const verificationRef = ref(db, `verifications/${walletAddress}`);
-  const snapshot = await get(verificationRef);
+  const verificationRef = db.ref(`verifications/${walletAddress}`);
+  const snapshot = await verificationRef.get();
   return snapshot.exists() ? snapshot.val() : null;
 }
 
@@ -46,14 +68,14 @@ export async function updateCredentialIssued(
   walletAddress: string,
   compositeHash: string
 ): Promise<void> {
-  const verificationRef = ref(db, `verifications/${walletAddress}`);
-  const snapshot = await get(verificationRef);
+  const verificationRef = db.ref(`verifications/${walletAddress}`);
+  const snapshot = await verificationRef.get();
 
   if (snapshot.exists()) {
     const verification = snapshot.val();
     verification.credentialIssued = true;
     verification.compositeHash = compositeHash;
-    await set(verificationRef, verification);
+    await verificationRef.set(verification);
   }
 }
 
@@ -63,8 +85,8 @@ export async function updateCredentialIssued(
 export async function checkDuplicateCredential(
   compositeHash: string
 ): Promise<boolean> {
-  const verificationsRef = ref(db, 'verifications');
-  const snapshot = await get(verificationsRef);
+  const verificationsRef = db.ref("verifications");
+  const snapshot = await verificationsRef.get();
 
   if (!snapshot.exists()) {
     return false;
@@ -88,10 +110,10 @@ export async function checkDuplicateCredential(
 export async function createAnnouncement(
   title: string,
   message: string,
-  severity: 'info' | 'warning' | 'critical' = 'info'
+  severity: "info" | "warning" | "critical" = "info"
 ): Promise<string> {
-  const announcementsRef = ref(db, 'announcements');
-  const newAnnouncementRef = push(announcementsRef);
+  const announcementsRef = db.ref("announcements");
+  const newAnnouncementRef = announcementsRef.push();
 
   const announcement = {
     title,
@@ -100,13 +122,15 @@ export async function createAnnouncement(
     createdAt: Date.now(),
   };
 
-  await set(newAnnouncementRef, announcement);
+  await newAnnouncementRef.set(announcement);
   return newAnnouncementRef.key!;
 }
 
-export async function getAnnouncements(limit: number = 10): Promise<Announcement[]> {
-  const announcementsRef = ref(db, 'announcements');
-  const snapshot = await get(announcementsRef);
+export async function getAnnouncements(
+  limit: number = 10
+): Promise<Announcement[]> {
+  const announcementsRef = db.ref("announcements");
+  const snapshot = await announcementsRef.get();
 
   if (!snapshot.exists()) {
     return [];
@@ -135,12 +159,14 @@ export async function saveDemoVerification(
   vid: string,
   verified: boolean
 ): Promise<void> {
-  const demoRef = ref(db, vid);
-  await set(demoRef, { verified });
+  const demoRef = db.ref(vid);
+  await demoRef.set({ verified });
 }
 
-export async function getDemoVerification(vid: string): Promise<{ verified: boolean } | null> {
-  const demoRef = ref(db, vid);
-  const snapshot = await get(demoRef);
+export async function getDemoVerification(
+  vid: string
+): Promise<{ verified: boolean } | null> {
+  const demoRef = db.ref(vid);
+  const snapshot = await demoRef.get();
   return snapshot.exists() ? snapshot.val() : null;
 }

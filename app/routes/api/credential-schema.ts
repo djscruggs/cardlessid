@@ -1,5 +1,4 @@
 import type { LoaderFunctionArgs } from "react-router";
-import { json } from "react-router";
 import CardlessCredential from "~/components/credentials/w3c-minimal";
 
 /**
@@ -12,7 +11,7 @@ import CardlessCredential from "~/components/credentials/w3c-minimal";
  * for verification and extension purposes.
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  return json({
+  return Response.json({
     schema: CardlessCredential,
     version: "1.0.0",
     documentation: "https://cardlessid.org/docs/credential-schema",
@@ -74,5 +73,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 // Prevent POST/PUT/DELETE requests
 export async function action() {
-  return json({ error: "Method not allowed" }, { status: 405 });
+  return Response.json({ error: "Method not allowed" }, { status: 405 });
 }
