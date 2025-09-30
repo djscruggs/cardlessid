@@ -1,5 +1,9 @@
 import type { ActionFunctionArgs } from "react-router";
-import { getVerification, updateCredentialIssued, checkDuplicateCredential } from "~/utils/firebase.server";
+import {
+  getVerification,
+  updateCredentialIssued,
+  checkDuplicateCredential,
+} from "~/utils/firebase.server";
 
 /**
  * Endpoint for mobile app to request credential after verification
@@ -27,12 +31,12 @@ export async function action({ request }: ActionFunctionArgs) {
     const {
       walletAddress,
       firstName,
-      middleName = '',
+      middleName = "",
       lastName,
       birthDate,
       governmentId,
       idType,
-      state
+      state,
     } = await request.json();
 
     // Validate required inputs
@@ -40,19 +44,36 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Missing walletAddress" }, { status: 400 });
     }
 
-    if (!firstName || !lastName || !birthDate || !governmentId || !idType || !state) {
-      return Response.json({ error: "Missing required fields" }, { status: 400 });
+    if (
+      !firstName ||
+      !lastName ||
+      !birthDate ||
+      !governmentId ||
+      !idType ||
+      !state
+    ) {
+      return Response.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     // Validate birthDate is at least 13 years ago
     const birthDateObj = new Date(birthDate);
     const today = new Date();
-    const thirteenYearsAgo = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+    const thirteenYearsAgo = new Date(
+      today.getFullYear() - 13,
+      today.getMonth(),
+      today.getDate()
+    );
 
     if (birthDateObj > thirteenYearsAgo) {
-      return Response.json({
-        error: "Birth date must be at least 13 years ago",
-      }, { status: 400 });
+      return Response.json(
+        {
+          error: "Birth date must be at least 13 years ago",
+        },
+        { status: 400 }
+      );
     }
 
     // Check if wallet has been verified
@@ -60,44 +81,73 @@ export async function action({ request }: ActionFunctionArgs) {
 
     if (!verification) {
       return Response.json(
-        { error: "Wallet address not verified. Please complete identity verification first." },
+        {
+          error:
+            "Wallet address not verified. Please complete identity verification first.",
+        },
         { status: 403 }
       );
     }
 
     // Create composite hash for duplicate detection
     const compositeData = `${firstName}|${middleName}|${lastName}|${birthDate}`;
-    const compositeHashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(compositeData));
+    const compositeHashBuffer = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(compositeData)
+    );
     const compositeHash = Array.from(new Uint8Array(compositeHashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
     // Check for duplicate credentials
     const isDuplicate = await checkDuplicateCredential(compositeHash);
     if (isDuplicate) {
-      return Response.json({
-        error: "A credential with this identity information has already been issued.",
-      }, { status: 409 });
+      return Response.json(
+        {
+          error:
+            "A credential with this identity information has already been issued.",
+        },
+        { status: 409 }
+      );
     }
 
     // Get app wallet address from environment - this is the issuer
     const appWalletAddress = process.env.VITE_APP_WALLET_ADDRESS;
     if (!appWalletAddress) {
-      throw new Error("VITE_APP_WALLET_ADDRESS environment variable is required");
+      throw new Error(
+        "VITE_APP_WALLET_ADDRESS environment variable is required"
+      );
     }
     const issuerId = `did:algorand:${appWalletAddress}`;
     const subjectId = `did:algorand:${walletAddress}`;
 
     // Hash all personal information for privacy
-    const governmentIdHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(governmentId));
-    const firstNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(firstName));
-    const middleNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(middleName));
-    const lastNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(lastName));
-    const birthDateHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(birthDate));
+    const governmentIdHash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(governmentId)
+    );
+    const firstNameHash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(firstName)
+    );
+    const middleNameHash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(middleName)
+    );
+    const lastNameHash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(lastName)
+    );
+    const birthDateHash = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(birthDate)
+    );
 
     // Convert hashes to hex strings
     const toHex = (buffer: ArrayBuffer) =>
-      Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      Array.from(new Uint8Array(buffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
 
     // Generate credential
     const credentialId = `urn:uuid:${crypto.randomUUID()}`;
@@ -117,14 +167,14 @@ export async function action({ request }: ActionFunctionArgs) {
       credentialSubject: {
         id: subjectId,
         // All personal data is hashed for privacy
-        "cardless:governmentIdHash": toHex(governmentIdHash),
-        "cardless:firstNameHash": toHex(firstNameHash),
-        "cardless:middleNameHash": toHex(middleNameHash),
-        "cardless:lastNameHash": toHex(lastNameHash),
-        "cardless:birthDateHash": toHex(birthDateHash),
-        "cardless:compositeHash": compositeHash,
-        "cardless:idType": idType, // "passport" or "drivers_license"
-        "cardless:state": state, // US state or territory
+        "cardlessid:governmentIdHash": toHex(governmentIdHash),
+        "cardlessid:firstNameHash": toHex(firstNameHash),
+        "cardlessid:middleNameHash": toHex(middleNameHash),
+        "cardlessid:lastNameHash": toHex(lastNameHash),
+        "cardlessid:birthDateHash": toHex(birthDateHash),
+        "cardlessid:compositeHash": compositeHash,
+        "cardlessid:idType": idType, // "passport" or "drivers_license"
+        "cardlessid:state": state, // US state or territory
       },
       proof: {
         // TODO: Implement actual cryptographic signature
@@ -133,7 +183,7 @@ export async function action({ request }: ActionFunctionArgs) {
         created: issuanceDate,
         verificationMethod: `${issuerId}#key-1`,
         proofPurpose: "assertionMethod",
-        proofValue: "placeholder-signature-value"
+        proofValue: "placeholder-signature-value",
       },
     };
 
@@ -145,13 +195,12 @@ export async function action({ request }: ActionFunctionArgs) {
       credential,
       issuedAt: issuanceDate,
     };
-
   } catch (error) {
     console.error("Credential issuance error:", error);
     return Response.json(
       {
         error: "Internal server error",
-        message: error instanceof Error ? error.message : String(error)
+        message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );

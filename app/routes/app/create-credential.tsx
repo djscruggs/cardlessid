@@ -13,7 +13,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Error("VITE_APP_WALLET_ADDRESS environment variable is required");
   }
   const issuerId = `did:algorand:${appWalletAddress}`;
-  
+
   return {
     issuerId,
   };
@@ -29,7 +29,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const firstName = formData.get("firstName") as string;
   const middleName = formData.get("middleName") as string;
   const lastName = formData.get("lastName") as string;
-  
+
   // Get app wallet address from environment - this is ALWAYS the issuer
   const appWalletAddress = import.meta.env.VITE_APP_WALLET_ADDRESS;
   if (!appWalletAddress) {
@@ -41,34 +41,56 @@ export async function action({ request }: ActionFunctionArgs) {
   if (birthDate) {
     const birthDateObj = new Date(birthDate);
     const today = new Date();
-    const thirteenYearsAgo = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
-    
+    const thirteenYearsAgo = new Date(
+      today.getFullYear() - 13,
+      today.getMonth(),
+      today.getDate()
+    );
+
     if (birthDateObj > thirteenYearsAgo) {
-      return { 
+      return {
         error: "Birth date must be at least 13 years ago",
-        success: false 
+        success: false,
       };
     }
   }
 
   // Generate a UUID for the credential
   const credentialId = `urn:uuid:${crypto.randomUUID()}`;
-  
+
   // Get current date for issuance
   const issuanceDate = new Date().toISOString();
 
   // Hash the identifiers to prevent duplicate verifications
-  const governmentIdHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(governmentId));
-  
+  const governmentIdHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(governmentId)
+  );
+
   // Hash personal information for privacy
-  const firstNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(firstName));
-  const middleNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(middleName));
-  const lastNameHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(lastName));
-  const birthDateHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(birthDate));
-  
+  const firstNameHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(firstName)
+  );
+  const middleNameHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(middleName)
+  );
+  const lastNameHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(lastName)
+  );
+  const birthDateHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(birthDate)
+  );
+
   // Create composite hash for main duplicate detection
   const compositeData = `${firstName}|${middleName}|${lastName}|${birthDate}`;
-  const compositeHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(compositeData));
+  const compositeHash = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(compositeData)
+  );
 
   const credential = {
     "@context": [
@@ -84,14 +106,28 @@ export async function action({ request }: ActionFunctionArgs) {
     credentialSubject: {
       id: subjectId,
       // All personal data is hashed for privacy
-      "cardless:governmentIdHash": Array.from(new Uint8Array(governmentIdHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:firstNameHash": Array.from(new Uint8Array(firstNameHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:middleNameHash": Array.from(new Uint8Array(middleNameHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:lastNameHash": Array.from(new Uint8Array(lastNameHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:birthDateHash": Array.from(new Uint8Array(birthDateHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:compositeHash": Array.from(new Uint8Array(compositeHash)).map(b => b.toString(16).padStart(2, '0')).join(''),
-      "cardless:idType": idType, // "passport" or "drivers_license"
-      "cardless:state": state, // US state or territory
+      "cardlessid:governmentIdHash": Array.from(
+        new Uint8Array(governmentIdHash)
+      )
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:firstNameHash": Array.from(new Uint8Array(firstNameHash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:middleNameHash": Array.from(new Uint8Array(middleNameHash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:lastNameHash": Array.from(new Uint8Array(lastNameHash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:birthDateHash": Array.from(new Uint8Array(birthDateHash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:compositeHash": Array.from(new Uint8Array(compositeHash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""),
+      "cardlessid:idType": idType, // "passport" or "drivers_license"
+      "cardlessid:state": state, // US state or territory
     },
     proof: {
       // This is the cryptographic signature - placeholder for now
@@ -99,69 +135,72 @@ export async function action({ request }: ActionFunctionArgs) {
       created: issuanceDate,
       verificationMethod: `${issuerId}#key-1`,
       proofPurpose: "assertionMethod",
-      proofValue: "placeholder-signature-value"
+      proofValue: "placeholder-signature-value",
     },
   };
 
   // Store credential on-chain
   let transactionId = null;
   let blockchainProof = null;
-  
+
   try {
     // For demo purposes, we'll simulate on-chain storage
     // In production, you'd need the private key to sign transactions
     const credentialData = JSON.stringify(credential);
     transactionId = `simulated-tx-${crypto.randomUUID()}`;
-    
+
     // Simulate blockchain confirmation
     blockchainProof = {
       transactionId,
       blockHeight: Math.floor(Math.random() * 1000000) + 1000000,
       timestamp: new Date().toISOString(),
-      network: 'testnet',
+      network: "testnet",
       explorerUrl: `/app/verify/${transactionId}`, // Link to our verification page instead
-      isSimulated: true // Flag to indicate this is simulated
+      isSimulated: true, // Flag to indicate this is simulated
     };
-    
   } catch (error) {
-    console.error('Error storing credential on-chain:', error);
+    console.error("Error storing credential on-chain:", error);
     // Continue without blockchain storage for now
   }
 
-  return { 
-    credential, 
+  return {
+    credential,
     success: true,
-    blockchainProof
+    blockchainProof,
   };
 }
 
 const CreateCredential = () => {
   const actionData = useActionData<typeof action>();
   const loaderData = useLoaderData<typeof loader>();
-  
+
   const appWalletAddress = import.meta.env.VITE_APP_WALLET_ADDRESS;
-  const issuerId = appWalletAddress ? `did:algorand:${appWalletAddress}` : "Wallet address not configured";
-  
+  const issuerId = appWalletAddress
+    ? `did:algorand:${appWalletAddress}`
+    : "Wallet address not configured";
+
   const [formData, setFormData] = useState({
-    subjectId: `did:cardless:user:${crypto.randomUUID()}`,
+    subjectId: `did:cardlessid:user:${crypto.randomUUID()}`,
     birthDate: "",
     governmentId: "",
     idType: "drivers_license",
     state: "CA",
     firstName: "",
     middleName: "",
-    lastName: ""
+    lastName: "",
   });
 
   const [showQR, setShowQR] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isStoringOnChain, setIsStoringOnChain] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -171,25 +210,26 @@ const CreateCredential = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
           Create Minimal Credential
         </h1>
-        
+
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-sm text-blue-800">
             <strong>Issuer:</strong>{" "}
             {appWalletAddress ? (
-              <a 
+              <a
                 href={`https://explorer.perawallet.app/address/${appWalletAddress}/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
               >
-                {appWalletAddress.substring(0, 4)}...{appWalletAddress.substring(appWalletAddress.length - 4)}
+                {appWalletAddress.substring(0, 4)}...
+                {appWalletAddress.substring(appWalletAddress.length - 4)}
               </a>
             ) : (
               "Wallet address not configured"
             )}
           </p>
         </div>
-        
+
         <Form method="post" className="space-y-4">
           <div className="form-control">
             <label className="label" htmlFor="subjectId">
@@ -254,7 +294,9 @@ const CreateCredential = () => {
 
           <div className="form-control">
             <label className="label" htmlFor="birthDate">
-              <span className="label-text">Birth Date - Must be at least 13 years ago</span>
+              <span className="label-text">
+                Birth Date - Must be at least 13 years ago
+              </span>
             </label>
             <input
               type="date"
@@ -263,11 +305,18 @@ const CreateCredential = () => {
               required
               value={formData.birthDate}
               onChange={handleInputChange}
-              max={new Date(new Date().getFullYear() - 13, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
+              max={
+                new Date(
+                  new Date().getFullYear() - 13,
+                  new Date().getMonth(),
+                  new Date().getDate()
+                )
+                  .toISOString()
+                  .split("T")[0]
+              }
               className="input input-bordered w-full"
             />
           </div>
-
 
           <div className="form-control">
             <label className="label" htmlFor="idType">
@@ -373,10 +422,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-          >
+          <button type="submit" className="btn btn-primary w-full">
             Create Credential
           </button>
         </Form>
@@ -390,15 +436,17 @@ const CreateCredential = () => {
         {actionData?.success && actionData.credential && (
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Generated Credential:</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Generated Credential:
+              </h2>
               <button
                 onClick={() => setShowDetails(!showDetails)}
                 className="btn btn-sm btn-outline"
               >
-                {showDetails ? 'Hide Details' : 'Show Details'}
+                {showDetails ? "Hide Details" : "Show Details"}
               </button>
             </div>
-            
+
             {showDetails && (
               <div className="bg-gray-100 p-4 rounded-md overflow-x-auto mb-4">
                 <pre className="text-sm text-gray-800 whitespace-pre-wrap">
@@ -406,32 +454,54 @@ const CreateCredential = () => {
                 </pre>
               </div>
             )}
-            
+
             {actionData?.blockchainProof && (
               <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h3 className="text-sm font-semibold text-green-800 mb-2">
-                  ✅ {actionData.blockchainProof.isSimulated ? 'Simulated Blockchain Storage' : 'Stored on Blockchain'}
+                  ✅{" "}
+                  {actionData.blockchainProof.isSimulated
+                    ? "Simulated Blockchain Storage"
+                    : "Stored on Blockchain"}
                 </h3>
                 <div className="text-xs text-green-700 space-y-1">
-                  <p><strong>Transaction ID:</strong> {actionData.blockchainProof.transactionId}</p>
-                  <p><strong>Block Height:</strong> {actionData.blockchainProof.blockHeight}</p>
-                  <p><strong>Network:</strong> {actionData.blockchainProof.network}</p>
-                  <p><strong>Timestamp:</strong> {new Date(actionData.blockchainProof.timestamp).toLocaleString()}</p>
+                  <p>
+                    <strong>Transaction ID:</strong>{" "}
+                    {actionData.blockchainProof.transactionId}
+                  </p>
+                  <p>
+                    <strong>Block Height:</strong>{" "}
+                    {actionData.blockchainProof.blockHeight}
+                  </p>
+                  <p>
+                    <strong>Network:</strong>{" "}
+                    {actionData.blockchainProof.network}
+                  </p>
+                  <p>
+                    <strong>Timestamp:</strong>{" "}
+                    {new Date(
+                      actionData.blockchainProof.timestamp
+                    ).toLocaleString()}
+                  </p>
                   {actionData.blockchainProof.isSimulated && (
-                    <p className="text-orange-600"><strong>Note:</strong> This is a simulated transaction for demonstration</p>
+                    <p className="text-orange-600">
+                      <strong>Note:</strong> This is a simulated transaction for
+                      demonstration
+                    </p>
                   )}
-                  <a 
+                  <a
                     href={actionData.blockchainProof.explorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-green-600 hover:text-green-800 underline"
                   >
-                    {actionData.blockchainProof.isSimulated ? 'View Proof →' : 'View on AlgoExplorer →'}
+                    {actionData.blockchainProof.isSimulated
+                      ? "View Proof →"
+                      : "View on AlgoExplorer →"}
                   </a>
                 </div>
               </div>
             )}
-            
+
             <div className="space-x-2">
               <button
                 onClick={() => setShowQR(true)}
@@ -441,8 +511,10 @@ const CreateCredential = () => {
               </button>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(JSON.stringify(actionData.credential, null, 2));
-                  alert('Credential copied to clipboard!');
+                  navigator.clipboard.writeText(
+                    JSON.stringify(actionData.credential, null, 2)
+                  );
+                  alert("Credential copied to clipboard!");
                 }}
                 className="btn btn-outline"
               >
@@ -451,7 +523,10 @@ const CreateCredential = () => {
               {actionData?.blockchainProof && (
                 <button
                   onClick={() => {
-                    window.open(`/app/verify/${actionData.blockchainProof?.transactionId}`, '_blank');
+                    window.open(
+                      `/app/verify/${actionData.blockchainProof?.transactionId}`,
+                      "_blank"
+                    );
                   }}
                   className="btn btn-success"
                 >
@@ -463,9 +538,9 @@ const CreateCredential = () => {
         )}
 
         {showQR && actionData?.credential && (
-          <CredentialQR 
-            credential={actionData.credential} 
-            onClose={() => setShowQR(false)} 
+          <CredentialQR
+            credential={actionData.credential}
+            onClose={() => setShowQR(false)}
           />
         )}
       </div>
