@@ -144,18 +144,54 @@ export async function createCredentialTransaction(
   }
 }
 
-// Query for existing credentials by composite hash
-export async function findCredentialByHash(compositeHash: string): Promise<any[]> {
+// Check if a credential has already been issued for a wallet address
+// Returns { exists: boolean, duplicateCount: number }
+export async function checkCredentialExists(
+  issuerAddress: string,
+  userAddress: string,
+  compositeHash: string
+): Promise<{ exists: boolean; duplicateCount: number }> {
   try {
-    // Search for transactions with the composite hash in the note
+    // Search for transactions received by the user's wallet
     const searchResults = await indexerClient
       .searchForTransactions()
-      .notePrefix(new TextEncoder().encode(compositeHash))
+      .address(userAddress)
+      .addressRole('receiver')
+      .txType('pay')
       .do();
-    
-    return searchResults.transactions || [];
+
+    const transactions = searchResults.transactions || [];
+
+    // Filter to only transactions from our issuer
+    const credentialTxns = transactions.filter(
+      (txn: any) => txn.sender === issuerAddress
+    );
+
+    // Check each transaction's note for the composite hash
+    let duplicateCount = 0;
+    for (const txn of credentialTxns) {
+      if (txn.note) {
+        try {
+          const noteString = new TextDecoder().decode(
+            Buffer.from(txn.note, 'base64')
+          );
+          const noteData = JSON.parse(noteString);
+          if (noteData.hash === compositeHash) {
+            duplicateCount++;
+          }
+        } catch (e) {
+          // Skip transactions with invalid notes
+          continue;
+        }
+      }
+    }
+
+    return {
+      exists: duplicateCount > 0,
+      duplicateCount
+    };
   } catch (error) {
-    console.error('Error searching for credentials:', error);
-    return [];
+    console.error('Error checking credential existence:', error);
+    return { exists: false, duplicateCount: 0 };
   }
 }

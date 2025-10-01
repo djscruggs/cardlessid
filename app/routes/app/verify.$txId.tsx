@@ -41,7 +41,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     credentialSubject: {
       id: "did:cardlessid:user:12345678-1234-1234-1234-123456789012",
       "cardlessid:compositeHash": "a1b2c3d4e5f6...",
-      "cardlessid:idType": "drivers_license",
+      "cardlessid:idType": "government_id",
       "cardlessid:state": "CA",
     },
     proof: {

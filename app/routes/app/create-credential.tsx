@@ -27,7 +27,7 @@ const CreateCredential = () => {
     walletAddress: "",
     birthDate: "",
     governmentId: "",
-    idType: "drivers_license",
+    idType: "government_id",
     state: "CA",
     firstName: "",
     middleName: "",
@@ -238,7 +238,7 @@ const CreateCredential = () => {
               className="select select-bordered w-full"
               required
             >
-              <option value="drivers_license">Driver's License</option>
+              <option value="government_id">Government ID</option>
               <option value="passport">US Passport</option>
             </select>
           </div>

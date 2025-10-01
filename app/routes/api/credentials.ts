@@ -10,6 +10,7 @@ import {
   createCredentialTransaction,
   waitForConfirmation,
   getPeraExplorerUrl,
+  checkCredentialExists,
 } from "~/utils/algorand";
 import algosdk from "algosdk";
 
@@ -24,7 +25,7 @@ import algosdk from "algosdk";
  *   lastName: string,
  *   birthDate: string (ISO format),
  *   governmentId: string,
- *   idType: 'passport' | 'drivers_license',
+ *   idType: 'passport' | 'government_id',
  *   state: string (US state code)
  * }
  *
@@ -96,16 +97,11 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Check if wallet has already been verified
-    const verification = await getVerification(walletAddress);
-
-    if (verification) {
-      return Response.json(
-        {
-          error:
-            "This wallet address has already been verified and issued a credential.",
-        },
-        { status: 409 }
+    // Get app wallet address from environment - needed for duplicate check
+    const appWalletAddress = process.env.VITE_APP_WALLET_ADDRESS;
+    if (!appWalletAddress) {
+      throw new Error(
+        "VITE_APP_WALLET_ADDRESS environment variable is required"
       );
     }
 
@@ -119,9 +115,16 @@ export async function action({ request }: ActionFunctionArgs) {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
-    // Check for duplicate credentials
-    const isDuplicate = await checkDuplicateCredential(compositeHash);
-    if (isDuplicate) {
+    // Check for duplicate credentials on blockchain
+    const { exists: isDuplicate, duplicateCount } = await checkCredentialExists(
+      appWalletAddress,
+      walletAddress,
+      compositeHash
+    );
+
+    // In production, prevent duplicate issuance
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction && isDuplicate) {
       return Response.json(
         {
           error:
@@ -131,13 +134,6 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Get app wallet address from environment - this is the issuer
-    const appWalletAddress = process.env.VITE_APP_WALLET_ADDRESS;
-    if (!appWalletAddress) {
-      throw new Error(
-        "VITE_APP_WALLET_ADDRESS environment variable is required"
-      );
-    }
 
     // Get issuer's private key for signing
     const issuerPrivateKey = process.env.ISSUER_PRIVATE_KEY;
@@ -235,7 +231,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await saveVerification(walletAddress, true);
     await updateCredentialIssued(walletAddress, compositeHash);
 
-    return {
+    return Response.json({
       success: true,
       credential,
       personalData: {
@@ -256,7 +252,14 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         network: process.env.VITE_ALGORAND_NETWORK || 'testnet',
       },
-    };
+      duplicateDetection: {
+        duplicateCount,
+        isDuplicate,
+        message: duplicateCount > 0
+          ? `Warning: ${duplicateCount} duplicate credential(s) found on blockchain`
+          : 'No duplicates found'
+      },
+    });
   } catch (error) {
     console.error("Credential issuance error:", error);
     return Response.json(
