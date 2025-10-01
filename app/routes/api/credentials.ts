@@ -1,18 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import {
-  getVerification,
-  saveVerification,
-  updateCredentialIssued,
-  checkDuplicateCredential,
-} from "~/utils/firebase.server";
-import {
-  isValidAlgorandAddress,
-  createCredentialTransaction,
-  waitForConfirmation,
-  getPeraExplorerUrl,
-  checkCredentialExists,
-} from "~/utils/algorand";
-import algosdk from "algosdk";
 
 /**
  * Endpoint for mobile app to request credential after verification
@@ -33,6 +19,19 @@ import algosdk from "algosdk";
  * The mobile wallet stores both the credential (with hashes) and the original unhashed data locally.
  */
 export async function action({ request }: ActionFunctionArgs) {
+  // Import server-only modules inside the action to prevent client bundling
+  const {
+    saveVerification,
+    updateCredentialIssued,
+  } = await import("~/utils/firebase.server");
+  const {
+    createCredentialTransaction,
+    waitForConfirmation,
+    getPeraExplorerUrl,
+    checkCredentialExists,
+  } = await import("~/utils/algorand");
+  const algosdk = (await import("algosdk")).default;
+
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
