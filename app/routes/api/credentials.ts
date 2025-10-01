@@ -5,7 +5,12 @@ import {
   updateCredentialIssued,
   checkDuplicateCredential,
 } from "~/utils/firebase.server";
-import { isValidAlgorandAddress } from "~/utils/algorand";
+import {
+  isValidAlgorandAddress,
+  createCredentialTransaction,
+  waitForConfirmation,
+  getPeraExplorerUrl,
+} from "~/utils/algorand";
 import algosdk from "algosdk";
 
 /**
@@ -201,6 +206,31 @@ export async function action({ request }: ActionFunctionArgs) {
       },
     };
 
+    // Write credential record to blockchain
+    let credentialTxId: string | undefined;
+    let credentialExplorerUrl: string | undefined;
+
+    try {
+      // Get network from env
+      const network = (process.env.VITE_ALGORAND_NETWORK || 'testnet') as 'testnet' | 'mainnet';
+
+      // Create credential transaction with hash and proof
+      credentialTxId = await createCredentialTransaction(
+        appWalletAddress,
+        walletAddress,
+        issuerAccount.sk,
+        credentialId,
+        compositeHash,
+        credential.proof.proofValue
+      );
+      await waitForConfirmation(credentialTxId);
+      credentialExplorerUrl = getPeraExplorerUrl(credentialTxId, network);
+
+    } catch (error) {
+      console.error('Error writing credential to blockchain:', error);
+      // Continue even if blockchain write fails - credential is still valid
+    }
+
     // Save verification record with composite hash for duplicate detection
     await saveVerification(walletAddress, true);
     await updateCredentialIssued(walletAddress, compositeHash);
@@ -218,6 +248,14 @@ export async function action({ request }: ActionFunctionArgs) {
         state,
       },
       issuedAt: issuanceDate,
+      blockchain: {
+        transaction: {
+          id: credentialTxId,
+          explorerUrl: credentialExplorerUrl,
+          note: "Credential record with hash and proof"
+        },
+        network: process.env.VITE_ALGORAND_NETWORK || 'testnet',
+      },
     };
   } catch (error) {
     console.error("Credential issuance error:", error);
