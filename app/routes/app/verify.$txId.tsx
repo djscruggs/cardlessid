@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function meta() {
   return [{ title: "Verify Credential" }];
@@ -12,6 +12,15 @@ export async function loader({ params }: LoaderFunctionArgs) {
   if (!txId) {
     throw new Error("Transaction ID is required");
   }
+
+  // Generate consistent timestamps for server/client hydration
+  const now = new Date();
+  const issuanceDate = now.toISOString();
+  const proofCreated = now.toISOString();
+  const timestamp = now.toISOString();
+
+  // Use hash-based deterministic block height instead of random
+  const blockHeight = 1000000 + (txId?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000000);
 
   // Simulate fetching credential from blockchain
   // In production, this would query the Algorand blockchain
@@ -25,7 +34,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     issuer: {
       id: "did:algorand:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI",
     },
-    issuanceDate: new Date().toISOString(),
+    issuanceDate,
     credentialSubject: {
       id: "did:cardlessid:user:12345678-1234-1234-1234-123456789012",
       "cardlessid:compositeHash": "a1b2c3d4e5f6...",
@@ -34,7 +43,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     },
     proof: {
       type: "Ed25519Signature2020",
-      created: new Date().toISOString(),
+      created: proofCreated,
       verificationMethod:
         "did:algorand:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI#key-1",
       proofPurpose: "assertionMethod",
@@ -46,8 +55,8 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   const blockchainProof = {
     transactionId: txId,
-    blockHeight: Math.floor(Math.random() * 1000000) + 1000000,
-    timestamp: new Date().toISOString(),
+    blockHeight,
+    timestamp,
     network: "testnet",
     explorerUrl: isSimulated
       ? `/app/verify/${txId}`
@@ -233,9 +242,6 @@ const VerifyCredential = () => {
               className="btn btn-outline"
             >
               Copy Transaction ID
-            </button>
-            <button onClick={() => window.print()} className="btn btn-primary">
-              Print Verification
             </button>
           </div>
         </div>

@@ -1,21 +1,10 @@
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 
 export function meta() {
   return [{ title: "Home | Cardless ID" }];
 }
 
 const Home: React.FC = () => {
-  const handleClick = () => {
-    // This method opens a new browser tab with the specified URL
-    window.open(
-      "https://cardlessid.substack.com/p/what-is-cardless-id",
-      "_blank"
-    );
-  };
-  const navigate = useNavigate();
-  const goToDemo = () => {
-    navigate("/demo");
-  };
   return (
     <>
       <div className="flex-col w-full">
@@ -57,18 +46,19 @@ const Home: React.FC = () => {
             />
 
             <div className="flex justify-center items-center space-x-4 my-10">
-              <button
-                className="bg-logoblue p-2 px-4 md:p-4 text-white text-2xl rounded-full cursor-pointer"
-                onClick={handleClick}
+              <Link
+                to="https://cardlessid.substack.com/p/what-is-cardless-id"
+                target="_blank"
               >
-                Learn More
-              </button>
-              <button
-                className="bg-logoblue p-2 px-4 md:p-4 text-white text-2xl rounded-full cursor-pointer"
-                onClick={goToDemo}
-              >
-                Try Demo
-              </button>
+                <button className="bg-logoblue p-2 px-4 md:p-4 text-white text-2xl rounded-full cursor-pointer">
+                  Learn More
+                </button>
+              </Link>
+              <Link to="/demo">
+                <button className="bg-logoblue p-2 px-4 md:p-4 text-white text-2xl rounded-full cursor-pointer">
+                  Try Demo
+                </button>
+              </Link>
             </div>
           </div>
           <div className="w-full flex justify-center p-0 mb-10 mt-4">

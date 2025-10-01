@@ -14,7 +14,8 @@ export const loader: LoaderFunction = async () => {
 };
 const generateId = (): string => {
   // Generates a random string of numbers and letters
-  const randomPart = Math.random().toString(36).substring(2, 8);
+  // This runs client-side only so it won't cause hydration issues
+  const randomPart = crypto.getRandomValues(new Uint32Array(1))[0].toString(36).substring(0, 6);
   const timestampPart = Date.now().toString().slice(-4);
 
   // Combines and shortens the parts to 6-8 characters
@@ -166,17 +167,16 @@ const Demo: React.FC = () => {
                   <span className="inline md:hidden">Tap to Verify Age</span>
                 </span>
               ) : (
-                <img
-                  src={`https://img.youtube.com/vi/${videos[index].id}/hqdefault.jpg`}
-                  alt={videos[index].title}
-                  onClick={() =>
-                    window.open(
-                      "https://www.youtube.com/watch?v=" + videos[index].id,
-                      "_blank"
-                    )
-                  }
-                  className="h-36 w-36 rounded-md"
-                />
+                <Link
+                  to={"https://www.youtube.com/watch?v=" + videos[index].id}
+                  target="_blank"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${videos[index].id}/hqdefault.jpg`}
+                    alt={videos[index].title}
+                    className="h-36 w-36 rounded-md"
+                  />
+                </Link>
               )}
             </div>
           ))}
@@ -198,13 +198,19 @@ const Step2 = ({
 }) => {
   const fullUrl = `/demo/verify/${data.vid}`;
   const navigate = useNavigate();
-  const cutoff = new Date(
-    new Date().setFullYear(new Date().getFullYear() - 18)
-  ).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const [cutoff, setCutoff] = useState("");
+
+  useEffect(() => {
+    // Calculate cutoff date client-side to avoid hydration issues
+    const cutoffDate = new Date(
+      new Date().setFullYear(new Date().getFullYear() - 18)
+    ).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    setCutoff(cutoffDate);
+  }, []);
   const isMobile = Boolean(
     navigator?.userAgent?.match(
       /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
