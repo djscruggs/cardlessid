@@ -4,6 +4,13 @@
  * This credential structure is used for sybil-resistant identity verification.
  * The composite hash (firstName|middleName|lastName|birthDate) is used to
  * prevent duplicate credentials from being issued to the same person.
+ *
+ * CRYPTOGRAPHIC PROOF:
+ * The proof field contains an Ed25519 signature created by the issuer's private key.
+ * - The signature is generated from the credential WITHOUT the proof field
+ * - Verifiers can validate the signature using the issuer's public key (derived from the Algorand address)
+ * - This ensures the credential cannot be forged - only the legitimate issuer can create valid credentials
+ * - Signature format: base64-encoded Ed25519 signature
  */
 const CardlessCredential = {
   "@context": [
@@ -27,7 +34,7 @@ const CardlessCredential = {
     created: "2025-09-30T17:00:00Z",
     verificationMethod: "did:algorand:ISSUER_WALLET_ADDRESS_HERE#key-1",
     proofPurpose: "assertionMethod",
-    proofValue: "placeholder-signature-value",
+    proofValue: "z3eF7d8...base64EncodedSignature", // Ed25519 signature of credential (without proof field)
   },
 };
 

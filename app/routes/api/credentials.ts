@@ -6,6 +6,7 @@ import {
   checkDuplicateCredential,
 } from "~/utils/firebase.server";
 import { isValidAlgorandAddress } from "~/utils/algorand";
+import algosdk from "algosdk";
 
 /**
  * Endpoint for mobile app to request credential after verification
@@ -132,6 +133,30 @@ export async function action({ request }: ActionFunctionArgs) {
         "VITE_APP_WALLET_ADDRESS environment variable is required"
       );
     }
+
+    // Get issuer's private key for signing
+    const issuerPrivateKey = process.env.ISSUER_PRIVATE_KEY;
+
+    if (!issuerPrivateKey) {
+      throw new Error(
+        "ISSUER_PRIVATE_KEY environment variable is required for credential signing"
+      );
+    }
+
+    // Restore account from private key (base64 encoded)
+    const secretKey = new Uint8Array(Buffer.from(issuerPrivateKey, 'base64'));
+    const issuerAccount = {
+      addr: algosdk.encodeAddress(secretKey.slice(32)), // Last 32 bytes are public key
+      sk: secretKey,
+    };
+
+    // Verify the key matches the configured wallet address
+    if (issuerAccount.addr !== appWalletAddress) {
+      throw new Error(
+        "ISSUER_PRIVATE_KEY does not match VITE_APP_WALLET_ADDRESS"
+      );
+    }
+
     const issuerId = `did:algorand:${appWalletAddress}`;
     const subjectId = `did:algorand:${walletAddress}`;
 
@@ -139,7 +164,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const credentialId = `urn:uuid:${crypto.randomUUID()}`;
     const issuanceDate = new Date().toISOString();
 
-    const credential = {
+    // Create credential without proof (this is what gets signed)
+    const credentialWithoutProof = {
       "@context": [
         "https://www.w3.org/ns/credentials/v2",
         "https://www.w3.org/ns/credentials/examples/v2",
@@ -155,14 +181,23 @@ export async function action({ request }: ActionFunctionArgs) {
         id: subjectId,
         "cardlessid:compositeHash": compositeHash,
       },
+    };
+
+    // Create canonical JSON string and sign it
+    const credentialBytes = new TextEncoder().encode(
+      JSON.stringify(credentialWithoutProof)
+    );
+    const signature = algosdk.signBytes(credentialBytes, issuerAccount.sk);
+
+    // Create final credential with cryptographic proof
+    const credential = {
+      ...credentialWithoutProof,
       proof: {
-        // TODO: Implement actual cryptographic signature
-        // For now, this is a placeholder
         type: "Ed25519Signature2020",
         created: issuanceDate,
         verificationMethod: `${issuerId}#key-1`,
         proofPurpose: "assertionMethod",
-        proofValue: "placeholder-signature-value",
+        proofValue: Buffer.from(signature).toString('base64'),
       },
     };
 
