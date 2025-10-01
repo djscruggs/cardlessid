@@ -30,11 +30,7 @@ const Demo: React.FC = () => {
   const [modal, setModal] = useState(true);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
-  // const isMobile = Boolean(
-  //   navigator?.userAgent?.match(
-  //     /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
-  //   )
-  // );
+
   const lData = useRouteLoaderData("root");
   const isDev = !lData?.hostname.includes("cardlessid.org");
 
@@ -200,10 +196,7 @@ const Step2 = ({
   data: vData;
   restart: () => void;
 }) => {
-  const baseUrl = isDev
-    ? "http://localhost:5173/demo/verify/"
-    : "https://cardlessid.org/demo/verify/";
-  const fullUrl = baseUrl + data.vid;
+  const fullUrl = `/demo/verify/${data.vid}`;
   const navigate = useNavigate();
   const cutoff = new Date(
     new Date().setFullYear(new Date().getFullYear() - 18)
@@ -212,6 +205,12 @@ const Step2 = ({
     month: "long",
     day: "numeric",
   });
+  const isMobile = Boolean(
+    navigator?.userAgent?.match(
+      /Android|BlackBerry|iPhone|iPod|Opera Mini|IEMobile|WPDesktop/i
+    )
+  );
+  // const isMobile = true; //for local testing
 
   return (
     <>
@@ -243,26 +242,25 @@ const Step2 = ({
           <p className="text-center text-xl font-bold my-4 text-red-500">
             {cutoff}
           </p>
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-              fullUrl
-            )}`}
-            alt="QR Code for verification"
-            className="w-40 h-40 bg-gray-300"
-          />
+          <Link
+            to={fullUrl}
+            target="_blank"
+            className="text-logoblue underline"
+          >
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                fullUrl
+              )}`}
+              alt="QR Code for verification"
+              className="w-40 h-40 bg-gray-300"
+            />
+          </Link>
           <div className="mt-4 space-y-2 text-lg font-semibold text-gray-800 flex items-center flex-col justify-center">
-            <p>Scan QR Code to Verify Your Age</p>
-            <p className="italic">or</p>
-            <p>
-              <Link
-                to={fullUrl}
-                target="_blank"
-                className="text-logoblue underline"
-              >
-                Click here
-              </Link>{" "}
-              to verify on the web
-            </p>
+            {isMobile ? (
+              <p>Tap the QR code to Verify Your Age</p>
+            ) : (
+              <p>Scan or click the QR code to Verify Your Age</p>
+            )}
           </div>
         </>
       )}

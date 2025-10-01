@@ -34,7 +34,6 @@ const Verify: React.FC = () => {
   }
   const [error, setError] = useState(_error);
   const wallets = ["metamask", "coinbase", "pera", "phantom"];
-  const baseUrl = isDev ? "http://localhost:5173" : "https://cardlessid.org";
   const auth = getAuth(firebaseApp);
   const dbRef = ref(getDatabase(firebaseApp));
   const [tapped, setTapped] = useState("");
@@ -199,7 +198,7 @@ const Verify: React.FC = () => {
                           ) : (
                             <img
                               key={wallet}
-                              src={`${baseUrl}/wallets/${wallet}.png`}
+                              src={`/wallets/${wallet}.png`}
                               alt={`${wallet} wallet`}
                               onClick={() => onTap(wallet)}
                               className={` rounded-md h-30 w-30 opacity-50 ${
