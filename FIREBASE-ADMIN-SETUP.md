@@ -60,9 +60,9 @@ npm run dev
 
 Test the API endpoints:
 - `POST /api/verify-webhook` - Record verification
-- `POST /api/credentials-issue` - Issue credential
+- `POST /api/credentials` - Issue credential
 - `GET /api/announcements` - Fetch announcements
-- `GET /api/credential-schema` - Get credential schema
+- `GET /api/credentials/schema` - Get credential schema
 
 ## Deployment
 

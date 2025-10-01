@@ -135,34 +135,6 @@ export async function action({ request }: ActionFunctionArgs) {
     const issuerId = `did:algorand:${appWalletAddress}`;
     const subjectId = `did:algorand:${walletAddress}`;
 
-    // Hash all personal information for privacy
-    const governmentIdHash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(governmentId)
-    );
-    const firstNameHash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(firstName)
-    );
-    const middleNameHash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(middleName)
-    );
-    const lastNameHash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(lastName)
-    );
-    const birthDateHash = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(birthDate)
-    );
-
-    // Convert hashes to hex strings
-    const toHex = (buffer: ArrayBuffer) =>
-      Array.from(new Uint8Array(buffer))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-
     // Generate credential
     const credentialId = `urn:uuid:${crypto.randomUUID()}`;
     const issuanceDate = new Date().toISOString();
@@ -171,6 +143,7 @@ export async function action({ request }: ActionFunctionArgs) {
       "@context": [
         "https://www.w3.org/ns/credentials/v2",
         "https://www.w3.org/ns/credentials/examples/v2",
+        "https://cardlessid.org/credentials/v1"
       ],
       id: credentialId,
       type: ["VerifiableCredential", "BirthDateCredential"],
@@ -180,15 +153,7 @@ export async function action({ request }: ActionFunctionArgs) {
       issuanceDate,
       credentialSubject: {
         id: subjectId,
-        // All personal data is hashed for privacy
-        "cardlessid:governmentIdHash": toHex(governmentIdHash),
-        "cardlessid:firstNameHash": toHex(firstNameHash),
-        "cardlessid:middleNameHash": toHex(middleNameHash),
-        "cardlessid:lastNameHash": toHex(lastNameHash),
-        "cardlessid:birthDateHash": toHex(birthDateHash),
         "cardlessid:compositeHash": compositeHash,
-        "cardlessid:idType": idType, // "passport" or "drivers_license"
-        "cardlessid:state": state, // US state or territory
       },
       proof: {
         // TODO: Implement actual cryptographic signature

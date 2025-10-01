@@ -86,7 +86,7 @@ const CreateCredential = () => {
     }
 
     try {
-      const response = await fetch("/api/credentials-issue", {
+      const response = await fetch("/api/credentials", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
