@@ -20,7 +20,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
   const timestamp = now.toISOString();
 
   // Use hash-based deterministic block height instead of random
-  const blockHeight = 1000000 + (txId?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 1000000);
+  const blockHeight =
+    1000000 +
+    (txId?.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+      1000000);
 
   // Simulate fetching credential from blockchain
   // In production, this would query the Algorand blockchain
@@ -60,7 +63,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     network: "testnet",
     explorerUrl: isSimulated
       ? `/app/verify/${txId}`
-      : `https://testnet.algoexplorer.io/tx/${txId}`,
+      : `https://testnet.explorer.perawallet.app/address/${txId}`,
     verified: true,
     issuerAddress: "RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI",
     isSimulated,
