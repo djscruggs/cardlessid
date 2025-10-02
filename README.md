@@ -21,12 +21,40 @@ This is an open-source project, and we welcome all contributions. Whether you're
 
 This project is built with the following technologies:
 
-- **[React Router, framework version](https://reactrouter.com/start/modes#framework)**:
+- **[React Router, framework version](https://reactrouter.com/start/modes#framework)**
 - **[TypeScript](https://www.typescriptlang.org/)**
 - **[Tailwind CSS](https://tailwindcss.com/)**
 - **[Firebase](https://firebase.google.com/)**
-- **[React Router](https://reactrouter.com/)**
 - **[EmailJS](https://www.emailjs.com/)**
+
+## Development Setup
+
+### Running the Servers
+
+This project uses two servers for development:
+
+**Terminal 1 - Main Server:**
+```bash
+npm run dev
+```
+Runs on `http://localhost:5173`
+
+**Terminal 2 - Mock Identity Provider (for testing):**
+```bash
+node scripts/mock-provider-server.cjs
+```
+Runs on `http://localhost:3001`
+
+The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE_CLIENT_TESTING.md](MOBILE_CLIENT_TESTING.md) for complete integration details.
+
+### Mobile Client
+
+For a working React Native mobile wallet implementation, see the **[Cardless Mobile](https://github.com/djscruggs/cardless-mobile)** repository (work in progress). It demonstrates:
+
+- Wallet creation and management
+- Identity verification flow
+- Credential storage and retrieval
+- QR code verification
 
 ## Firebase Setup
 

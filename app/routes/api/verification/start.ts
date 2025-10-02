@@ -21,6 +21,9 @@ export async function action({ request }: ActionFunctionArgs) {
     const body = await request.json().catch(() => ({}));
     const { provider: requestedProvider } = body;
 
+    console.log(`\n🔐 [VERIFICATION] Session start requested`);
+    console.log(`   Provider: ${requestedProvider || 'default (mock)'}`);
+
     // Get provider instance
     const provider = getProvider(requestedProvider);
 
@@ -32,6 +35,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Store session in database
     const session = await createVerificationSession(provider.name as any, providerSessionId);
+
+    console.log(`✓ [VERIFICATION] Session created`);
+    console.log(`   Session ID: ${session.id}`);
+    console.log(`   Provider Session: ${providerSessionId}`);
+    console.log(`   Expires: ${new Date(session.expiresAt).toISOString()}`);
 
     // Return session info and auth token for mobile SDK
     const response: CreateSessionResponse = {

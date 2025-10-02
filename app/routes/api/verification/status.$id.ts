@@ -18,19 +18,29 @@ export async function loader({ params }: LoaderFunctionArgs) {
     // Dynamic import
     const { getVerificationSession } = await import("~/utils/verification.server");
 
+    console.log(`🔍 [STATUS] Checking session: ${id}`);
+
     // Get session
     const session = await getVerificationSession(id);
 
     if (!session) {
+      console.log(`❌ [STATUS] Session not found: ${id}`);
       return Response.json({ error: "Session not found" }, { status: 404 });
     }
+
+    const ready = session.status === "approved" && !session.credentialIssued;
+
+    console.log(`✓ [STATUS] Session ${id}`);
+    console.log(`   Status: ${session.status}`);
+    console.log(`   Ready for credential: ${ready}`);
+    console.log(`   Credential issued: ${session.credentialIssued || false}`);
 
     // Return session status
     return Response.json({
       sessionId: session.id,
       status: session.status,
       provider: session.provider,
-      ready: session.status === "approved" && !session.credentialIssued,
+      ready,
       expiresAt: new Date(session.expiresAt).toISOString(),
       credentialIssued: session.credentialIssued || false,
     });

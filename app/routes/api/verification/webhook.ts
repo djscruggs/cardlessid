@@ -24,27 +24,40 @@ export async function action({ request }: ActionFunctionArgs) {
     const url = new URL(request.url);
     const providerName = url.searchParams.get("provider") || "mock";
 
+    console.log(`\n📨 [WEBHOOK] Received from provider: ${providerName}`);
+
     // Get provider instance
     const provider = getProvider(providerName as any);
 
     // Validate webhook signature
     const isValid = await provider.validateWebhook(request);
     if (!isValid) {
-      console.error("Invalid webhook signature");
+      console.error(`❌ [WEBHOOK] Invalid signature from ${providerName}`);
       return Response.json({ error: "Invalid signature" }, { status: 401 });
     }
+
+    console.log(`✓ [WEBHOOK] Signature validated`);
 
     // Parse webhook body
     const body = await request.json();
     const webhookData = provider.parseWebhookData(body);
 
+    console.log(`📋 [WEBHOOK] Data parsed`);
+    console.log(`   Provider Session: ${webhookData.providerSessionId}`);
+    console.log(`   Status: ${webhookData.status}`);
+    if (webhookData.verifiedData) {
+      console.log(`   User: ${webhookData.verifiedData.firstName} ${webhookData.verifiedData.lastName}`);
+    }
+
     // Find session by provider's session ID
     const session = await getVerificationSessionByProvider(webhookData.providerSessionId);
 
     if (!session) {
-      console.error(`Session not found for provider ID: ${webhookData.providerSessionId}`);
+      console.error(`❌ [WEBHOOK] Session not found for provider ID: ${webhookData.providerSessionId}`);
       return Response.json({ error: "Session not found" }, { status: 404 });
     }
+
+    console.log(`✓ [WEBHOOK] Session found: ${session.id}`);
 
     // Update session with verification results
     await updateVerificationSession(session.id, {
@@ -53,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
       providerMetadata: webhookData.metadata,
     });
 
-    console.log(`Verification session ${session.id} updated to status: ${webhookData.status}`);
+    console.log(`✅ [WEBHOOK] Session ${session.id} updated to: ${webhookData.status}`);
 
     // Return success response
     return Response.json({
