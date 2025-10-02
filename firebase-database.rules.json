@@ -22,6 +22,15 @@
       }
     },
 
+    "ageVerificationSessions": {
+      ".read": false,
+      ".write": false,
+      "$sessionId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+
     "announcements": {
       ".read": true,
       ".write": false,

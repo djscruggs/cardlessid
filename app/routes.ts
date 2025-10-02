@@ -24,6 +24,11 @@ export default [
       route("webhook", "routes/api/verification/webhook.ts"),
       route("status/:id", "routes/api/verification/status.$id.ts"),
     ]),
+    ...prefix("age-verify", [
+      route("create", "routes/api/age-verify/create.ts"),
+      route("respond", "routes/api/age-verify/respond.ts"),
+      route("session/:sessionId", "routes/api/age-verify/session.$sessionId.ts"),
+    ]),
   ]),
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
@@ -31,5 +36,10 @@ export default [
     route("verify/:txId", "routes/app/verify.$txId.tsx"),
     route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
     route("mock-verification", "routes/app/mock-verification.tsx"),
+    route("age-verify", "routes/app/age-verify.tsx"),
+    route("age-verify-success", "routes/app/age-verify-success.tsx"),
+    route("age-verify-rejected", "routes/app/age-verify-rejected.tsx"),
+    route("wallet-verify", "routes/app/wallet-verify.tsx"),
+    route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
   ]),
 ] satisfies RouteConfig;
