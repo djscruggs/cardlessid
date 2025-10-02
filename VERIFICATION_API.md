@@ -168,23 +168,46 @@ curl -X POST http://localhost:5173/api/credentials \
 
 ## Mobile App Flow
 
+**How it works:**
+1. Mobile app requests a verification session from YOUR server
+2. YOUR server creates a session and gets a token from the verification provider
+3. Mobile app launches the provider's SDK with the token
+4. User completes verification in the provider's SDK (may take several minutes)
+5. **Provider sends webhook to YOUR server** when verification completes
+6. Mobile app polls YOUR server to check if webhook was received
+7. If approved, mobile app requests credential issuance
+
+**Important:** The mobile app ONLY communicates with YOUR server. It never polls the provider directly. The provider sends a webhook to your server when verification is complete.
+
+**Session Timeout:** 30 minutes from creation
+
 ```typescript
-// 1. Start verification
-const { sessionId, authToken } = await fetch('/api/verification/start', {
+// 1. Start verification session on YOUR server
+const { sessionId, authToken, provider } = await fetch('/api/verification/start', {
   method: 'POST',
-  body: JSON.stringify({ provider: 'idenfy' })
+  body: JSON.stringify({ provider: 'idenfy' }) // or 'mock' for testing
 }).then(r => r.json());
 
-// 2. Launch provider SDK (e.g., iDenfy React Native SDK)
+// 2. Launch provider SDK with the auth token
+// User completes ID verification (takes 1-5 minutes typically)
 await IdenfyReactNative.start({ authToken });
+// SDK closes automatically when user finishes
 
-// 3. Poll for completion
+// 3. Poll YOUR server to check if provider's webhook arrived
+// The provider sends a webhook to YOUR server when verification completes
 let status;
+let attempts = 0;
+const maxAttempts = 90; // 3 minutes with 2s intervals
+
 do {
   const response = await fetch(`/api/verification/status/${sessionId}`);
   status = await response.json();
-  await new Promise(r => setTimeout(r, 2000)); // Wait 2s
-} while (status.status === 'pending');
+
+  if (status.status !== 'pending') break;
+
+  await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds
+  attempts++;
+} while (attempts < maxAttempts);
 
 // 4. If approved, issue credential
 if (status.ready) {
@@ -195,6 +218,12 @@ if (status.ready) {
       walletAddress: myWalletAddress
     })
   }).then(r => r.json());
+
+  // Store credential locally in wallet
+  await saveCredentialToWallet(credential);
+} else {
+  // Handle rejection or timeout
+  console.error('Verification failed:', status.status);
 }
 ```
 
