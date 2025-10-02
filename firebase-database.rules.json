@@ -1,0 +1,39 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "verifications": {
+      ".read": false,
+      ".write": false,
+      "$walletAddress": {
+        ".read": true,
+        ".write": true
+      }
+    },
+
+    "verificationSessions": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": ["providerSessionId"],
+      "$sessionId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+
+    "announcements": {
+      ".read": true,
+      ".write": false,
+      "$announcementId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+
+    "$vid": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

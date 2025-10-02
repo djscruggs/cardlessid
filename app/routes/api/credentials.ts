@@ -5,14 +5,8 @@ import type { ActionFunctionArgs } from "react-router";
  *
  * Expected payload:
  * {
- *   walletAddress: string,
- *   firstName: string,
- *   middleName: string (optional),
- *   lastName: string,
- *   birthDate: string (ISO format),
- *   governmentId: string,
- *   idType: 'passport' | 'government_id',
- *   state: string (US state code)
+ *   verificationSessionId: string,  // Session ID from /api/verification/start
+ *   walletAddress: string
  * }
  *
  * Returns W3C Verifiable Credential with hashed personal data for on-chain verification.
@@ -30,6 +24,11 @@ export async function action({ request }: ActionFunctionArgs) {
     getPeraExplorerUrl,
     checkCredentialExists,
   } = await import("~/utils/algorand");
+  const {
+    getVerificationSession,
+    isSessionValidForCredential,
+    markSessionCredentialIssued,
+  } = await import("~/utils/verification.server");
   const algosdk = (await import("algosdk")).default;
 
   if (request.method !== "POST") {
@@ -37,8 +36,38 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
+    const { verificationSessionId, walletAddress } = await request.json();
+
+    // Validate required inputs
+    if (!verificationSessionId) {
+      return Response.json(
+        { error: "Missing verificationSessionId" },
+        { status: 400 }
+      );
+    }
+
+    if (!walletAddress) {
+      return Response.json({ error: "Missing walletAddress" }, { status: 400 });
+    }
+
+    // Get verification session
+    const session = await getVerificationSession(verificationSessionId);
+
+    if (!session) {
+      return Response.json(
+        { error: "Verification session not found" },
+        { status: 404 }
+      );
+    }
+
+    // Validate session is ready for credential issuance
+    const { valid, error: validationError } = isSessionValidForCredential(session);
+    if (!valid) {
+      return Response.json({ error: validationError }, { status: 400 });
+    }
+
+    // Extract verified identity data from session
     const {
-      walletAddress,
       firstName,
       middleName = "",
       lastName,
@@ -46,26 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
       governmentId,
       idType,
       state,
-    } = await request.json();
-
-    // Validate required inputs
-    if (!walletAddress) {
-      return Response.json({ error: "Missing walletAddress" }, { status: 400 });
-    }
-
-    if (
-      !firstName ||
-      !lastName ||
-      !birthDate ||
-      !governmentId ||
-      !idType ||
-      !state
-    ) {
-      return Response.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
+    } = session.verifiedData!;
 
     // Validate birthDate is at least 13 years ago
     const birthDateObj = new Date(birthDate);
@@ -229,6 +239,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // Save verification record with composite hash for duplicate detection
     await saveVerification(walletAddress, true);
     await updateCredentialIssued(walletAddress, compositeHash);
+
+    // Mark verification session as consumed
+    await markSessionCredentialIssued(verificationSessionId, walletAddress);
 
     return Response.json({
       success: true,

@@ -19,11 +19,17 @@ export default [
     route("credentials", "routes/api/credentials.ts"),
     route("credentials/schema", "routes/api/credentials/schema.ts"),
     route("announcements", "routes/api/announcements.ts"),
+    ...prefix("verification", [
+      route("start", "routes/api/verification/start.ts"),
+      route("webhook", "routes/api/verification/webhook.ts"),
+      route("status/:id", "routes/api/verification/status.$id.ts"),
+    ]),
   ]),
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
     route("create-credential", "routes/app/create-credential.tsx"),
     route("verify/:txId", "routes/app/verify.$txId.tsx"),
     route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
+    route("mock-verification", "routes/app/mock-verification.tsx"),
   ]),
 ] satisfies RouteConfig;

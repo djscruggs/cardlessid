@@ -25,6 +25,9 @@ try {
 
 const db = app.database();
 
+// Export db for use by other modules
+export { db };
+
 // Types
 export interface Verification {
   verifiedAt: number;
