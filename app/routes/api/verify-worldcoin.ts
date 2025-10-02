@@ -2,7 +2,7 @@ import type { ActionFunctionArgs } from "react-router";
 export async function action({ request }: ActionFunctionArgs) {
   const payload = await request.json();
   try {
-    const appId = import.meta.env.VITE_WORLDCOIN_APP_ID;
+    const appId = import.meta.env.VITE_WORLDCOIN_APP_ID || "";
     const { proof, merkle_root, nullifier_hash, verification_level } = payload;
 
     const url = "https://developer.worldcoin.org/api/v2/verify/" + appId;

@@ -29,6 +29,44 @@ This project is built with the following technologies:
 
 ## Development Setup
 
+### Prerequisites
+
+1. **Node.js** (v18 or higher)
+2. **Firebase Account** - Create a project at [Firebase Console](https://console.firebase.google.com)
+3. **Algorand Wallet** - For issuing credentials on testnet/mainnet
+
+### Environment Variables
+
+1. Copy the example environment file:
+   ```bash
+   cp env.example .env
+   ```
+
+2. Configure the following variables in `.env`:
+
+   **Algorand Configuration:**
+   - `VITE_APP_WALLET_ADDRESS` - Your Algorand wallet address (issuer address)
+   - `VITE_ALGORAND_NETWORK` - Network to use (`testnet` or `mainnet`)
+   - `ISSUER_PRIVATE_KEY` - Your Algorand wallet private key
+
+   **⚠️ SECURITY WARNING:** The `ISSUER_PRIVATE_KEY` is sensitive and should NEVER be shared or committed to version control. Keep this secure and never expose it publicly.
+
+   **Firebase Configuration:**
+   - `VITE_FIREBASE_API_KEY`
+   - `VITE_FIREBASE_AUTH_DOMAIN`
+   - `VITE_FIREBASE_PROJECT_ID`
+   - `VITE_FIREBASE_STORAGE_BUCKET`
+   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+   - `VITE_FIREBASE_APP_ID`
+   - `VITE_FIREBASE_MEASUREMENT_ID`
+
+   Get these values from your Firebase project settings (Project Settings → General → Your apps → SDK setup and configuration).
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
 ### Running the Servers
 
 This project uses two servers for development:
@@ -46,6 +84,11 @@ node scripts/mock-provider-server.cjs
 Runs on `http://localhost:3001`
 
 The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE_CLIENT_TESTING.md](MOBILE_CLIENT_TESTING.md) for complete integration details.
+
+**VS Code Users:** You can run both servers automatically using the task runner:
+- Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
+- Type "Tasks: Run Task"
+- Select "Start Both Servers"
 
 ### Mobile Client
 
