@@ -13,6 +13,17 @@ We partner with content companies, technology providers, media and regulators to
 
 This project is in active development. We're collaborating with partners to integrate existing decentralized identity tools that give end users maximum control of what information is shared. This ensures compatibility with all major blockchain networks.
 
+## Privacy & Data Storage
+
+**No personal data is stored.** All identity verification credentials are written directly to the Algorand blockchain. The system:
+
+- **Blockchain Storage**: Credentials are issued as transactions on the Algorand blockchain with verification data hashed and stored in the transaction note field
+- **Duplicate Detection**: Prevents duplicate credentials by checking transaction history using a composite hash (user wallet address + birth date + ID number)
+- **Issuer Verification**: All credentials are tied to the issuer account address, making them publicly verifiable and auditable
+- **Zero Knowledge**: Only the credential holder stores the full identity data in their mobile wallet; the blockchain only contains cryptographic hashes
+
+Firebase is used temporarily during the verification session (typically under 5 minutes) and only stores session state. Once a credential is issued, all session data is marked as consumed and cannot be reused.
+
 ## How to Contribute
 
 This is an open-source project, and we welcome all contributions. Whether you're interested in documentation, front-end development, or anything else, we'd love to have you. Reach out to me by email (me@djscruggs.com) or on Telegram (@djscruggs) to discuss how you can get involved.
