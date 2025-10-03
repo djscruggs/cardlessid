@@ -118,7 +118,7 @@ export default function DocsIndex() {
                   </li>
                   <li>
                     <a
-                      href="https://did-spec.atala.com/"
+                      href="https://github.com/algorandfoundation/did-algo/blob/main/SPEC.md"
                       className="hover:underline"
                       target="_blank"
                       rel="noopener noreferrer"
