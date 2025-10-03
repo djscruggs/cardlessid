@@ -85,7 +85,7 @@ After identity verification is complete, request a credential to be minted.
     ...
   },
   "nft": {
-    "assetId": 123456789,
+    "assetId": "123456789",
     "requiresOptIn": true,
     "instructions": {
       "step1": "Client must opt-in to the asset",
@@ -96,20 +96,35 @@ After identity verification is complete, request a credential to be minted.
   "blockchain": {
     "transaction": {
       "id": "TX_ID",
-      "explorerUrl": "https://testnet.explorer.perawallet.app/tx/TX_ID"
+      "explorerUrl": "https://testnet.explorer.perawallet.app/tx/TX_ID",
+      "note": "NFT credential minted"
+    },
+    "funding": {
+      "id": "FUNDING_TX_ID",
+      "amount": "0.2 ALGO",
+      "note": "Wallet funded for asset opt-in"
     },
     "network": "testnet"
   }
 }
 ```
 
-**Important**: Store both the `credential` (with proof) and `personalData` locally in the wallet. The blockchain only stores the NFT with minimal metadata (credential ID, composite hash). NO age or birth information is stored on-chain for privacy.
+**Important**:
+- Store both the `credential` (with proof) and `personalData` locally in the wallet
+- The blockchain only stores the NFT with minimal metadata (credential ID, composite hash)
+- NO age or birth information is stored on-chain for privacy
+- `assetId` is returned as a **string** (not number) due to JSON bigint handling
+- **Wallet Funding**: If the wallet has insufficient balance (< 0.101 ALGO), the issuer automatically funds it with 0.2 ALGO to enable asset opt-in. The `funding` field will only appear if funding was needed.
 
 ---
 
 ### Step 2: Opt-in to the NFT Asset
 
 Before the NFT can be transferred to your wallet, you must opt-in to the asset.
+
+**Requirements**:
+- Minimum balance: 0.101 ALGO (0.001 for transaction fee + 0.1 for minimum balance increase)
+- Note: If your wallet was auto-funded in Step 1, you already have 0.2 ALGO
 
 **Client Action**: Submit an asset transfer transaction of 0 units to yourself.
 
@@ -126,7 +141,7 @@ const algodClient = new algosdk.Algodv2(
 async function optInToAsset(
   walletAddress: string,
   privateKey: Uint8Array,
-  assetId: number
+  assetId: string | number  // Can be string from API or number
 ): Promise<string> {
   const suggestedParams = await algodClient.getTransactionParams().do();
 
@@ -134,7 +149,7 @@ async function optInToAsset(
     from: walletAddress,
     to: walletAddress,
     amount: 0,
-    assetIndex: assetId,
+    assetIndex: Number(assetId),  // Convert string to number if needed
     suggestedParams,
   });
 
@@ -161,7 +176,7 @@ After opting in, call the transfer endpoint to receive the NFT.
 **Request Body**:
 ```json
 {
-  "assetId": 123456789,
+  "assetId": "123456789",
   "walletAddress": "AAAAA...ZZZZZ"
 }
 ```
@@ -170,7 +185,7 @@ After opting in, call the transfer endpoint to receive the NFT.
 ```json
 {
   "success": true,
-  "assetId": 123456789,
+  "assetId": "123456789",
   "walletAddress": "AAAAA...ZZZZZ",
   "transactions": {
     "transfer": {
@@ -209,14 +224,14 @@ Any party can check if a wallet has valid credentials.
   "issuedAt": "2025-10-03T12:34:56.789Z",
   "credentials": [
     {
-      "assetId": 123456789,
+      "assetId": "123456789",
       "frozen": true,
       "issuedAt": "2025-10-03T12:34:56.789Z",
       "credentialId": "urn:uuid:xxx"
     }
   ],
   "latestCredential": {
-    "assetId": 123456789,
+    "assetId": "123456789",
     "frozen": true,
     "credentialId": "urn:uuid:xxx",
     "compositeHash": "abc123..."

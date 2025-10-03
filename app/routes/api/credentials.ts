@@ -14,13 +14,10 @@ import type { ActionFunctionArgs } from "react-router";
  */
 export async function action({ request }: ActionFunctionArgs) {
   // Import server-only modules inside the action to prevent client bundling
-  const {
-    saveVerification,
-    updateCredentialIssued,
-  } = await import("~/utils/firebase.server");
-  const {
-    getPeraExplorerUrl,
-  } = await import("~/utils/algorand");
+  const { saveVerification, updateCredentialIssued } = await import(
+    "~/utils/firebase.server"
+  );
+  const { getPeraExplorerUrl } = await import("~/utils/algorand");
   const {
     createCredentialNFT,
     transferCredentialNFT,
@@ -64,7 +61,8 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Validate session is ready for credential issuance
-    const { valid, error: validationError } = isSessionValidForCredential(session);
+    const { valid, error: validationError } =
+      isSessionValidForCredential(session);
     if (!valid) {
       return Response.json({ error: validationError }, { status: 400 });
     }
@@ -128,13 +126,11 @@ export async function action({ request }: ActionFunctionArgs) {
       .join("");
 
     // Check for duplicate credentials on blockchain (NFT-based)
-    const { exists: isDuplicate, assetIds: duplicateAssetIds } = await checkDuplicateCredentialNFT(
-      appWalletAddress,
-      compositeHash
-    );
+    const { exists: isDuplicate, assetIds: duplicateAssetIds } =
+      await checkDuplicateCredentialNFT(appWalletAddress, compositeHash);
 
     // In production, prevent duplicate issuance
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = process.env.NODE_ENV === "production";
     if (isProduction && isDuplicate) {
       return Response.json(
         {
@@ -146,7 +142,6 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-
     // Get issuer's private key for signing
     const issuerPrivateKey = process.env.ISSUER_PRIVATE_KEY;
 
@@ -157,7 +152,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Restore account from private key (base64 encoded)
-    const secretKey = new Uint8Array(Buffer.from(issuerPrivateKey, 'base64'));
+    const secretKey = new Uint8Array(Buffer.from(issuerPrivateKey, "base64"));
     const issuerAccount = {
       addr: algosdk.encodeAddress(secretKey.slice(32)), // Last 32 bytes are public key
       sk: secretKey,
@@ -182,7 +177,7 @@ export async function action({ request }: ActionFunctionArgs) {
       "@context": [
         "https://www.w3.org/ns/credentials/v2",
         "https://www.w3.org/ns/credentials/examples/v2",
-        "https://cardlessid.org/credentials/v1"
+        "https://cardlessid.org/credentials/v1",
       ],
       id: credentialId,
       type: ["VerifiableCredential", "BirthDateCredential"],
@@ -210,20 +205,50 @@ export async function action({ request }: ActionFunctionArgs) {
         created: issuanceDate,
         verificationMethod: `${issuerId}#key-1`,
         proofPurpose: "assertionMethod",
-        proofValue: Buffer.from(signature).toString('base64'),
+        proofValue: Buffer.from(signature).toString("base64"),
       },
     };
 
     // Mint credential NFT on blockchain
-    let assetId: number | undefined;
+    let assetId: string | undefined;
     let mintTxId: string | undefined;
-    let transferTxId: string | undefined;
-    let freezeTxId: string | undefined;
+    let fundingTxId: string | undefined;
     let credentialExplorerUrl: string | undefined;
 
     try {
       // Get network from env
-      const network = (process.env.VITE_ALGORAND_NETWORK || 'testnet') as 'testnet' | 'mainnet';
+      const network = (process.env.VITE_ALGORAND_NETWORK || "testnet") as
+        | "testnet"
+        | "mainnet";
+
+      // Import funding utilities
+      const { walletNeedsFunding, fundNewWallet } = await import("~/utils/algorand");
+
+      // Step 0: Check if issuer wallet needs funding
+      const issuerNeedsFunds = await walletNeedsFunding(appWalletAddress);
+      if (issuerNeedsFunds) {
+        console.log(`💰 Issuer wallet ${appWalletAddress} needs funding for NFT operations`);
+        // We need to fund the issuer wallet first - this requires a different approach
+        // For now, throw an error with instructions
+        throw new Error(`Issuer wallet ${appWalletAddress} has insufficient ALGO balance. Please fund it with at least 0.1 ALGO from the testnet faucet or another wallet.`);
+      } else {
+        console.log(`✓ Issuer wallet ${appWalletAddress} has sufficient balance`);
+      }
+
+      // Step 1: Check if recipient wallet needs funding and fund it
+      const needsFunding = await walletNeedsFunding(walletAddress);
+      if (needsFunding) {
+        console.log(`💰 Wallet ${walletAddress} needs funding for asset opt-in`);
+        fundingTxId = await fundNewWallet(
+          appWalletAddress,
+          issuerAccount.sk,
+          walletAddress,
+          200000 // 0.2 ALGO
+        );
+        console.log(`✓ Funded wallet with ${fundingTxId}`);
+      } else {
+        console.log(`✓ Wallet ${walletAddress} has sufficient balance`);
+      }
 
       // Step 1: Create the NFT credential
       // NOTE: No age/birth information included for privacy (minimal disclosure principle)
@@ -232,7 +257,7 @@ export async function action({ request }: ActionFunctionArgs) {
         issuerAccount.sk,
         walletAddress,
         {
-          name: `CardlessID Credential`,
+          name: `Cardless ID`,
           description: `Identity verification credential`,
           credentialId,
           compositeHash,
@@ -243,7 +268,9 @@ export async function action({ request }: ActionFunctionArgs) {
       assetId = nftResult.assetId;
       mintTxId = nftResult.txId;
 
-      console.log(`✓ Created NFT credential: Asset ID ${assetId}, Tx: ${mintTxId}`);
+      console.log(
+        `✓ Created NFT credential: Asset ID ${assetId}, Tx: ${mintTxId}`
+      );
 
       // NOTE: Client must opt-in to the asset before we can transfer it
       // The client will need to:
@@ -252,9 +279,8 @@ export async function action({ request }: ActionFunctionArgs) {
       // 3. We'll transfer and freeze in a separate endpoint or the client handles this
 
       credentialExplorerUrl = getPeraExplorerUrl(mintTxId, network);
-
     } catch (error) {
-      console.error('Error minting credential NFT:', error);
+      console.error("Error minting credential NFT:", error);
       throw error; // NFT minting is critical, so we throw
     }
 
@@ -279,11 +305,12 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       issuedAt: issuanceDate,
       nft: {
-        assetId,
+        assetId: assetId.toString(), // Ensure it's a string for JSON serialization
         requiresOptIn: true,
         instructions: {
           step1: "Client must opt-in to the asset",
-          step2: "Call POST /api/credentials/transfer with assetId and walletAddress",
+          step2:
+            "Call POST /api/credentials/transfer with assetId and walletAddress",
           step3: "Asset will be transferred and frozen (non-transferable)",
         },
       },
@@ -291,17 +318,23 @@ export async function action({ request }: ActionFunctionArgs) {
         transaction: {
           id: mintTxId,
           explorerUrl: credentialExplorerUrl,
-          note: "NFT credential minted"
+          note: "NFT credential minted",
         },
-        network: process.env.VITE_ALGORAND_NETWORK || 'testnet',
+        funding: fundingTxId ? {
+          id: fundingTxId,
+          amount: "0.2 ALGO",
+          note: "Wallet funded for asset opt-in"
+        } : undefined,
+        network: process.env.VITE_ALGORAND_NETWORK || "testnet",
       },
       duplicateDetection: {
         duplicateCount: duplicateAssetIds.length,
         isDuplicate,
         duplicateAssetIds,
-        message: duplicateAssetIds.length > 0
-          ? `Warning: ${duplicateAssetIds.length} duplicate credential(s) found on blockchain`
-          : 'No duplicates found'
+        message:
+          duplicateAssetIds.length > 0
+            ? `Warning: ${duplicateAssetIds.length} duplicate credential(s) found on blockchain`
+            : "No duplicates found",
       },
     });
   } catch (error) {

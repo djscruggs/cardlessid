@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLoaderData } from "react-router";
 import type { LoaderFunctionArgs } from "react-router";
 
@@ -14,6 +14,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
   };
 }
 
+// Generate or retrieve a test wallet address for development
+function getOrCreateTestWallet(): string {
+  const STORAGE_KEY = 'cardlessid_test_wallet';
+
+  // Check if we already have a test wallet in localStorage
+  const existing = localStorage.getItem(STORAGE_KEY);
+  if (existing) {
+    return existing;
+  }
+
+  // Generate a mock Algorand address (58 chars, base32)
+  // In production, this would be a real wallet connection
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let address = '';
+  for (let i = 0; i < 58; i++) {
+    address += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  localStorage.setItem(STORAGE_KEY, address);
+  console.log('🔐 Generated test wallet:', address);
+  console.log('⚠️  This is a mock address for testing only');
+
+  return address;
+}
+
 const MockVerification = () => {
   const { apiBaseUrl } = useLoaderData<typeof loader>();
   const baseUrl = apiBaseUrl || '';
@@ -23,6 +48,12 @@ const MockVerification = () => {
   const [authToken, setAuthToken] = useState('');
   const [providerSessionId, setProviderSessionId] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+
+  // Auto-generate test wallet on mount
+  useEffect(() => {
+    const testWallet = getOrCreateTestWallet();
+    setWalletAddress(testWallet);
+  }, []);
 
   const [formData, setFormData] = useState({
     firstName: 'John',

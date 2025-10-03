@@ -1,5 +1,5 @@
-import algosdk from 'algosdk';
-import { algodClient, indexerClient } from './algorand';
+import algosdk from "algosdk";
+import { algodClient, indexerClient } from "./algorand";
 
 /**
  * NFT-based credential system for CardlessID
@@ -24,7 +24,7 @@ export async function createCredentialNFT(
   issuerPrivateKey: Uint8Array,
   recipientAddress: string,
   metadata: NFTCredentialMetadata
-): Promise<{ assetId: number; txId: string }> {
+): Promise<{ assetId: string; txId: string }> {
   try {
     const suggestedParams = await algodClient.getTransactionParams().do();
 
@@ -37,7 +37,7 @@ export async function createCredentialNFT(
     // - freeze = issuer (can freeze to prevent transfers)
     // - clawback = issuer (can reclaim/revoke)
     const txn = algosdk.makeAssetCreateTxnWithSuggestedParamsFromObject({
-      from: issuerAddress,
+      sender: issuerAddress,
       total: 1,
       decimals: 0,
       defaultFrozen: false,
@@ -45,15 +45,15 @@ export async function createCredentialNFT(
       reserve: undefined,
       freeze: issuerAddress,
       clawback: issuerAddress,
-      unitName: 'CIDCRED',
+      unitName: "CIDCRED",
       assetName: metadata.name,
       assetURL: `https://cardlessid.org/credentials/${metadata.credentialId}`,
       assetMetadataHash: new Uint8Array(
-        Buffer.from(metadata.compositeHash.substring(0, 64), 'hex')
+        Buffer.from(metadata.compositeHash.substring(0, 64), "hex")
       ),
       note: new TextEncoder().encode(
         JSON.stringify({
-          standard: 'arc69',
+          standard: "arc69",
           ...metadata,
         })
       ),
@@ -70,16 +70,18 @@ export async function createCredentialNFT(
       4
     );
 
-    const assetId = confirmedTxn['asset-index'];
+    const assetId = confirmedTxn["assetIndex"];
 
     console.log(`✓ Created credential NFT: Asset ID ${assetId}`);
-
+    if (!assetId) {
+      throw "Error transferring credential NFT: invalid assetId returned";
+    }
     return {
-      assetId,
+      assetId: assetId.toString(), // Ensure it's a string
       txId: response.txid,
     };
   } catch (error) {
-    console.error('Error creating credential NFT:', error);
+    console.error("Error creating credential NFT:", error);
     throw error;
   }
 }
@@ -96,15 +98,102 @@ export async function transferCredentialNFT(
   assetId: number
 ): Promise<string> {
   try {
-    const suggestedParams = await algodClient.getTransactionParams().do();
+    // Validate inputs
+    if (!issuerAddress) {
+      throw new Error("issuerAddress is required");
+    }
+    if (!recipientAddress) {
+      throw new Error("recipientAddress is required");
+    }
+    if (!assetId) {
+      throw new Error("assetId is required");
+    }
+    if (!issuerPrivateKey) {
+      throw new Error("issuerPrivateKey is required");
+    }
 
-    // Create asset transfer transaction
-    const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+    console.log(`🔍 Transfer debug: issuer=${issuerAddress}, recipient=${recipientAddress}, assetId=${assetId}`);
+
+    // Check issuer balance before attempting transfer
+    const issuerBalance = await algodClient.accountInformation(issuerAddress).do();
+    const balanceMicroAlgos = Number(issuerBalance.amount || 0);
+    console.log(`💰 Issuer balance: ${balanceMicroAlgos / 1000000} ALGO (${balanceMicroAlgos} microAlgos)`);
+    
+    if (balanceMicroAlgos < 1000) { // Need at least 1000 microAlgos for transaction fee
+      throw new Error(`Insufficient issuer balance: ${balanceMicroAlgos} microAlgos. Need at least 1000 microAlgos for transaction fee.`);
+    }
+
+    const suggestedParams = await algodClient.getTransactionParams().do();
+    // Log suggested params without JSON.stringify to avoid BigInt serialization issues
+    console.log(`🔍 Suggested params:`, {
+      firstRound: suggestedParams.firstRound?.toString(),
+      lastRound: suggestedParams.lastRound?.toString(),
+      fee: suggestedParams.fee?.toString(),
+      genesisHash: suggestedParams.genesisHash,
+      genesisID: suggestedParams.genesisID,
+    });
+
+    // If firstRound/lastRound are undefined, get them from the current status
+    let firstRound = suggestedParams.firstRound;
+    let lastRound = suggestedParams.lastRound;
+    
+    if (!firstRound || !lastRound) {
+      console.log(`⚠️ Missing round parameters, fetching from status...`);
+      const status = await algodClient.status().do();
+      const currentRound = status["last-round"];
+      
+      console.log(`🔍 Status response:`, {
+        lastRound: currentRound,
+        catchupTime: status["catchup-time"],
+        timeSinceLastRound: status["time-since-last-round"]
+      });
+      
+      if (currentRound && currentRound > 0) {
+        firstRound = BigInt(currentRound);
+        lastRound = BigInt(currentRound + 1000); // Add 1000 rounds buffer
+        console.log(`🔍 Using status rounds: firstRound=${firstRound}, lastRound=${lastRound}`);
+      } else {
+        // Fallback: use reasonable defaults for testnet
+        firstRound = BigInt(1);
+        lastRound = BigInt(1001);
+        console.log(`🔍 Using fallback rounds: firstRound=${firstRound}, lastRound=${lastRound}`);
+      }
+    }
+
+    // Validate that we have the required parameters
+    if (!firstRound || !lastRound || !suggestedParams.genesisHash) {
+      throw new Error("Unable to get valid transaction parameters from Algorand node");
+    }
+
+    // Create a complete params object
+    const completeParams = {
+      ...suggestedParams,
+      firstRound,
+      lastRound,
+    };
+
+    console.log(`🔍 Complete params:`, {
+      firstRound: completeParams.firstRound?.toString(),
+      lastRound: completeParams.lastRound?.toString(),
+      fee: completeParams.fee?.toString(),
+      genesisHash: completeParams.genesisHash ? 'present' : 'missing',
+      genesisID: completeParams.genesisID,
+    });
+
+    console.log(`🔍 Transaction params:`, {
       from: issuerAddress,
       to: recipientAddress,
       amount: 1,
       assetIndex: assetId,
-      suggestedParams,
+    });
+
+    // Create asset transfer transaction using the object version with complete params
+    const txn = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+      sender: issuerAddress,
+      receiver: recipientAddress,
+      amount: 1,
+      assetIndex: assetId,
+      suggestedParams: completeParams,
     });
 
     const signedTxn = txn.signTxn(issuerPrivateKey);
@@ -112,11 +201,13 @@ export async function transferCredentialNFT(
 
     await algosdk.waitForConfirmation(algodClient, response.txid, 4);
 
-    console.log(`✓ Transferred credential NFT ${assetId} to ${recipientAddress}`);
+    console.log(
+      `✓ Transferred credential NFT ${assetId} to ${recipientAddress}`
+    );
 
     return response.txid;
   } catch (error) {
-    console.error('Error transferring credential NFT:', error);
+    console.error("Error transferring credential NFT:", error);
     throw error;
   }
 }
@@ -135,10 +226,10 @@ export async function freezeCredentialNFT(
     const suggestedParams = await algodClient.getTransactionParams().do();
 
     const txn = algosdk.makeAssetFreezeTxnWithSuggestedParamsFromObject({
-      from: issuerAddress,
+      sender: issuerAddress,
       assetIndex: assetId,
       freezeTarget: recipientAddress,
-      freezeState: true, // true = frozen (cannot transfer)
+      frozen: true, // true = frozen (cannot transfer)
       suggestedParams,
     });
 
@@ -151,7 +242,7 @@ export async function freezeCredentialNFT(
 
     return response.txid;
   } catch (error) {
-    console.error('Error freezing credential NFT:', error);
+    console.error("Error freezing credential NFT:", error);
     throw error;
   }
 }
@@ -186,7 +277,7 @@ export async function revokeCredentialNFT(
 
     return response.txid;
   } catch (error) {
-    console.error('Error revoking credential NFT:', error);
+    console.error("Error revoking credential NFT:", error);
     throw error;
   }
 }
@@ -209,7 +300,9 @@ export async function getWalletCredentials(
 > {
   try {
     // Get account info
-    const accountInfo = await algodClient.accountInformation(walletAddress).do();
+    const accountInfo = await algodClient
+      .accountInformation(walletAddress)
+      .do();
 
     const credentials: Array<{
       assetId: number;
@@ -223,7 +316,9 @@ export async function getWalletCredentials(
     for (const asset of accountInfo.assets || []) {
       if (asset.amount > 0) {
         // Get asset details
-        const assetInfo = await algodClient.getAssetByID(asset['asset-id']).do();
+        const assetInfo = await algodClient
+          .getAssetByID(asset["asset-id"])
+          .do();
 
         // Check if this asset was created by our issuer
         if (assetInfo.params.creator === issuerAddress) {
@@ -234,30 +329,30 @@ export async function getWalletCredentials(
             const txnSearch = await indexerClient
               .searchForTransactions()
               .address(issuerAddress)
-              .txType('acfg')
-              .assetID(asset['asset-id'])
+              .txType("acfg")
+              .assetID(asset["asset-id"])
               .do();
 
             if (txnSearch.transactions && txnSearch.transactions.length > 0) {
               const creationTxn = txnSearch.transactions[0];
               if (creationTxn.note) {
                 const noteString = new TextDecoder().decode(
-                  Buffer.from(creationTxn.note, 'base64')
+                  Buffer.from(creationTxn.note, "base64")
                 );
                 metadata = JSON.parse(noteString);
               }
             }
           } catch (e) {
-            console.error('Error parsing asset metadata:', e);
+            console.error("Error parsing asset metadata:", e);
           }
 
           credentials.push({
-            assetId: asset['asset-id'],
-            amount: asset.amount,
-            frozen: asset['is-frozen'] || false,
+            assetId: Number(asset["asset-id"]), // Convert to number
+            amount: Number(asset.amount), // Convert to number
+            frozen: asset["is-frozen"] || false,
             metadata: metadata || {
               name: assetInfo.params.name,
-              unitName: assetInfo.params['unit-name'],
+              unitName: assetInfo.params["unit-name"],
               url: assetInfo.params.url,
             },
             createdAt: metadata?.issuedAt,
@@ -268,7 +363,7 @@ export async function getWalletCredentials(
 
     return credentials;
   } catch (error) {
-    console.error('Error getting wallet credentials:', error);
+    console.error("Error getting wallet credentials:", error);
     throw error;
   }
 }
@@ -286,23 +381,23 @@ export async function checkDuplicateCredentialNFT(
     const txnSearch = await indexerClient
       .searchForTransactions()
       .address(issuerAddress)
-      .txType('acfg')
+      .txType("acfg")
       .do();
 
     const duplicateAssetIds: number[] = [];
 
     for (const txn of txnSearch.transactions || []) {
       // Check if this is an asset creation (not config update)
-      if (txn['created-asset-index']) {
+      if (txn["created-asset-index"]) {
         if (txn.note) {
           try {
             const noteString = new TextDecoder().decode(
-              Buffer.from(txn.note, 'base64')
+              Buffer.from(txn.note, "base64")
             );
             const metadata = JSON.parse(noteString);
 
             if (metadata.compositeHash === compositeHash) {
-              duplicateAssetIds.push(txn['created-asset-index']);
+              duplicateAssetIds.push(txn["created-asset-index"]);
             }
           } catch (e) {
             // Skip if can't parse note
@@ -317,7 +412,7 @@ export async function checkDuplicateCredentialNFT(
       assetIds: duplicateAssetIds,
     };
   } catch (error) {
-    console.error('Error checking duplicate credential:', error);
+    console.error("Error checking duplicate credential:", error);
     return { exists: false, assetIds: [] };
   }
 }
@@ -342,32 +437,32 @@ export async function getCredentialNFTDetails(assetId: number): Promise<{
       const txnSearch = await indexerClient
         .searchForTransactions()
         .assetID(assetId)
-        .txType('acfg')
+        .txType("acfg")
         .do();
 
       if (txnSearch.transactions && txnSearch.transactions.length > 0) {
         const creationTxn = txnSearch.transactions[0];
         if (creationTxn.note) {
           const noteString = new TextDecoder().decode(
-            Buffer.from(creationTxn.note, 'base64')
+            Buffer.from(creationTxn.note, "base64")
           );
           metadata = JSON.parse(noteString);
         }
       }
     } catch (e) {
-      console.error('Error parsing metadata:', e);
+      console.error("Error parsing metadata:", e);
     }
 
     return {
       creator: assetInfo.params.creator,
       name: assetInfo.params.name,
-      unitName: assetInfo.params['unit-name'],
+      unitName: assetInfo.params["unit-name"],
       total: assetInfo.params.total,
-      frozen: assetInfo.params['default-frozen'] || false,
+      frozen: assetInfo.params["default-frozen"] || false,
       metadata,
     };
   } catch (error) {
-    console.error('Error getting credential details:', error);
+    console.error("Error getting credential details:", error);
     throw error;
   }
 }
