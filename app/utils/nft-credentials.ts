@@ -47,7 +47,7 @@ export async function createCredentialNFT(
       clawback: issuerAddress,
       unitName: "CIDCRED",
       assetName: metadata.name,
-      assetURL: `https://cardlessid.org/credentials/${metadata.credentialId}`,
+      assetURL: `https://cardlessid.org/`,
       assetMetadataHash: new Uint8Array(
         Buffer.from(metadata.compositeHash.substring(0, 64), "hex")
       ),
@@ -112,15 +112,24 @@ export async function transferCredentialNFT(
       throw new Error("issuerPrivateKey is required");
     }
 
-    console.log(`🔍 Transfer debug: issuer=${issuerAddress}, recipient=${recipientAddress}, assetId=${assetId}`);
+    console.log(
+      `🔍 Transfer debug: issuer=${issuerAddress}, recipient=${recipientAddress}, assetId=${assetId}`
+    );
 
     // Check issuer balance before attempting transfer
-    const issuerBalance = await algodClient.accountInformation(issuerAddress).do();
+    const issuerBalance = await algodClient
+      .accountInformation(issuerAddress)
+      .do();
     const balanceMicroAlgos = Number(issuerBalance.amount || 0);
-    console.log(`💰 Issuer balance: ${balanceMicroAlgos / 1000000} ALGO (${balanceMicroAlgos} microAlgos)`);
-    
-    if (balanceMicroAlgos < 1000) { // Need at least 1000 microAlgos for transaction fee
-      throw new Error(`Insufficient issuer balance: ${balanceMicroAlgos} microAlgos. Need at least 1000 microAlgos for transaction fee.`);
+    console.log(
+      `💰 Issuer balance: ${balanceMicroAlgos / 1000000} ALGO (${balanceMicroAlgos} microAlgos)`
+    );
+
+    if (balanceMicroAlgos < 1000) {
+      // Need at least 1000 microAlgos for transaction fee
+      throw new Error(
+        `Insufficient issuer balance: ${balanceMicroAlgos} microAlgos. Need at least 1000 microAlgos for transaction fee.`
+      );
     }
 
     const suggestedParams = await algodClient.getTransactionParams().do();
@@ -136,33 +145,39 @@ export async function transferCredentialNFT(
     // If firstRound/lastRound are undefined, get them from the current status
     let firstRound = suggestedParams.firstRound;
     let lastRound = suggestedParams.lastRound;
-    
+
     if (!firstRound || !lastRound) {
       console.log(`⚠️ Missing round parameters, fetching from status...`);
       const status = await algodClient.status().do();
       const currentRound = status["last-round"];
-      
+
       console.log(`🔍 Status response:`, {
         lastRound: currentRound,
         catchupTime: status["catchup-time"],
-        timeSinceLastRound: status["time-since-last-round"]
+        timeSinceLastRound: status["time-since-last-round"],
       });
-      
+
       if (currentRound && currentRound > 0) {
         firstRound = BigInt(currentRound);
         lastRound = BigInt(currentRound + 1000); // Add 1000 rounds buffer
-        console.log(`🔍 Using status rounds: firstRound=${firstRound}, lastRound=${lastRound}`);
+        console.log(
+          `🔍 Using status rounds: firstRound=${firstRound}, lastRound=${lastRound}`
+        );
       } else {
         // Fallback: use reasonable defaults for testnet
         firstRound = BigInt(1);
         lastRound = BigInt(1001);
-        console.log(`🔍 Using fallback rounds: firstRound=${firstRound}, lastRound=${lastRound}`);
+        console.log(
+          `🔍 Using fallback rounds: firstRound=${firstRound}, lastRound=${lastRound}`
+        );
       }
     }
 
     // Validate that we have the required parameters
     if (!firstRound || !lastRound || !suggestedParams.genesisHash) {
-      throw new Error("Unable to get valid transaction parameters from Algorand node");
+      throw new Error(
+        "Unable to get valid transaction parameters from Algorand node"
+      );
     }
 
     // Create a complete params object
@@ -176,7 +191,7 @@ export async function transferCredentialNFT(
       firstRound: completeParams.firstRound?.toString(),
       lastRound: completeParams.lastRound?.toString(),
       fee: completeParams.fee?.toString(),
-      genesisHash: completeParams.genesisHash ? 'present' : 'missing',
+      genesisHash: completeParams.genesisHash ? "present" : "missing",
       genesisID: completeParams.genesisID,
     });
 
