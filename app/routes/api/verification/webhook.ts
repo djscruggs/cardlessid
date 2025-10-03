@@ -60,11 +60,20 @@ export async function action({ request }: ActionFunctionArgs) {
     console.log(`✓ [WEBHOOK] Session found: ${session.id}`);
 
     // Update session with verification results
-    await updateVerificationSession(session.id, {
+    // Filter out undefined values (Firebase doesn't accept them)
+    const updateData: any = {
       status: webhookData.status,
-      verifiedData: webhookData.verifiedData,
-      providerMetadata: webhookData.metadata,
-    });
+    };
+
+    if (webhookData.verifiedData !== undefined) {
+      updateData.verifiedData = webhookData.verifiedData;
+    }
+
+    if (webhookData.metadata !== undefined) {
+      updateData.providerMetadata = webhookData.metadata;
+    }
+
+    await updateVerificationSession(session.id, updateData);
 
     console.log(`✅ [WEBHOOK] Session ${session.id} updated to: ${webhookData.status}`);
 
