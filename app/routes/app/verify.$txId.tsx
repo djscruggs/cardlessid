@@ -35,7 +35,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     id: "urn:uuid:12345678-1234-1234-1234-123456789012",
     type: ["VerifiableCredential", "BirthDateCredential"],
     issuer: {
-      id: "did:algorand:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI",
+      id: "did:algo:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI",
     },
     issuanceDate,
     credentialSubject: {
@@ -48,7 +48,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
       type: "Ed25519Signature2020",
       created: proofCreated,
       verificationMethod:
-        "did:algorand:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI#key-1",
+        "did:algo:RVRETUTESXWBMIFFUGGTUJX5URU4MTRTRXLFXACR3JTT7QR7RCC57A7JHI#key-1",
       proofPurpose: "assertionMethod",
       proofValue: "verified-signature-value",
     },

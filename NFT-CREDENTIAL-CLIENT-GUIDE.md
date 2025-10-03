@@ -70,10 +70,10 @@ After identity verification is complete, request a credential to be minted.
     "id": "urn:uuid:xxx",
     "type": ["VerifiableCredential", "BirthDateCredential"],
     "issuer": {
-      "id": "did:algorand:ISSUER_ADDRESS"
+      "id": "did:algo:ISSUER_ADDRESS"
     },
     "credentialSubject": {
-      "id": "did:algorand:USER_ADDRESS",
+      "id": "did:algo:USER_ADDRESS",
       "cardlessid:compositeHash": "hash..."
     },
     "proof": {...}

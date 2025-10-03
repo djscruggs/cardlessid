@@ -120,7 +120,7 @@ const commands = {
         "@context": ["https://www.w3.org/ns/credentials/v2"],
         id: `urn:uuid:${crypto.randomUUID()}`,
         type: ["VerifiableCredential", "BirthDateCredential"],
-        issuer: { id: "did:algorand:test" },
+        issuer: { id: "did:algo:test" },
         issuanceDate: new Date().toISOString(),
         credentialSubject: {
           id: "did:cardlessid:user:test",

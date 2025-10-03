@@ -12,7 +12,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (!appWalletAddress) {
     throw new Error("VITE_APP_WALLET_ADDRESS environment variable is required");
   }
-  const issuerId = `did:algorand:${appWalletAddress}`;
+  const issuerId = `did:algo:${appWalletAddress}`;
 
   return {
     issuerId,
