@@ -12,6 +12,10 @@ export default [
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
   route("credentials/v1", "routes/credentials/v1.ts"),
+  ...prefix("docs", [
+    route("/", "routes/docs.tsx"),
+    route("credential-schema", "routes/docs/credential-schema.tsx"),
+  ]),
   ...prefix("api", [
     index("routes/api/hello.ts"),
     route("verify-worldcoin", "routes/api/verify-worldcoin.ts"),
