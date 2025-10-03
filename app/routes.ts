@@ -18,6 +18,7 @@ export default [
     route("verify-webhook", "routes/api/verify-webhook.ts"),
     route("credentials", "routes/api/credentials.ts"),
     route("credentials/schema", "routes/api/credentials/schema.ts"),
+    route("credentials/transfer", "routes/api/credentials/transfer.ts"),
     route("announcements", "routes/api/announcements.ts"),
     ...prefix("verification", [
       route("start", "routes/api/verification/start.ts"),
@@ -28,6 +29,9 @@ export default [
       route("create", "routes/api/age-verify/create.ts"),
       route("respond", "routes/api/age-verify/respond.ts"),
       route("session/:sessionId", "routes/api/age-verify/session.$sessionId.ts"),
+    ]),
+    ...prefix("wallet", [
+      route("status/:address", "routes/api/wallet/status.$address.ts"),
     ]),
   ]),
   ...prefix("app", [
@@ -41,5 +45,6 @@ export default [
     route("age-verify-rejected", "routes/app/age-verify-rejected.tsx"),
     route("wallet-verify", "routes/app/wallet-verify.tsx"),
     route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
+    route("wallet-status", "routes/app/wallet-status.tsx"),
   ]),
 ] satisfies RouteConfig;

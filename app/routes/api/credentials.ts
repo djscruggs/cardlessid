@@ -19,11 +19,14 @@ export async function action({ request }: ActionFunctionArgs) {
     updateCredentialIssued,
   } = await import("~/utils/firebase.server");
   const {
-    createCredentialTransaction,
-    waitForConfirmation,
     getPeraExplorerUrl,
-    checkCredentialExists,
   } = await import("~/utils/algorand");
+  const {
+    createCredentialNFT,
+    transferCredentialNFT,
+    freezeCredentialNFT,
+    checkDuplicateCredentialNFT,
+  } = await import("~/utils/nft-credentials");
   const {
     getVerificationSession,
     isSessionValidForCredential,
@@ -124,10 +127,9 @@ export async function action({ request }: ActionFunctionArgs) {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
 
-    // Check for duplicate credentials on blockchain
-    const { exists: isDuplicate, duplicateCount } = await checkCredentialExists(
+    // Check for duplicate credentials on blockchain (NFT-based)
+    const { exists: isDuplicate, assetIds: duplicateAssetIds } = await checkDuplicateCredentialNFT(
       appWalletAddress,
-      walletAddress,
       compositeHash
     );
 
@@ -138,6 +140,7 @@ export async function action({ request }: ActionFunctionArgs) {
         {
           error:
             "A credential with this identity information has already been issued.",
+          duplicateAssetIds,
         },
         { status: 409 }
       );
@@ -211,29 +214,48 @@ export async function action({ request }: ActionFunctionArgs) {
       },
     };
 
-    // Write credential record to blockchain
-    let credentialTxId: string | undefined;
+    // Mint credential NFT on blockchain
+    let assetId: number | undefined;
+    let mintTxId: string | undefined;
+    let transferTxId: string | undefined;
+    let freezeTxId: string | undefined;
     let credentialExplorerUrl: string | undefined;
 
     try {
       // Get network from env
       const network = (process.env.VITE_ALGORAND_NETWORK || 'testnet') as 'testnet' | 'mainnet';
 
-      // Create credential transaction with hash and proof
-      credentialTxId = await createCredentialTransaction(
+      // Step 1: Create the NFT credential
+      // NOTE: No age/birth information included for privacy (minimal disclosure principle)
+      const nftResult = await createCredentialNFT(
         appWalletAddress,
-        walletAddress,
         issuerAccount.sk,
-        credentialId,
-        compositeHash,
-        credential.proof.proofValue
+        walletAddress,
+        {
+          name: `CardlessID Credential`,
+          description: `Identity verification credential`,
+          credentialId,
+          compositeHash,
+          issuedAt: issuanceDate,
+        }
       );
-      await waitForConfirmation(credentialTxId);
-      credentialExplorerUrl = getPeraExplorerUrl(credentialTxId, network);
+
+      assetId = nftResult.assetId;
+      mintTxId = nftResult.txId;
+
+      console.log(`✓ Created NFT credential: Asset ID ${assetId}, Tx: ${mintTxId}`);
+
+      // NOTE: Client must opt-in to the asset before we can transfer it
+      // The client will need to:
+      // 1. Call this endpoint to get the assetId
+      // 2. Opt-in to the asset (0 ALGO transfer to self)
+      // 3. We'll transfer and freeze in a separate endpoint or the client handles this
+
+      credentialExplorerUrl = getPeraExplorerUrl(mintTxId, network);
 
     } catch (error) {
-      console.error('Error writing credential to blockchain:', error);
-      // Continue even if blockchain write fails - credential is still valid
+      console.error('Error minting credential NFT:', error);
+      throw error; // NFT minting is critical, so we throw
     }
 
     // Save verification record with composite hash for duplicate detection
@@ -256,19 +278,29 @@ export async function action({ request }: ActionFunctionArgs) {
         state,
       },
       issuedAt: issuanceDate,
+      nft: {
+        assetId,
+        requiresOptIn: true,
+        instructions: {
+          step1: "Client must opt-in to the asset",
+          step2: "Call POST /api/credentials/transfer with assetId and walletAddress",
+          step3: "Asset will be transferred and frozen (non-transferable)",
+        },
+      },
       blockchain: {
         transaction: {
-          id: credentialTxId,
+          id: mintTxId,
           explorerUrl: credentialExplorerUrl,
-          note: "Credential record with hash and proof"
+          note: "NFT credential minted"
         },
         network: process.env.VITE_ALGORAND_NETWORK || 'testnet',
       },
       duplicateDetection: {
-        duplicateCount,
+        duplicateCount: duplicateAssetIds.length,
         isDuplicate,
-        message: duplicateCount > 0
-          ? `Warning: ${duplicateCount} duplicate credential(s) found on blockchain`
+        duplicateAssetIds,
+        message: duplicateAssetIds.length > 0
+          ? `Warning: ${duplicateAssetIds.length} duplicate credential(s) found on blockchain`
           : 'No duplicates found'
       },
     });
