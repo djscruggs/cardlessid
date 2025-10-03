@@ -187,7 +187,7 @@ export default function CredentialSchemaDocs() {
                 <code>{`// Example verification function
 async function verifyCardlessCredential(credential) {
   // 1. Extract issuer public key from DID
-  const issuerAddress = credential.issuer.id.replace('did:algorand:', '');
+  const issuerAddress = credential.issuer.id.replace('did:algo:', '');
   const publicKey = algosdk.decodeAddress(issuerAddress).publicKey;
   
   // 2. Remove proof field for signature verification

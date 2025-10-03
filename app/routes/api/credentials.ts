@@ -165,8 +165,8 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    const issuerId = `did:algorand:${appWalletAddress}`;
-    const subjectId = `did:algorand:${walletAddress}`;
+    const issuerId = `did:algo:${appWalletAddress}`;
+    const subjectId = `did:algo:${walletAddress}`;
 
     // Generate credential
     const credentialId = `urn:uuid:${crypto.randomUUID()}`;
