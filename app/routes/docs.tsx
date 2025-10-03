@@ -50,6 +50,7 @@ export default function DocsIndex() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   <Link
                     to="/api/credentials/schema"
+                    target="_blank"
                     className="text-blue-600 hover:text-blue-800"
                   >
                     Schema API Endpoint
