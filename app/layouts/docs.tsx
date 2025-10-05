@@ -54,7 +54,7 @@ const DocsLayout: React.FC = () => {
                   Support
                 </h3>
                 <ul className="space-y-2 text-gray-700">
-                  <li>📧 Email: support@cardlessid.com</li>
+                  <li>📧 Email: me@djscruggs.com</li>
                   <li>
                     🐛 Issues:{" "}
                     <a
