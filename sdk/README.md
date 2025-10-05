@@ -24,23 +24,23 @@ Contact CardlessID to receive your API key.
 ### 3. Start Verifying
 
 ```javascript
-const CardlessID = require('@cardlessid/verifier');
+const CardlessID = require("@cardlessid/verifier");
 
 const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY
+  apiKey: process.env.CARDLESSID_API_KEY,
 });
 
 // Create verification challenge
 const challenge = await verifier.createChallenge({ minAge: 21 });
 
 // Show QR code to user
-console.log('Scan:', challenge.qrCodeUrl);
+console.log("Scan:", challenge.qrCodeUrl);
 
 // Check result
 const result = await verifier.pollChallenge(challenge.challengeId);
 
 if (result.verified) {
-  console.log('✅ User is 21+');
+  console.log("✅ User is 21+");
 }
 ```
 
@@ -60,6 +60,7 @@ CardlessID uses a **challenge-response flow** that prevents tampering:
 4. Your backend confirms the result
 
 **Security features:**
+
 - ✅ Single-use challenges
 - ✅ 10-minute expiration
 - ✅ Cryptographically signed
@@ -114,23 +115,25 @@ sdk/
 
 ## 🌟 Features
 
-| Feature | Description |
-|---------|-------------|
-| **Privacy-First** | Only returns yes/no, never reveals actual age |
-| **Blockchain-Backed** | Credentials stored on Algorand blockchain |
-| **Zero-Knowledge** | No personal data shared with your app |
-| **Fast** | Verification completes in seconds |
-| **Secure** | Challenge-response prevents tampering |
-| **Easy Integration** | Simple SDK, clear documentation |
+| Feature               | Description                                   |
+| --------------------- | --------------------------------------------- |
+| **Privacy-First**     | Only returns yes/no, never reveals actual age |
+| **Blockchain-Backed** | Credentials stored on Algorand blockchain     |
+| **Zero-Knowledge**    | No personal data shared with your app         |
+| **Fast**              | Verification completes in seconds             |
+| **Secure**            | Challenge-response prevents tampering         |
+| **Easy Integration**  | Simple SDK, clear documentation               |
 
 ## 🔧 API Endpoints
 
 ### Create Challenge
+
 ```
 POST /api/integrator/challenge/create
 ```
 
 ### Verify Challenge
+
 ```
 GET /api/integrator/challenge/verify/:challengeId
 ```
@@ -149,16 +152,16 @@ See [Integration Guide](./INTEGRATION_GUIDE.md) for full API documentation.
 
 ```javascript
 // Express.js route
-app.post('/verify-age', async (req, res) => {
+app.post("/verify-age", async (req, res) => {
   const challenge = await verifier.createChallenge({
     minAge: 21,
-    callbackUrl: 'https://yourapp.com/webhook'
+    callbackUrl: "https://yourapp.com/webhook",
   });
 
   res.json({ qrCodeUrl: challenge.qrCodeUrl });
 });
 
-app.get('/verify-status/:id', async (req, res) => {
+app.get("/verify-status/:id", async (req, res) => {
   const result = await verifier.verifyChallenge(req.params.id);
   res.json({ verified: result.verified });
 });
@@ -168,8 +171,8 @@ app.get('/verify-status/:id', async (req, res) => {
 
 - **Documentation**: [Integration Guide](./INTEGRATION_GUIDE.md)
 - **Examples**: See [examples/](./examples/) directory
-- **Issues**: https://github.com/cardlessid/cardlessid/issues
-- **Email**: support@cardlessid.com
+- **Issues**: https://github.com/djscruggs/cardlessid/issues
+- **Email**: me@djscruggs.com
 
 ## 📄 License
 

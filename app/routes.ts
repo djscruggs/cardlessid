@@ -3,6 +3,7 @@ import {
   index,
   route,
   prefix,
+  layout,
 } from "@react-router/dev/routes";
 
 export default [
@@ -12,10 +13,12 @@ export default [
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
   route("credentials/v1", "routes/credentials/v1.ts"),
-  ...prefix("docs", [
-    route("/", "routes/docs.tsx"),
-    route("credential-schema", "routes/docs/credential-schema.tsx"),
-    route("integration-guide", "routes/docs/integration-guide.tsx"),
+  layout("layouts/docs.tsx", [
+    ...prefix("docs", [
+      route("/", "routes/docs.tsx"),
+      route("credential-schema", "routes/docs/credential-schema.tsx"),
+      route("integration-guide", "routes/docs/integration-guide.tsx"),
+    ]),
   ]),
   ...prefix("api", [
     index("routes/api/hello.ts"),

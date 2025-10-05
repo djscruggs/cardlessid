@@ -171,6 +171,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "challengeId": "chal_1234567890_abc123",
@@ -189,6 +190,7 @@ X-API-Key: your_api_key
 ```
 
 **Response:**
+
 ```json
 {
   "challengeId": "chal_1234567890_abc123",
@@ -205,10 +207,10 @@ X-API-Key: your_api_key
 ## Integration Example
 
 ```javascript
-const CardlessID = require('@cardlessid/verifier');
+const CardlessID = require("@cardlessid/verifier");
 
 const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY
+  apiKey: process.env.CARDLESSID_API_KEY,
 });
 
 // Create challenge
@@ -221,8 +223,8 @@ displayQRCode(challenge.qrCodeUrl);
 const result = await verifier.pollChallenge(challenge.challengeId);
 
 if (result.verified) {
-  console.log('User verified as 21+');
-  console.log('Wallet:', result.walletAddress);
+  console.log("User verified as 21+");
+  console.log("Wallet:", result.walletAddress);
 }
 ```
 
@@ -231,21 +233,23 @@ if (result.verified) {
 ### Local Development
 
 1. Set environment variables:
+
    ```bash
    export CARDLESSID_API_KEY=test_key
    export CARDLESSID_URL=http://localhost:5173
    ```
 
 2. Create a test integrator (via admin function):
+
    ```javascript
-   const { createIntegrator } = require('./app/utils/api-keys.server');
+   const { createIntegrator } = require("./app/utils/api-keys.server");
 
    const integrator = await createIntegrator({
-     name: 'Test Company',
-     domain: 'localhost'
+     name: "Test Company",
+     domain: "localhost",
    });
 
-   console.log('API Key:', integrator.apiKey);
+   console.log("API Key:", integrator.apiKey);
    ```
 
 3. Run the example:
@@ -291,8 +295,8 @@ Routes are defined in `app/routes.ts`:
 ## Support
 
 - **Documentation**: https://cardlessid.com/docs/integration-guide
-- **GitHub**: https://github.com/cardlessid/cardlessid
-- **Email**: support@cardlessid.com
+- **GitHub**: https://github.com/djscruggs/cardlessid
+- **Email**: me@djscruggs.com
 
 ## License
 

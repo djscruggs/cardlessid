@@ -16,6 +16,7 @@ This guide explains how to integrate CardlessID age verification into your appli
 CardlessID provides zero-knowledge age verification using decentralized identity credentials on the Algorand blockchain. Users prove they meet an age requirement without revealing their actual birthdate.
 
 **Key Features:**
+
 - ✅ Privacy-preserving (only returns true/false)
 - ✅ Secure challenge-response flow
 - ✅ Single-use verification tokens
@@ -34,6 +35,7 @@ The verification flow uses a **challenge-response pattern** to prevent tampering
 6. Challenge cannot be reused or modified
 
 **Why this is secure:**
+
 - Challenge ID is cryptographically tied to your minAge requirement
 - User cannot modify the age requirement (it's stored server-side)
 - Challenge is single-use and expires after 10 minutes
@@ -53,6 +55,7 @@ Contact CardlessID to receive your API key. For development, you can create a te
 ### 2. Install the SDK
 
 **Node.js:**
+
 ```bash
 npm install @cardlessid/verifier
 ```
@@ -60,23 +63,23 @@ npm install @cardlessid/verifier
 ### 3. Basic Usage
 
 ```javascript
-const CardlessID = require('@cardlessid/verifier');
+const CardlessID = require("@cardlessid/verifier");
 
 const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY
+  apiKey: process.env.CARDLESSID_API_KEY,
 });
 
 // Create challenge
 const challenge = await verifier.createChallenge({ minAge: 21 });
 
 // Show QR code to user
-console.log('Scan this:', challenge.qrCodeUrl);
+console.log("Scan this:", challenge.qrCodeUrl);
 
 // Poll for result
 const result = await verifier.pollChallenge(challenge.challengeId);
 
 if (result.verified) {
-  console.log('User is 21+');
+  console.log("User is 21+");
 }
 ```
 
@@ -94,8 +97,8 @@ npm install @cardlessid/verifier
 
 ```javascript
 const verifier = new CardlessID({
-  apiKey: 'your_api_key',
-  baseUrl: 'https://cardlessid.com' // optional
+  apiKey: "your_api_key",
+  baseUrl: "https://cardlessid.com", // optional
 });
 ```
 
@@ -104,10 +107,12 @@ const verifier = new CardlessID({
 Creates a new age verification challenge.
 
 **Parameters:**
+
 - `minAge` (number, required): Age requirement (1-150)
 - `callbackUrl` (string, optional): Webhook URL for notifications
 
 **Returns:**
+
 ```javascript
 {
   challengeId: 'chal_1234567890_abc123',
@@ -123,9 +128,11 @@ Creates a new age verification challenge.
 Checks the current status of a challenge.
 
 **Parameters:**
+
 - `challengeId` (string, required): Challenge ID
 
 **Returns:**
+
 ```javascript
 {
   challengeId: 'chal_1234567890_abc123',
@@ -144,6 +151,7 @@ Checks the current status of a challenge.
 Polls a challenge until completed or expired.
 
 **Parameters:**
+
 - `challengeId` (string, required): Challenge ID
 - `options.interval` (number, optional): Polling interval in ms (default: 2000)
 - `options.timeout` (number, optional): Total timeout in ms (default: 600000)
@@ -157,11 +165,13 @@ Polls a challenge until completed or expired.
 All API requests require your API key:
 
 **Header:**
+
 ```
 X-API-Key: your_api_key_here
 ```
 
 **Or in request body:**
+
 ```json
 {
   "apiKey": "your_api_key_here",
@@ -176,6 +186,7 @@ X-API-Key: your_api_key_here
 Create a new verification challenge.
 
 **Request:**
+
 ```json
 {
   "apiKey": "your_api_key",
@@ -185,6 +196,7 @@ Create a new verification challenge.
 ```
 
 **Response:**
+
 ```json
 {
   "challengeId": "chal_1234567890_abc123",
@@ -200,11 +212,13 @@ Create a new verification challenge.
 Verify a challenge status.
 
 **Headers:**
+
 ```
 X-API-Key: your_api_key
 ```
 
 **Response:**
+
 ```json
 {
   "challengeId": "chal_1234567890_abc123",
@@ -223,66 +237,66 @@ X-API-Key: your_api_key
 ### Express.js Example
 
 ```javascript
-const express = require('express');
-const CardlessID = require('@cardlessid/verifier');
+const express = require("express");
+const CardlessID = require("@cardlessid/verifier");
 
 const app = express();
 const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY
+  apiKey: process.env.CARDLESSID_API_KEY,
 });
 
 // Temporary storage (use Redis/DB in production)
 const pendingVerifications = new Map();
 
 // Start verification
-app.post('/verify-age', async (req, res) => {
+app.post("/verify-age", async (req, res) => {
   const sessionId = generateSessionId();
 
   // Create challenge
   const challenge = await verifier.createChallenge({
     minAge: 21,
-    callbackUrl: `https://yourapp.com/verify-callback`
+    callbackUrl: `https://yourapp.com/verify-callback`,
   });
 
   pendingVerifications.set(sessionId, {
     challengeId: challenge.challengeId,
-    status: 'pending'
+    status: "pending",
   });
 
   res.json({
     sessionId,
-    qrCodeUrl: challenge.qrCodeUrl
+    qrCodeUrl: challenge.qrCodeUrl,
   });
 });
 
 // Check verification status
-app.get('/verify-status/:sessionId', async (req, res) => {
+app.get("/verify-status/:sessionId", async (req, res) => {
   const pending = pendingVerifications.get(req.params.sessionId);
 
   if (!pending) {
-    return res.status(404).json({ error: 'Session not found' });
+    return res.status(404).json({ error: "Session not found" });
   }
 
   const result = await verifier.verifyChallenge(pending.challengeId);
 
-  if (result.status !== 'pending') {
+  if (result.status !== "pending") {
     pendingVerifications.delete(req.params.sessionId);
   }
 
   res.json({
     verified: result.verified,
-    status: result.status
+    status: result.status,
   });
 });
 
 // Optional: Webhook callback
-app.post('/verify-callback', express.json(), (req, res) => {
+app.post("/verify-callback", express.json(), (req, res) => {
   const { challengeId, approved, walletAddress } = req.body;
 
-  console.log('Verification completed:', {
+  console.log("Verification completed:", {
     challengeId,
     approved,
-    walletAddress
+    walletAddress,
   });
 
   // Update your database, trigger next steps, etc.
@@ -297,27 +311,27 @@ app.listen(3000);
 
 ```typescript
 // pages/api/verify-age.ts
-import type { NextApiRequest, NextApiResponse } from 'next';
-import CardlessID from '@cardlessid/verifier';
+import type { NextApiRequest, NextApiResponse } from "next";
+import CardlessID from "@cardlessid/verifier";
 
 const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY!
+  apiKey: process.env.CARDLESSID_API_KEY!,
 });
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     // Create challenge
     const challenge = await verifier.createChallenge({
-      minAge: 21
+      minAge: 21,
     });
 
     return res.json(challenge);
   }
 
-  if (req.method === 'GET') {
+  if (req.method === "GET") {
     // Check status
     const { challengeId } = req.query;
     const result = await verifier.verifyChallenge(challengeId as string);
@@ -335,8 +349,8 @@ export default async function handler(
 // React example
 async function startAgeVerification() {
   // Call your backend to create challenge
-  const response = await fetch('/api/verify-age', {
-    method: 'POST'
+  const response = await fetch("/api/verify-age", {
+    method: "POST",
   });
 
   const { challengeId, qrCodeUrl } = await response.json();
@@ -349,10 +363,10 @@ async function startAgeVerification() {
     const statusRes = await fetch(`/api/verify-status/${challengeId}`);
     const status = await statusRes.json();
 
-    if (status.status === 'approved') {
+    if (status.status === "approved") {
       clearInterval(pollInterval);
       onVerificationSuccess();
-    } else if (status.status === 'rejected' || status.status === 'expired') {
+    } else if (status.status === "rejected" || status.status === "expired") {
       clearInterval(pollInterval);
       onVerificationFailed();
     }
@@ -373,5 +387,6 @@ async function startAgeVerification() {
 ## Support
 
 For questions or issues:
-- GitHub: https://github.com/cardlessid/cardlessid
-- Email: support@cardlessid.com
+
+- GitHub: https://github.com/djscruggs/cardlessid
+- Email: me@djscruggs.com

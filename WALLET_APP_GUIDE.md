@@ -58,6 +58,7 @@ Your app needs to handle incoming verification requests via deep links.
 ### Option 1: Universal Links / App Links (Recommended)
 
 **URLs your app will receive:**
+
 ```
 https://cardlessid.com/app/wallet-verify?challenge=chal_1234567890_abc
 https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
@@ -66,11 +67,13 @@ https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
 #### iOS - Universal Links
 
 1. **Add Associated Domains** capability in Xcode:
+
    ```
    applinks:cardlessid.com
    ```
 
 2. **Handle incoming links:**
+
    ```swift
    // AppDelegate.swift or SceneDelegate.swift
    func application(_ application: UIApplication,
@@ -106,6 +109,7 @@ https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
 #### Android - App Links
 
 1. **Add intent filter** in AndroidManifest.xml:
+
    ```xml
    <activity android:name=".VerificationActivity">
        <intent-filter android:autoVerify="true">
@@ -122,6 +126,7 @@ https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
    ```
 
 2. **Handle incoming links:**
+
    ```kotlin
    // VerificationActivity.kt
    override fun onCreate(savedInstanceState: Bundle?) {
@@ -144,6 +149,7 @@ https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
 ### Option 2: Custom URL Scheme (Fallback)
 
 **URLs your app will receive:**
+
 ```
 cardlessid://verify?challenge=chal_1234567890_abc
 cardlessid://verify?session=age_1234567890_abc&minAge=21
@@ -152,6 +158,7 @@ cardlessid://verify?session=age_1234567890_abc&minAge=21
 #### iOS
 
 1. **Add URL scheme** in Info.plist:
+
    ```xml
    <key>CFBundleURLTypes</key>
    <array>
@@ -165,6 +172,7 @@ cardlessid://verify?session=age_1234567890_abc&minAge=21
    ```
 
 2. **Handle incoming URLs:**
+
    ```swift
    // AppDelegate.swift
    func application(_ app: UIApplication,
@@ -191,6 +199,7 @@ cardlessid://verify?session=age_1234567890_abc&minAge=21
 #### Android
 
 1. **Add intent filter:**
+
    ```xml
    <intent-filter>
        <action android:name="android.intent.action.VIEW" />
@@ -208,11 +217,13 @@ Your wallet app needs to integrate with two CardlessID APIs:
 ### 1. Fetch Challenge/Session Details
 
 **Get challenge details (Integrator mode):**
+
 ```http
 GET https://cardlessid.com/api/integrator/challenge/details/{challengeId}
 ```
 
 **Response:**
+
 ```json
 {
   "challengeId": "chal_1234567890_abc123",
@@ -223,11 +234,13 @@ GET https://cardlessid.com/api/integrator/challenge/details/{challengeId}
 ```
 
 **Get session details (Demo mode):**
+
 ```http
 GET https://cardlessid.com/api/age-verify/session/{sessionId}
 ```
 
 **Response:**
+
 ```json
 {
   "id": "age_1234567890_abc",
@@ -241,6 +254,7 @@ GET https://cardlessid.com/api/age-verify/session/{sessionId}
 ### 2. Submit Verification Response
 
 **Submit challenge response (Integrator mode):**
+
 ```http
 POST https://cardlessid.com/api/integrator/challenge/respond
 Content-Type: application/json
@@ -253,6 +267,7 @@ Content-Type: application/json
 ```
 
 **Submit session response (Demo mode):**
+
 ```http
 POST https://cardlessid.com/api/age-verify/respond
 Content-Type: application/json
@@ -265,6 +280,7 @@ Content-Type: application/json
 ```
 
 **Response:**
+
 ```json
 {
   "success": true
@@ -280,6 +296,7 @@ Content-Type: application/json
 2. **Parse the URL** to extract `challengeId` or `sessionId`
 
 3. **Fetch verification details:**
+
    ```
    GET /api/integrator/challenge/details/{challengeId}
    OR
@@ -287,12 +304,14 @@ Content-Type: application/json
    ```
 
 4. **Retrieve user's credential** from local storage/blockchain:
+
    ```
    - Get user's birth date from stored credential
    - Calculate user's age
    ```
 
 5. **Display consent screen:**
+
    ```
    "A service is requesting to verify:
    You were born before {requiredBirthYear}
@@ -310,6 +329,7 @@ Content-Type: application/json
    - If user clicks "Decline" → Submit rejection
 
 7. **Submit response:**
+
    ```
    POST /api/integrator/challenge/respond
    OR
@@ -571,14 +591,14 @@ data class ChallengeDetails(
 ### React Native
 
 ```typescript
-import { Linking } from 'react-native';
+import { Linking } from "react-native";
 
 class VerificationService {
-  private baseURL = 'https://cardlessid.com';
+  private baseURL = "https://cardlessid.com";
 
   async setupDeepLinking() {
     // Handle app opened via deep link
-    Linking.addEventListener('url', this.handleDeepLink);
+    Linking.addEventListener("url", this.handleDeepLink);
 
     // Handle app already open when link clicked
     const initialUrl = await Linking.getInitialURL();
@@ -590,24 +610,24 @@ class VerificationService {
   handleDeepLink = ({ url }: { url: string }) => {
     // Parse URL: https://cardlessid.com/app/wallet-verify?challenge=chal_123
     const urlObj = new URL(url);
-    const challengeId = urlObj.searchParams.get('challenge');
-    const sessionId = urlObj.searchParams.get('session');
+    const challengeId = urlObj.searchParams.get("challenge");
+    const sessionId = urlObj.searchParams.get("session");
 
     if (challengeId) {
-      this.handleVerificationRequest(challengeId, 'challenge');
+      this.handleVerificationRequest(challengeId, "challenge");
     } else if (sessionId) {
-      this.handleVerificationRequest(sessionId, 'session');
+      this.handleVerificationRequest(sessionId, "session");
     }
   };
 
-  async handleVerificationRequest(id: string, type: 'challenge' | 'session') {
+  async handleVerificationRequest(id: string, type: "challenge" | "session") {
     try {
       // 1. Fetch details
       const details = await this.fetchDetails(id, type);
 
       // 2. Get user's credential
       const userBirthDate = await this.getUserBirthDate();
-      if (!userBirthDate) throw new Error('No credential found');
+      if (!userBirthDate) throw new Error("No credential found");
 
       // 3. Calculate age
       const userAge = this.calculateAge(userBirthDate);
@@ -621,39 +641,53 @@ class VerificationService {
 
       // 6. Show success
       this.showSuccessScreen();
-
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error("Verification error:", error);
       this.showErrorScreen(error.message);
     }
   }
 
-  async fetchDetails(id: string, type: 'challenge' | 'session') {
-    const endpoint = type === 'challenge'
-      ? `/api/integrator/challenge/details/${id}`
-      : `/api/age-verify/session/${id}`;
+  async fetchDetails(id: string, type: "challenge" | "session") {
+    const endpoint =
+      type === "challenge"
+        ? `/api/integrator/challenge/details/${id}`
+        : `/api/age-verify/session/${id}`;
 
     const response = await fetch(`${this.baseURL}${endpoint}`);
     return await response.json();
   }
 
-  async submitResponse(id: string, type: 'challenge' | 'session', approved: boolean) {
-    const endpoint = type === 'challenge'
-      ? '/api/integrator/challenge/respond'
-      : '/api/age-verify/respond';
+  async submitResponse(
+    id: string,
+    type: "challenge" | "session",
+    approved: boolean
+  ) {
+    const endpoint =
+      type === "challenge"
+        ? "/api/integrator/challenge/respond"
+        : "/api/age-verify/respond";
 
-    const body = type === 'challenge'
-      ? { challengeId: id, approved, walletAddress: await this.getUserWalletAddress() }
-      : { sessionId: id, approved, walletAddress: await this.getUserWalletAddress() };
+    const body =
+      type === "challenge"
+        ? {
+            challengeId: id,
+            approved,
+            walletAddress: await this.getUserWalletAddress(),
+          }
+        : {
+            sessionId: id,
+            approved,
+            walletAddress: await this.getUserWalletAddress(),
+          };
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to submit response');
+      throw new Error("Failed to submit response");
     }
   }
 
@@ -662,7 +696,10 @@ class VerificationService {
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
 
@@ -676,7 +713,7 @@ class VerificationService {
 
   async getUserWalletAddress(): Promise<string> {
     // TODO: Return user's Algorand wallet address
-    return '';
+    return "";
   }
 }
 ```
@@ -696,11 +733,13 @@ class VerificationService {
 Test these URLs directly in your app:
 
 **Challenge (Integrator mode):**
+
 ```
 https://cardlessid.com/app/wallet-verify?challenge=chal_1234567890_abc
 ```
 
 **Session (Demo mode):**
+
 ```
 https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
 ```
@@ -723,6 +762,7 @@ https://cardlessid.com/app/wallet-verify?session=age_1234567890_abc
 ### Credential Storage
 
 Your wallet must securely store:
+
 - User's birth date (from their verified credential)
 - Algorand wallet address
 - Credential proofs/signatures
@@ -730,6 +770,7 @@ Your wallet must securely store:
 ### Privacy Requirements
 
 Your app MUST:
+
 - ✅ Only share true/false (not actual birth date)
 - ✅ Get explicit user consent before responding
 - ✅ Display what information will be shared
@@ -775,8 +816,8 @@ See: https://cardlessid.com/docs/credential-schema
 - **API Documentation**: https://cardlessid.com/docs
 - **Credential Schema**: https://cardlessid.com/docs/credential-schema
 - **Deep Linking Guide**: See DEEP_LINKING.md in repository
-- **GitHub**: https://github.com/cardlessid/cardlessid
-- **Support**: support@cardlessid.com
+- **GitHub**: https://github.com/djscruggs/cardlessid
+- **Support**: me@djscruggs.com
 
 ## License
 
@@ -784,4 +825,4 @@ MIT License - Feel free to build compatible wallet applications!
 
 ---
 
-**Questions?** Open an issue on GitHub or email support@cardlessid.com
+**Questions?** Open an issue on GitHub or email me@djscruggs.com
