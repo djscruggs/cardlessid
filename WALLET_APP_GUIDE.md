@@ -1,4 +1,4 @@
-# CardlessID Wallet App Developer Guide
+# Cardless ID Wallet App Developer Guide
 
 This guide is for developers building mobile wallet applications that integrate with CardlessID's age verification system.
 
