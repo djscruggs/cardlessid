@@ -24,6 +24,9 @@ const Header: React.FC = () => {
               <Link to="/demo">Demo</Link>
             </li>
             <li>
+              <Link to="/docs">Docs</Link>
+            </li>
+            <li>
               <Link to="https://open.substack.com/pub/cardlessid/p/common-questions-about-cardless-id">
                 FAQ
               </Link>
