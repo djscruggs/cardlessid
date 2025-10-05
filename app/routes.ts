@@ -60,5 +60,6 @@ export default [
     route("wallet-verify", "routes/app/wallet-verify.tsx"),
     route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
     route("wallet-status", "routes/app/wallet-status.tsx"),
+    route("wallet-status/:address", "routes/app/wallet-status.tsx", { id: "wallet-status-with-address" }),
   ]),
 ] satisfies RouteConfig;

@@ -28,6 +28,11 @@ export async function createCredentialNFT(
   try {
     const suggestedParams = await algodClient.getTransactionParams().do();
 
+    // Determine base URL based on environment
+    const baseUrl = process.env.NODE_ENV === 'production'
+      ? 'https://cardlessid.org'
+      : 'http://localhost:5173';
+
     // Create ASA with these properties:
     // - total = 1 (unique NFT)
     // - decimals = 0 (non-divisible)
@@ -47,7 +52,7 @@ export async function createCredentialNFT(
       clawback: issuerAddress,
       unitName: "CIDCRED",
       assetName: metadata.name,
-      assetURL: `https://cardlessid.org/`,
+      assetURL: `${baseUrl}/app/wallet-status/${recipientAddress}`,
       assetMetadataHash: new Uint8Array(
         Buffer.from(metadata.compositeHash.substring(0, 64), "hex")
       ),
@@ -331,9 +336,7 @@ export async function getWalletCredentials(
     for (const asset of accountInfo.assets || []) {
       if (asset.amount > 0) {
         // Get asset details
-        const assetInfo = await algodClient
-          .getAssetByID(asset["asset-id"])
-          .do();
+        const assetInfo = await algodClient.getAssetByID(asset.assetId).do();
 
         // Check if this asset was created by our issuer
         if (assetInfo.params.creator === issuerAddress) {
@@ -345,14 +348,14 @@ export async function getWalletCredentials(
               .searchForTransactions()
               .address(issuerAddress)
               .txType("acfg")
-              .assetID(asset["asset-id"])
+              .assetID(asset["assetId"])
               .do();
 
             if (txnSearch.transactions && txnSearch.transactions.length > 0) {
               const creationTxn = txnSearch.transactions[0];
               if (creationTxn.note) {
                 const noteString = new TextDecoder().decode(
-                  Buffer.from(creationTxn.note, "base64")
+                  Buffer.from(creationTxn.note as string, "base64")
                 );
                 metadata = JSON.parse(noteString);
               }
@@ -362,12 +365,12 @@ export async function getWalletCredentials(
           }
 
           credentials.push({
-            assetId: Number(asset["asset-id"]), // Convert to number
+            assetId: Number(asset.assetId), // Convert to number
             amount: Number(asset.amount), // Convert to number
-            frozen: asset["is-frozen"] || false,
+            frozen: asset.isFrozen || false,
             metadata: metadata || {
               name: assetInfo.params.name,
-              unitName: assetInfo.params["unit-name"],
+              unitName: assetInfo.params.unitName,
               url: assetInfo.params.url,
             },
             createdAt: metadata?.issuedAt,
@@ -403,16 +406,16 @@ export async function checkDuplicateCredentialNFT(
 
     for (const txn of txnSearch.transactions || []) {
       // Check if this is an asset creation (not config update)
-      if (txn["created-asset-index"]) {
+      if (txn.createdAssetIndex) {
         if (txn.note) {
           try {
             const noteString = new TextDecoder().decode(
-              Buffer.from(txn.note, "base64")
+              Buffer.from(txn.note as string, "base64")
             );
             const metadata = JSON.parse(noteString);
 
             if (metadata.compositeHash === compositeHash) {
-              duplicateAssetIds.push(txn["created-asset-index"]);
+              duplicateAssetIds.push(txn.createdAssetIndex);
             }
           } catch (e) {
             // Skip if can't parse note
@@ -459,7 +462,7 @@ export async function getCredentialNFTDetails(assetId: number): Promise<{
         const creationTxn = txnSearch.transactions[0];
         if (creationTxn.note) {
           const noteString = new TextDecoder().decode(
-            Buffer.from(creationTxn.note, "base64")
+            Buffer.from(creationTxn.note as string, "base64")
           );
           metadata = JSON.parse(noteString);
         }
@@ -471,9 +474,9 @@ export async function getCredentialNFTDetails(assetId: number): Promise<{
     return {
       creator: assetInfo.params.creator,
       name: assetInfo.params.name,
-      unitName: assetInfo.params["unit-name"],
+      unitName: assetInfo.params.unitName,
       total: assetInfo.params.total,
-      frozen: assetInfo.params["default-frozen"] || false,
+      frozen: assetInfo.params.defaultFrozen || false,
       metadata,
     };
   } catch (error) {

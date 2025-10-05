@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router";
 
 export default function WalletStatus() {
+  const { address } = useParams();
   const [walletAddress, setWalletAddress] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -23,8 +25,19 @@ export default function WalletStatus() {
   } | null>(null);
   const [error, setError] = useState("");
 
-  const checkWalletStatus = async () => {
-    if (!walletAddress.trim()) {
+  // Check for wallet address in URL parameters and auto-check if present
+  useEffect(() => {
+    if (address) {
+      setWalletAddress(address);
+      // Auto-check the wallet status after setting the address
+      setTimeout(() => {
+        checkWalletStatusWithAddress(address);
+      }, 100);
+    }
+  }, [address]);
+
+  const checkWalletStatusWithAddress = async (address: string) => {
+    if (!address.trim()) {
       setError("Please enter a wallet address");
       return;
     }
@@ -34,7 +47,7 @@ export default function WalletStatus() {
     setResult(null);
 
     try {
-      const response = await fetch(`/api/wallet/status/${walletAddress.trim()}`);
+      const response = await fetch(`/api/wallet/status/${address.trim()}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -48,6 +61,10 @@ export default function WalletStatus() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkWalletStatus = async () => {
+    await checkWalletStatusWithAddress(walletAddress);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
