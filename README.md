@@ -1,5 +1,30 @@
 # Cardless ID
 
+## Table of Contents
+
+- [Documentation](#documentation)
+- [Privacy & Data Storage](#privacy--data-storage)
+- [How to Contribute](#how-to-contribute)
+- [Tech Stack](#tech-stack)
+- [Development Setup](#development-setup)
+- [Firebase Setup](#firebase-setup)
+- [Mobile Client](#mobile-client)
+- [License](#license)
+
+## Documentation
+
+- [Deep Linking Guide](docs/DEEP_LINKING.md)
+- [DID Comparison](docs/DID_COMPARISON.md)
+- [Firebase Admin Setup](docs/FIREBASE-ADMIN-SETUP.md)
+- [Integrator README](docs/INTEGRATOR_README.md)
+- [Mobile Client Testing](docs/MOBILE_CLIENT_TESTING.md)
+- [NFT Credential Client Guide](docs/NFT-CREDENTIAL-CLIENT-GUIDE.md)
+- [Algorand README](docs/README-ALGORAND.md)
+- [Testing Verification](docs/TESTING_VERIFICATION.md)
+- [Verification API](docs/VERIFICATION_API.md)
+- [VPN Age Verification Risks](docs/VPN-AGE-VERIFICATION-RISKS.md)
+- [Wallet App Guide](docs/WALLET_APP_GUIDE.md)
+
 24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.
 
 We agree that children should never have access to sexually explicit material. However, we also believe the verification process should be:
@@ -94,7 +119,7 @@ node scripts/mock-provider-server.cjs
 ```
 Runs on `http://localhost:3001`
 
-The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE_CLIENT_TESTING.md](MOBILE_CLIENT_TESTING.md) for complete integration details.
+The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md) for complete integration details.
 
 **VS Code Users:** You can run both servers automatically using the task runner:
 - Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
@@ -137,3 +162,7 @@ For optimal performance, add these indexes to your Firebase Realtime Database:
 These indexes are critical for:
 - **compositeHash**: Efficient duplicate credential detection
 - **createdAt**: Fast announcement sorting by date
+
+## License
+
+See [LICENSE](LICENSE.md) for details.
