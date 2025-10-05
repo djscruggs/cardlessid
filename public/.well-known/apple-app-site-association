@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAM_ID.com.cardlessid.wallet",
+        "paths": [
+          "/app/age-verify",
+          "/app/wallet-verify"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "TEAM_ID.com.cardlessid.wallet"
+    ]
+  }
+}

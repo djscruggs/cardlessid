@@ -5,12 +5,16 @@ import type { Route } from "./+types/wallet-verify";
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("session");
+  const challengeId = url.searchParams.get("challenge");
 
-  if (!sessionId) {
-    throw new Response("Session ID required", { status: 400 });
+  if (!sessionId && !challengeId) {
+    throw new Response("Session ID or Challenge ID required", { status: 400 });
   }
 
-  return { sessionId };
+  return {
+    sessionId: sessionId || null,
+    challengeId: challengeId || null,
+  };
 }
 
 export default function WalletVerify({ loaderData }: Route.ComponentProps) {
@@ -20,29 +24,34 @@ export default function WalletVerify({ loaderData }: Route.ComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [userBirthYear, setUserBirthYear] = useState<number | null>(null);
+  const isIntegratorMode = loaderData.challengeId !== null;
 
-  // Fetch session details
+  // Fetch session/challenge details
   useEffect(() => {
     fetchSession();
-  }, [loaderData.sessionId]);
+  }, [loaderData.sessionId, loaderData.challengeId]);
 
   const fetchSession = async () => {
     try {
-      const response = await fetch(`/api/age-verify/session/${loaderData.sessionId}`);
+      const endpoint = isIntegratorMode
+        ? `/api/integrator/challenge/details/${loaderData.challengeId}`
+        : `/api/age-verify/session/${loaderData.sessionId}`;
+
+      const response = await fetch(endpoint);
 
       if (!response.ok) {
-        throw new Error("Session not found");
+        throw new Error("Verification request not found");
       }
 
       const data = await response.json();
 
       if (data.status !== "pending") {
-        setError("This verification session is no longer active");
+        setError("This verification request is no longer active");
         return;
       }
 
       if (Date.now() > data.expiresAt) {
-        setError("This verification session has expired");
+        setError("This verification request has expired");
         return;
       }
 
@@ -76,14 +85,26 @@ export default function WalletVerify({ loaderData }: Route.ComponentProps) {
     try {
       const meetsRequirement = await checkUserAge();
 
-      const response = await fetch(`/api/age-verify/respond`, {
+      const endpoint = isIntegratorMode
+        ? `/api/integrator/challenge/respond`
+        : `/api/age-verify/respond`;
+
+      const requestBody = isIntegratorMode
+        ? {
+            challengeId: loaderData.challengeId,
+            approved: meetsRequirement,
+            walletAddress: "MOCK_WALLET_ADDRESS", // TODO: Replace with actual wallet address
+          }
+        : {
+            sessionId: loaderData.sessionId,
+            approved: meetsRequirement,
+            walletAddress: "MOCK_WALLET_ADDRESS", // TODO: Replace with actual wallet address
+          };
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: loaderData.sessionId,
-          approved: meetsRequirement,
-          walletAddress: "MOCK_WALLET_ADDRESS", // TODO: Replace with actual wallet address
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -210,7 +231,11 @@ export default function WalletVerify({ loaderData }: Route.ComponentProps) {
           )}
 
           <div className="mt-6 text-xs text-gray-500 text-center">
-            <p>Session ID: {loaderData.sessionId}</p>
+            <p>
+              {isIntegratorMode
+                ? `Challenge ID: ${loaderData.challengeId}`
+                : `Session ID: ${loaderData.sessionId}`}
+            </p>
           </div>
         </div>
       </div>

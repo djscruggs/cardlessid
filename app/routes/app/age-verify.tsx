@@ -6,17 +6,23 @@ import type { Route } from "./+types/age-verify";
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const minAge = url.searchParams.get("age") || "18";
+  const challengeId = url.searchParams.get("challenge");
 
-  return { minAge: parseInt(minAge) };
+  return {
+    minAge: parseInt(minAge),
+    challengeId: challengeId || null,
+  };
 }
 
 export default function AgeVerify({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const [minAge, setMinAge] = useState(loaderData.minAge);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [challengeId] = useState(loaderData.challengeId); // Integrator challenge ID (if present)
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const isIntegratorMode = challengeId !== null;
 
   // Detect mobile device
   useEffect(() => {
@@ -29,38 +35,69 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Create session when component mounts or age changes
+  // Create session when component mounts or age changes (demo mode only)
+  // In integrator mode, we skip session creation and use the challengeId directly
   useEffect(() => {
-    createSession();
-  }, [minAge]);
+    if (!isIntegratorMode) {
+      createSession();
+    } else if (challengeId) {
+      // Fetch challenge details to get minAge
+      fetchChallengeDetails();
+    }
+  }, [minAge, isIntegratorMode, challengeId]);
 
-  // Poll for session status
+  const fetchChallengeDetails = async () => {
+    if (!challengeId) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/integrator/challenge/details/${challengeId}`);
+      if (response.ok) {
+        const challenge = await response.json();
+        setMinAge(challenge.minAge);
+      }
+    } catch (err) {
+      console.error("Error fetching challenge:", err);
+      setError("Invalid verification link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Poll for session/challenge status
   useEffect(() => {
-    if (!sessionId) return;
+    const idToCheck = isIntegratorMode ? challengeId : sessionId;
+    if (!idToCheck) return;
 
     const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/age-verify/session/${sessionId}`);
-        const session = await response.json();
+        const endpoint = isIntegratorMode
+          ? `/api/integrator/challenge/details/${challengeId}`
+          : `/api/age-verify/session/${sessionId}`;
 
-        if (session.status === "approved") {
+        const response = await fetch(endpoint);
+        const data = await response.json();
+
+        if (data.status === "approved") {
           clearInterval(pollInterval);
           navigate("/app/age-verify-success");
-        } else if (session.status === "rejected") {
+        } else if (data.status === "rejected") {
           clearInterval(pollInterval);
           navigate("/app/age-verify-rejected");
-        } else if (session.status === "expired") {
+        } else if (data.status === "expired") {
           clearInterval(pollInterval);
-          setError("Session expired. Please try again.");
-          setSessionId(null);
+          setError("Verification expired. Please try again.");
+          if (!isIntegratorMode) {
+            setSessionId(null);
+          }
         }
       } catch (err) {
-        console.error("Error polling session:", err);
+        console.error("Error polling status:", err);
       }
     }, 2000); // Poll every 2 seconds
 
     return () => clearInterval(pollInterval);
-  }, [sessionId, navigate]);
+  }, [sessionId, challengeId, isIntegratorMode, navigate]);
 
   const createSession = async () => {
     setLoading(true);
@@ -96,54 +133,66 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
   };
 
   const handleMobileTap = () => {
-    if (sessionId) {
-      // Deep link to native app or fallback to web
+    if (isIntegratorMode && challengeId) {
+      // Integrator mode: use challenge ID
+      window.location.href = `cardlessid://verify?challenge=${challengeId}`;
+      setTimeout(() => {
+        navigate(`/app/wallet-verify?challenge=${challengeId}`);
+      }, 1500);
+    } else if (sessionId) {
+      // Demo mode: use session ID
       window.location.href = `cardlessid://verify?session=${sessionId}&minAge=${minAge}`;
-
-      // Fallback to web version after short delay if app doesn't open
       setTimeout(() => {
         navigate(`/app/wallet-verify?session=${sessionId}`);
       }, 1500);
     }
   };
 
-  const deepLinkUrl = sessionId
+  const deepLinkUrl = isIntegratorMode && challengeId
+    ? `cardlessid://verify?challenge=${challengeId}`
+    : sessionId
     ? `cardlessid://verify?session=${sessionId}&minAge=${minAge}`
     : "";
 
-  const webFallbackUrl = sessionId
+  const webFallbackUrl = isIntegratorMode && challengeId
+    ? `${window.location.origin}/app/wallet-verify?challenge=${challengeId}`
+    : sessionId
     ? `${window.location.origin}/app/wallet-verify?session=${sessionId}`
     : "";
 
   return (
     <div className="min-h-screen bg-base-200 p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center">Age Verification Demo</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">
+          {isIntegratorMode ? "Age Verification" : "Age Verification Demo"}
+        </h1>
 
-        {/* Age Configuration */}
-        <div className="card bg-base-100 shadow-xl mb-8">
-          <div className="card-body">
-            <h2 className="card-title">Configure Minimum Age</h2>
-            <form onSubmit={handleAgeChange} className="flex gap-4 items-end">
-              <div className="form-control flex-1">
-                <label className="label">
-                  <span className="label-text">Minimum Age Required</span>
-                </label>
-                <input
-                  type="number"
-                  name="age"
-                  defaultValue={minAge}
-                  min="1"
-                  max="150"
-                  className="input input-bordered"
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                Update
-              </button>
-            </form>
+        {/* Age Configuration - Only show in demo mode */}
+        {!isIntegratorMode && (
+          <div className="card bg-base-100 shadow-xl mb-8">
+            <div className="card-body">
+              <h2 className="card-title">Configure Minimum Age</h2>
+              <form onSubmit={handleAgeChange} className="flex gap-4 items-end">
+                <div className="form-control flex-1">
+                  <label className="label">
+                    <span className="label-text">Minimum Age Required</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="age"
+                    defaultValue={minAge}
+                    min="1"
+                    max="150"
+                    className="input input-bordered"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                  Update
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Verification Display */}
         {error && (
@@ -161,7 +210,7 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {sessionId && !loading && (
+        {((sessionId && !loading) || (isIntegratorMode && challengeId && !loading)) && (
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body items-center text-center">
               <h2 className="card-title mb-4">

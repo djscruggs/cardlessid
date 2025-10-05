@@ -33,6 +33,38 @@ export default function DocsIndex() {
               <div className="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   <Link
+                    to="/docs/integration-guide"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Integration Guide
+                  </Link>
+                </h3>
+                <p className="text-gray-600">
+                  Complete guide to integrating CardlessID age verification into your application.
+                  Includes SDK documentation, REST API reference, code examples, and best practices.
+                </p>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <a
+                    href="https://github.com/cardlessid/cardlessid/blob/main/WALLET_APP_GUIDE.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Wallet App Developer Guide
+                  </a>
+                </h3>
+                <p className="text-gray-600">
+                  Guide for mobile app developers building compatible wallet applications.
+                  Includes deep linking setup, API integration, and implementation examples for iOS, Android, and React Native.
+                </p>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <Link
                     to="/docs/credential-schema"
                     className="text-blue-600 hover:text-blue-800"
                   >
@@ -71,22 +103,40 @@ export default function DocsIndex() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="text-lg font-medium text-blue-900 mb-2">
-                  API Endpoints
+                  Credential API
                 </h3>
-                <ul className="space-y-1 text-blue-800">
+                <ul className="space-y-1 text-blue-800 text-sm">
                   <li>
-                    <code className="bg-blue-100 px-2 py-1 rounded text-sm">
+                    <code className="bg-blue-100 px-2 py-1 rounded">
                       GET /api/credentials/schema
                     </code>
                   </li>
                   <li>
-                    <code className="bg-blue-100 px-2 py-1 rounded text-sm">
+                    <code className="bg-blue-100 px-2 py-1 rounded">
                       POST /api/credentials
                     </code>
                   </li>
                   <li>
-                    <code className="bg-blue-100 px-2 py-1 rounded text-sm">
+                    <code className="bg-blue-100 px-2 py-1 rounded">
                       POST /api/credentials/transfer
+                    </code>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-purple-900 mb-2">
+                  Integrator API
+                </h3>
+                <ul className="space-y-1 text-purple-800 text-sm">
+                  <li>
+                    <code className="bg-purple-100 px-2 py-1 rounded">
+                      POST /api/integrator/challenge/create
+                    </code>
+                  </li>
+                  <li>
+                    <code className="bg-purple-100 px-2 py-1 rounded">
+                      GET /api/integrator/challenge/verify/:id
                     </code>
                   </li>
                 </ul>

@@ -15,6 +15,7 @@ export default [
   ...prefix("docs", [
     route("/", "routes/docs.tsx"),
     route("credential-schema", "routes/docs/credential-schema.tsx"),
+    route("integration-guide", "routes/docs/integration-guide.tsx"),
   ]),
   ...prefix("api", [
     index("routes/api/hello.ts"),
@@ -33,6 +34,12 @@ export default [
       route("create", "routes/api/age-verify/create.ts"),
       route("respond", "routes/api/age-verify/respond.ts"),
       route("session/:sessionId", "routes/api/age-verify/session.$sessionId.ts"),
+    ]),
+    ...prefix("integrator/challenge", [
+      route("create", "routes/api/integrator/challenge/create.ts"),
+      route("respond", "routes/api/integrator/challenge/respond.ts"),
+      route("verify/:challengeId", "routes/api/integrator/challenge/verify.$challengeId.ts"),
+      route("details/:challengeId", "routes/api/integrator/challenge/details.$challengeId.ts"),
     ]),
     ...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),

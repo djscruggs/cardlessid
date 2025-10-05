@@ -1,0 +1,23 @@
+{
+  "name": "cardlessid-example-express",
+  "version": "1.0.0",
+  "description": "Simple Express.js example for CardlessID age verification",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "cardlessid",
+    "age-verification",
+    "example"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
