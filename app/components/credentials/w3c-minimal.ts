@@ -11,6 +11,14 @@
  * - Verifiers can validate the signature using the issuer's public key (derived from the Algorand address)
  * - This ensures the credential cannot be forged - only the legitimate issuer can create valid credentials
  * - Signature format: base64-encoded Ed25519 signature
+ *
+ * REVOCATION:
+ * The credentialStatus field references the on-chain issuer registry smart contract.
+ * Relying parties (verifiers) must check:
+ * 1. Issuer was authorized at time of issuance
+ * 2. Issuer was not revoked at time of issuance
+ * 3. Credential has not been individually revoked
+ * 4. Issuer does not have the "revoke all prior" flag set
  */
 const CardlessCredential = {
   "@context": [
@@ -28,6 +36,10 @@ const CardlessCredential = {
     id: "did:algo:USER_WALLET_ADDRESS_HERE",
     "cardlessid:compositeHash":
       "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+  },
+  credentialStatus: {
+    id: "did:algo:app:REGISTRY_APP_ID",
+    type: "AlgorandIssuerRegistry2025",
   },
   proof: {
     type: "Ed25519Signature2020",

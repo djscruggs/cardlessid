@@ -1,0 +1,435 @@
+#pragma version 10
+txn ApplicationID
+int 0
+==
+bnz main_l26
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l25
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l24
+txn OnCompletion
+int OptIn
+==
+bnz main_l23
+txn OnCompletion
+int CloseOut
+==
+bnz main_l22
+txna ApplicationArgs 0
+byte "add_issuer"
+==
+bnz main_l21
+txna ApplicationArgs 0
+byte "revoke_issuer"
+==
+bnz main_l20
+txna ApplicationArgs 0
+byte "reinstate_issuer"
+==
+bnz main_l19
+txna ApplicationArgs 0
+byte "revoke_credential"
+==
+bnz main_l18
+txna ApplicationArgs 0
+byte "update_metadata"
+==
+bnz main_l17
+txna ApplicationArgs 0
+byte "query_issuer"
+==
+bnz main_l16
+txna ApplicationArgs 0
+byte "query_credential"
+==
+bnz main_l15
+txna ApplicationArgs 0
+byte "query_metadata"
+==
+bnz main_l14
+err
+main_l14:
+callsub querymetadata_11
+b main_l27
+main_l15:
+callsub querycredential_9
+b main_l27
+main_l16:
+callsub queryissuer_8
+b main_l27
+main_l17:
+callsub updatemetadata_10
+b main_l27
+main_l18:
+callsub revokecredential_7
+b main_l27
+main_l19:
+callsub reinstateissuer_6
+b main_l27
+main_l20:
+callsub revokeissuer_5
+b main_l27
+main_l21:
+callsub addissuer_4
+b main_l27
+main_l22:
+callsub handlecloseout_15
+b main_l27
+main_l23:
+callsub handleoptin_14
+b main_l27
+main_l24:
+callsub handleupdate_13
+b main_l27
+main_l25:
+callsub handledelete_12
+b main_l27
+main_l26:
+callsub oncreate_0
+main_l27:
+return
+
+// on_create
+oncreate_0:
+proto 0 1
+byte "admin"
+txn Sender
+app_global_put
+byte "issuer_count"
+int 0
+app_global_put
+int 1
+return
+
+// is_active_issuer
+isactiveissuer_1:
+proto 1 1
+frame_dig -1
+box_get
+store 3
+store 2
+load 3
+bnz isactiveissuer_1_l2
+int 0
+b isactiveissuer_1_l3
+isactiveissuer_1_l2:
+load 2
+extract 8 8
+btoi
+int 0
+==
+isactiveissuer_1_l3:
+retsub
+
+// validate_name
+validatename_2:
+proto 0 1
+txna ApplicationArgs 2
+len
+int 3
+>=
+txna ApplicationArgs 2
+len
+int 64
+<=
+&&
+retsub
+
+// validate_url
+validateurl_3:
+proto 0 1
+txna ApplicationArgs 4
+extract 0 7
+byte "http://"
+==
+txna ApplicationArgs 4
+extract 0 8
+byte "https://"
+==
+||
+txna ApplicationArgs 4
+len
+int 10
+>=
+txna ApplicationArgs 4
+len
+int 256
+<=
+&&
+&&
+retsub
+
+// add_issuer
+addissuer_4:
+proto 0 1
+callsub validatename_2
+assert
+callsub validateurl_3
+assert
+txn Sender
+byte "admin"
+app_global_get
+==
+txn Sender
+callsub isactiveissuer_1
+||
+assert
+txna ApplicationArgs 1
+box_get
+store 1
+store 0
+load 1
+!
+assert
+txna ApplicationArgs 1
+global LatestTimestamp
+itob
+int 0
+itob
+concat
+int 0
+itob
+concat
+txn Sender
+concat
+box_put
+byte "meta:"
+txna ApplicationArgs 1
+concat
+global LatestTimestamp
+itob
+txna ApplicationArgs 2
+concat
+txna ApplicationArgs 3
+concat
+txna ApplicationArgs 4
+concat
+txna ApplicationArgs 5
+concat
+txna ApplicationArgs 6
+concat
+box_put
+byte "issuer_count"
+byte "issuer_count"
+app_global_get
+int 1
++
+app_global_put
+int 1
+return
+
+// revoke_issuer
+revokeissuer_5:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+assert
+txna ApplicationArgs 1
+box_get
+store 5
+store 4
+load 5
+assert
+txna ApplicationArgs 1
+load 4
+extract 0 8
+global LatestTimestamp
+itob
+concat
+txna ApplicationArgs 2
+btoi
+itob
+concat
+load 4
+extract 24 32
+concat
+box_put
+int 1
+return
+
+// reinstate_issuer
+reinstateissuer_6:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+assert
+txna ApplicationArgs 1
+box_get
+store 7
+store 6
+load 7
+assert
+txna ApplicationArgs 1
+global LatestTimestamp
+itob
+int 0
+itob
+concat
+int 0
+itob
+concat
+load 6
+extract 24 32
+concat
+box_put
+int 1
+return
+
+// revoke_credential
+revokecredential_7:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+assert
+byte "cred:"
+txna ApplicationArgs 1
+concat
+global LatestTimestamp
+itob
+txna ApplicationArgs 2
+concat
+box_put
+int 1
+return
+
+// query_issuer
+queryissuer_8:
+proto 0 1
+txna ApplicationArgs 1
+box_get
+store 9
+store 8
+load 9
+bnz queryissuer_8_l2
+int 0
+return
+queryissuer_8_l2:
+load 8
+log
+int 1
+return
+
+// query_credential
+querycredential_9:
+proto 0 1
+byte "cred:"
+txna ApplicationArgs 1
+concat
+box_get
+store 11
+store 10
+load 11
+bnz querycredential_9_l2
+int 0
+return
+querycredential_9_l2:
+load 10
+log
+int 1
+return
+
+// update_metadata
+updatemetadata_10:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+assert
+callsub validatename_2
+assert
+callsub validateurl_3
+assert
+txna ApplicationArgs 1
+box_get
+store 13
+store 12
+load 13
+assert
+byte "meta:"
+txna ApplicationArgs 1
+concat
+global LatestTimestamp
+itob
+txna ApplicationArgs 2
+concat
+txna ApplicationArgs 3
+concat
+txna ApplicationArgs 4
+concat
+txna ApplicationArgs 5
+concat
+txna ApplicationArgs 6
+concat
+box_put
+int 1
+return
+
+// query_metadata
+querymetadata_11:
+proto 0 1
+byte "meta:"
+txna ApplicationArgs 1
+concat
+box_get
+store 15
+store 14
+load 15
+bnz querymetadata_11_l2
+int 0
+return
+querymetadata_11_l2:
+load 14
+log
+int 1
+return
+
+// handle_delete
+handledelete_12:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+bnz handledelete_12_l2
+int 0
+return
+handledelete_12_l2:
+int 1
+return
+
+// handle_update
+handleupdate_13:
+proto 0 1
+txn Sender
+byte "admin"
+app_global_get
+==
+bnz handleupdate_13_l2
+int 0
+return
+handleupdate_13_l2:
+int 1
+return
+
+// handle_optin
+handleoptin_14:
+proto 0 1
+int 1
+return
+
+// handle_closeout
+handlecloseout_15:
+proto 0 1
+int 1
+return

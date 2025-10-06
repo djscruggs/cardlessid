@@ -47,6 +47,16 @@ export default [
     ...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),
     ]),
+    ...prefix("issuer-registry", [
+      route("add", "routes/api/issuer-registry/add.ts"),
+      route("revoke", "routes/api/issuer-registry/revoke.ts"),
+      route("reinstate", "routes/api/issuer-registry/reinstate.ts"),
+      route("revoke-credential", "routes/api/issuer-registry/revoke-credential.ts"),
+      route("verify-credential", "routes/api/issuer-registry/verify-credential.ts"),
+      route("verify-metadata", "routes/api/issuer-registry/verify-metadata.ts"),
+      route("update-metadata", "routes/api/issuer-registry/update-metadata.ts"),
+      route("status/:address", "routes/api/issuer-registry/status.$address.ts"),
+    ]),
   ]),
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
@@ -61,5 +71,9 @@ export default [
     route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
     route("wallet-status", "routes/app/wallet-status.tsx"),
     route("wallet-status/:address", "routes/app/wallet-status.tsx", { id: "wallet-status-with-address" }),
+    ...prefix("admin", [
+      route("issuer-registry", "routes/app/admin/issuer-registry.tsx"),
+      
+    ]),
   ]),
 ] satisfies RouteConfig;

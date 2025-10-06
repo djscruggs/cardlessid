@@ -1,0 +1,176 @@
+{
+  "name": "IssuerRegistry",
+  "description": "Algorand Smart Contract for Issuer Registry - Manages authorized credential issuers with temporal revocation support",
+  "methods": [
+    {
+      "name": "add_issuer",
+      "description": "Add a new authorized issuer to the registry",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to add"
+        },
+        {
+          "name": "name",
+          "type": "bytes",
+          "description": "Short name of the issuer"
+        },
+        {
+          "name": "full_name",
+          "type": "bytes",
+          "description": "Full legal name of the issuer"
+        },
+        {
+          "name": "website_url",
+          "type": "bytes",
+          "description": "Website URL of the issuer"
+        },
+        {
+          "name": "organization_type",
+          "type": "bytes",
+          "description": "Type of organization (government, corporate, etc.)"
+        },
+        {
+          "name": "jurisdiction",
+          "type": "bytes",
+          "description": "Jurisdiction where the issuer operates"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "revoke_issuer",
+      "description": "Revoke authorization for an issuer (admin only)",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to revoke"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "reinstate_issuer",
+      "description": "Reinstate a previously revoked issuer (admin only)",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to reinstate"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "revoke_credential",
+      "description": "Revoke a specific credential (admin only)",
+      "args": [
+        {
+          "name": "credential_id",
+          "type": "bytes",
+          "description": "ID of the credential to revoke"
+        },
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer who issued the credential"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "query_issuer",
+      "description": "Query the status of an issuer",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to query"
+        }
+      ],
+      "returns": {
+        "type": "bytes",
+        "description": "Issuer status data"
+      }
+    },
+    {
+      "name": "query_credential",
+      "description": "Query the status of a credential",
+      "args": [
+        {
+          "name": "credential_id",
+          "type": "bytes",
+          "description": "ID of the credential to query"
+        }
+      ],
+      "returns": {
+        "type": "bytes",
+        "description": "Credential status data"
+      }
+    },
+    {
+      "name": "update_metadata",
+      "description": "Update issuer metadata (admin only)",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to update"
+        },
+        {
+          "name": "name",
+          "type": "bytes",
+          "description": "Updated short name"
+        },
+        {
+          "name": "full_name",
+          "type": "bytes",
+          "description": "Updated full legal name"
+        },
+        {
+          "name": "website_url",
+          "type": "bytes",
+          "description": "Updated website URL"
+        },
+        {
+          "name": "organization_type",
+          "type": "bytes",
+          "description": "Updated organization type"
+        },
+        {
+          "name": "jurisdiction",
+          "type": "bytes",
+          "description": "Updated jurisdiction"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "query_metadata",
+      "description": "Query issuer metadata",
+      "args": [
+        {
+          "name": "issuer_address",
+          "type": "bytes",
+          "description": "Address of the issuer to query"
+        }
+      ],
+      "returns": {
+        "type": "bytes",
+        "description": "Issuer metadata"
+      }
+    }
+  ]
+}
