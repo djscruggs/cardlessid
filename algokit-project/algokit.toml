@@ -1,8 +1,0 @@
-[project]
-name = "issuer-registry"
-description = "Algorand Smart Contract for Issuer Registry"
-version = "1.0.0"
-
-[project.contracts.issuer_registry]
-name = "IssuerRegistry"
-description = "Manages authorized credential issuers with temporal revocation support"

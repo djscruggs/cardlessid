@@ -15,6 +15,7 @@
     "setup:localnet": "node scripts/localnet-setup.js",
     "docker:localnet": "docker-compose -f docker/algorand-localnet.yml up -d",
     "docker:localnet:stop": "docker-compose -f docker/algorand-localnet.yml down",
+    "algokit:build": "cd cardlessid-algorand && algokit project run build",
     "algokit:generate": "algokit generate client"
   },
   "dependencies": {

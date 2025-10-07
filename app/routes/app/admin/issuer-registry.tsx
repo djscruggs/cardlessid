@@ -9,7 +9,8 @@ import type { Route } from "./+types/issuer-registry";
 import algosdk from "algosdk";
 import QRCode from "qrcode";
 import AlgorandQRCode from "algorand-qrcode";
-import { IssuerRegistryClient } from "../../../contracts/generated";
+import { CardlessIssuerClient } from "~/utils/CardlessIssuerClient";
+import { AlgorandClient } from "@algorandfoundation/algokit-utils";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const appId = process.env.ISSUER_REGISTRY_APP_ID || "Not configured";
@@ -107,7 +108,11 @@ export default function IssuerRegistry({ loaderData }: Route.ComponentProps) {
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body">
           {activeTab === "add" && (
-            <AddIssuerWalletForm appId={appId} network={network} adminMnemonic={adminMnemonic} />
+            <AddIssuerWalletForm
+              appId={appId}
+              network={network}
+              adminMnemonic={adminMnemonic}
+            />
           )}
           {activeTab === "query" && <QueryIssuerForm />}
           {activeTab === "revoke" && (
@@ -134,10 +139,6 @@ function AddIssuerWalletForm({
 }) {
   const [newIssuerAddress, setNewIssuerAddress] = useState("");
   const [name, setName] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [website, setWebsite] = useState("");
-  const [organizationType, setOrganizationType] = useState("");
-  const [jurisdiction, setJurisdiction] = useState("");
   const [voucherAddress, setVoucherAddress] = useState("");
   const [unsignedTxn, setUnsignedTxn] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
@@ -146,63 +147,6 @@ function AddIssuerWalletForm({
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<"form" | "scan" | "paste" | "result">(
     "form"
-  );
-  const [validation, setValidation] = useState<{
-    name: { status: 'idle' | 'validating' | 'valid' | 'invalid'; error?: string };
-    url: { status: 'idle' | 'validating' | 'valid' | 'invalid'; error?: string };
-  }>({ name: { status: 'idle' }, url: { status: 'idle' } });
-
-  const validateMetadata = useCallback(
-    debounce(async (nameToValidate: string, urlToValidate: string) => {
-      if (!nameToValidate || !urlToValidate) {
-        setValidation({ name: { status: 'idle' }, url: { status: 'idle' } });
-        return;
-      }
-
-      setValidation({ 
-        name: { status: 'validating' }, 
-        url: { status: 'validating' } 
-      });
-
-      try {
-        const formData = new FormData();
-        formData.append('name', nameToValidate);
-        formData.append('url', urlToValidate);
-        
-        const response = await fetch('/api/issuer-registry/verify-metadata', {
-          method: 'POST',
-          body: formData
-        });
-
-        const result = await response.json();
-        
-        if (result.valid) {
-          setValidation({ 
-            name: { status: 'valid' }, 
-            url: { status: 'valid' } 
-          });
-        } else {
-          // Determine which field has the error
-          const isNameError = result.error.includes('Name');
-          setValidation({
-            name: { 
-              status: 'invalid', 
-              error: isNameError ? result.error : undefined 
-            },
-            url: { 
-              status: 'invalid', 
-              error: !isNameError ? result.error : undefined 
-            }
-          });
-        }
-      } catch (error: any) {
-        setValidation({
-          name: { status: 'invalid', error: 'Validation failed' },
-          url: { status: 'invalid', error: 'Validation failed' }
-        });
-      }
-    }, 500),
-    []
   );
 
   async function generateTransaction() {
@@ -217,185 +161,123 @@ function AddIssuerWalletForm({
         );
         return;
       }
-      
+
       // Trim whitespace from addresses
       const trimmedNewIssuerAddress = newIssuerAddress?.trim();
       const trimmedVoucherAddress = voucherAddress?.trim();
 
-      if (!trimmedNewIssuerAddress || !algosdk.isValidAddress(trimmedNewIssuerAddress)) {
+      if (
+        !trimmedNewIssuerAddress ||
+        !algosdk.isValidAddress(trimmedNewIssuerAddress)
+      ) {
         setError("Invalid new issuer address");
         return;
       }
 
-      if (!trimmedVoucherAddress || !algosdk.isValidAddress(trimmedVoucherAddress)) {
+      if (
+        !trimmedVoucherAddress ||
+        !algosdk.isValidAddress(trimmedVoucherAddress)
+      ) {
         setError("Invalid voucher address");
         return;
       }
 
-      // Validate metadata fields
+      // Validate name field
       if (!name || name.length < 3 || name.length > 64) {
         setError("Name must be between 3 and 64 characters");
         return;
       }
 
-      if (!fullName || fullName.length < 3 || fullName.length > 128) {
-        setError("Full name must be between 3 and 128 characters");
-        return;
-      }
+      // Create AlgorandClient instance
+      const algorand = AlgorandClient.fromConfig({
+        algodConfig: {
+          server:
+            network === "mainnet"
+              ? "https://mainnet-api.algonode.cloud"
+              : "https://testnet-api.algonode.cloud",
+          port: 443,
+          token: "",
+        },
+      });
 
-      if (!website || !website.startsWith('http')) {
-        setError("Website must be a valid URL starting with http");
-        return;
-      }
-
-      if (!organizationType) {
-        setError("Organization type is required");
-        return;
-      }
-
-      if (!jurisdiction) {
-        setError("Jurisdiction is required");
-        return;
-      }
-
-      // Check if metadata validation passed
-      if (validation.name.status !== 'valid' || validation.url.status !== 'valid') {
-        setError("Please ensure name and URL are valid and unique");
-        return;
-      }
-
-      // Create AlgoKit-style client
-      const algodClient = new algosdk.Algodv2(
-        "",
-        network === "mainnet"
-          ? "https://mainnet-api.algonode.cloud"
-          : "https://testnet-api.algonode.cloud",
-        443
-      );
-
-      // Create sender account for the client
+      // Set the default signer from mnemonic
       const senderAccount = algosdk.mnemonicToSecretKey(adminMnemonic);
-      
-      const client = new IssuerRegistryClient({
-        algodClient,
-        appId: appIdNum,
-        sender: senderAccount,
+      algorand.setSignerFromAccount(senderAccount);
+
+      // Create the CardlessIssuerClient
+      const client = new CardlessIssuerClient({
+        algorand,
+        appId: BigInt(appIdNum),
+        defaultSender: senderAccount.addr,
       });
 
-      console.log("🔍 Using AlgoKit-style client for transaction generation");
+      console.log("🔍 Using CardlessIssuerClient for transaction generation");
       console.log("App ID:", appIdNum);
-      console.log("Sender:", trimmedVoucherAddress);
       console.log("New Issuer:", trimmedNewIssuerAddress);
+      console.log("Name:", name);
 
-      // Use the AlgoKit-style client to create the transaction
-      const metadata = {
-        name,
-        fullName,
-        website,
-        organizationType,
-        jurisdiction,
-      };
-
-      console.log("🔍 Using AlgoKit-style client for transaction generation");
-      console.log("Metadata:", metadata);
-
-      // Use the actual client method to create the transaction
-      // Note: We're not executing the transaction, just creating it for QR code
-      const atc = new algosdk.AtomicTransactionComposer();
-      const suggestedParams = await algodClient.getTransactionParams().do();
-      suggestedParams.flatFee = true;
-      suggestedParams.fee = BigInt(2000); // Higher fee for box operations
-
-      // Decode addresses with better error handling
-      let newIssuerBytes, voucherBytes;
-      try {
-        newIssuerBytes = algosdk.decodeAddress(trimmedNewIssuerAddress).publicKey;
-        voucherBytes = algosdk.decodeAddress(trimmedVoucherAddress).publicKey;
-      } catch (decodeError: any) {
-        setError(`Invalid address format: ${decodeError.message}`);
-        return;
-      }
-
-      // Create the transaction using the client's approach but with manual construction
-      // Encode metadata as bytes
-      const nameBytes = new Uint8Array(Buffer.from(name, "utf-8"));
-      const fullNameBytes = new Uint8Array(Buffer.from(fullName, "utf-8"));
-      const websiteBytes = new Uint8Array(Buffer.from(website, "utf-8"));
-      const orgTypeBytes = new Uint8Array(Buffer.from(organizationType, "utf-8"));
-      const jurisdictionBytes = new Uint8Array(Buffer.from(jurisdiction, "utf-8"));
-
-      // Create application call transaction using the client's pattern
-      const appArgs = [
-        new Uint8Array(Buffer.from("add_issuer")),
-        newIssuerBytes,        // 1. issuer_address
-        nameBytes,             // 2. name
-        fullNameBytes,         // 3. full_name
-        websiteBytes,          // 4. url
-        orgTypeBytes,          // 5. organization_type
-        jurisdictionBytes,     // 6. jurisdiction
-      ];
-
-      const unsignedTxn = algosdk.makeApplicationCallTxnFromObject({
+      // Use the CardlessIssuerClient to create the transaction
+      // Note: The new contract only takes issuerAddress and name
+      const txnGroup = await client.createTransaction.addIssuer({
+        args: {
+          issuerAddress: trimmedNewIssuerAddress,
+          name: name,
+        },
         sender: trimmedVoucherAddress,
-        appIndex: appIdNum,
-        onComplete: algosdk.OnApplicationComplete.NoOpOC,
-        appArgs: appArgs,
-        suggestedParams,
-        boxes: [
-          { appIndex: appIdNum, name: newIssuerBytes },
-          { appIndex: appIdNum, name: voucherBytes },
-          { appIndex: appIdNum, name: new Uint8Array([...Buffer.from("meta:"), ...newIssuerBytes]) },
-        ],
       });
 
-      console.log("🔍 Transaction created successfully using AlgoKit pattern");
+      // Get the first (and only) transaction from the group
+      const unsignedTxn = txnGroup.transactions[0];
+
+      console.log("🔍 Transaction created successfully using CardlessIssuerClient");
       console.log("Transaction object:", unsignedTxn);
       console.log("🔍 Transaction type:", unsignedTxn.type);
 
       // Encode transaction
       const txnBytes = algosdk.encodeUnsignedTransaction(unsignedTxn);
       const txnBase64 = Buffer.from(txnBytes).toString("base64");
-      
+
       console.log("🔍 Transaction bytes length:", txnBytes.length);
       console.log("🔍 Base64 length:", txnBase64.length);
-      
+
       setUnsignedTxn(txnBase64);
 
       // Check if transaction is too large for QR code
       if (txnBase64.length > 2000) {
-        setError(`Transaction too large for QR code (${txnBase64.length} chars). Please use the paste method instead.`);
+        setError(
+          `Transaction too large for QR code (${txnBase64.length} chars). Please use the paste method instead.`
+        );
         setStep("paste");
         return;
       }
 
       // Generate QR code using the proper format for application calls
       const transactionUrl = `algorand://transaction?txn=${txnBase64}`;
-      
+
       console.log("🔍 Generated transaction URL:", transactionUrl);
       console.log("🔍 URL format: algorand://transaction?txn=...");
-      
+
       try {
         // Try Algorand QR Code generator first
         const qr = await AlgorandQRCode(transactionUrl, {
           size: 200,
-          type: 'transaction'
+          type: "transaction",
         });
-        
-        if (typeof qr === 'string' && qr.startsWith('data:image')) {
+
+        if (typeof qr === "string" && qr.startsWith("data:image")) {
           console.log("✅ QR Code generated using Algorand QR Code Generator");
           setQrCodeUrl(qr);
         } else {
           throw new Error("Unexpected QR format from Algorand library");
         }
-        
       } catch (qrError: any) {
         console.log("Falling back to generic QR code generator...");
-        
+
         // Fallback to generic QR code
-        const fallbackQr = await QRCode.toDataURL(transactionUrl, { 
+        const fallbackQr = await QRCode.toDataURL(transactionUrl, {
           width: 200,
-          errorCorrectionLevel: 'H',
-          margin: 2
+          errorCorrectionLevel: "H",
+          margin: 2,
         });
         setQrCodeUrl(fallbackQr);
         console.log("✅ Fallback QR Code generated successfully");
@@ -449,17 +331,12 @@ function AddIssuerWalletForm({
   function reset() {
     setNewIssuerAddress("");
     setName("");
-    setFullName("");
-    setWebsite("");
-    setOrganizationType("");
-    setJurisdiction("");
     setVoucherAddress("");
     setUnsignedTxn(null);
     setQrCodeUrl(null);
     setSignedTxn("");
     setResult(null);
     setError(null);
-    setValidation({ name: { status: 'idle' }, url: { status: 'idle' } });
     setStep("form");
   }
 
@@ -495,127 +372,19 @@ function AddIssuerWalletForm({
               <label className="label">
                 <span className="label-text">Issuer Name *</span>
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    validateMetadata(e.target.value, website);
-                  }}
-                  placeholder="California DMV"
-                  className={`input input-bordered w-full ${
-                    validation.name.status === 'invalid' ? 'input-error' : 
-                    validation.name.status === 'valid' ? 'input-success' : ''
-                  }`}
-                  required
-                />
-                {validation.name.status === 'validating' && (
-                  <span className="absolute right-3 top-3 loading loading-spinner loading-xs" />
-                )}
-                {validation.name.status === 'valid' && (
-                  <span className="absolute right-3 top-3 text-success">✓</span>
-                )}
-              </div>
-              
-              {validation.name.status === 'invalid' && (
-                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {validation.name.error}
-                  </span>
-                </label>
-              )}
-            </div>
-
-            {/* Full Name Field */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Full Legal Name *</span>
-              </label>
               <input
                 type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="California Department of Motor Vehicles"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="California DMV"
                 className="input input-bordered w-full"
                 required
               />
-            </div>
-
-            {/* Website Field */}
-            <div className="form-control">
               <label className="label">
-                <span className="label-text">Website URL *</span>
+                <span className="label-text-alt">
+                  Between 3 and 64 characters
+                </span>
               </label>
-              <div className="relative">
-                <input
-                  type="url"
-                  value={website}
-                  onChange={(e) => {
-                    setWebsite(e.target.value);
-                    validateMetadata(name, e.target.value);
-                  }}
-                  placeholder="https://dmv.ca.gov"
-                  className={`input input-bordered w-full ${
-                    validation.url.status === 'invalid' ? 'input-error' : 
-                    validation.url.status === 'valid' ? 'input-success' : ''
-                  }`}
-                  required
-                />
-                {validation.url.status === 'validating' && (
-                  <span className="absolute right-3 top-3 loading loading-spinner loading-xs" />
-                )}
-                {validation.url.status === 'valid' && (
-                  <span className="absolute right-3 top-3 text-success">✓</span>
-                )}
-              </div>
-              
-              {validation.url.status === 'invalid' && (
-                <label className="label">
-                  <span className="label-text-alt text-error">
-                    {validation.url.error}
-                  </span>
-                </label>
-              )}
-            </div>
-
-            {/* Organization Type */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Organization Type *</span>
-              </label>
-              <select
-                value={organizationType}
-                onChange={(e) => setOrganizationType(e.target.value)}
-                className="select select-bordered w-full"
-                required
-              >
-                <option value="">Select organization type</option>
-                <option value="government">Government</option>
-                <option value="corporate">Corporation</option>
-                <option value="individual">Individual</option>
-                <option value="nonprofit">Non-Profit</option>
-                <option value="educational">Educational Institution</option>
-                <option value="healthcare">Healthcare Provider</option>
-                <option value="financial">Financial Institution</option>
-                <option value="technology">Technology Company</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-
-            {/* Jurisdiction */}
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Jurisdiction *</span>
-              </label>
-              <input
-                type="text"
-                value={jurisdiction}
-                onChange={(e) => setJurisdiction(e.target.value)}
-                placeholder="California, USA"
-                className="input input-bordered w-full"
-                required
-              />
             </div>
 
             {/* Voucher Address */}
@@ -640,10 +409,9 @@ function AddIssuerWalletForm({
               </label>
             </div>
 
-            <button 
-              onClick={generateTransaction} 
+            <button
+              onClick={generateTransaction}
               className="btn btn-primary"
-              disabled={validation.name.status !== 'valid' || validation.url.status !== 'valid'}
             >
               Generate Transaction
             </button>
@@ -683,11 +451,13 @@ function AddIssuerWalletForm({
             <div className="card bg-base-100 shadow-xl mt-6">
               <div className="card-body">
                 <h2 className="card-title">🔧 Debug: Transaction Details</h2>
-                
+
                 <div className="space-y-4">
                   <div>
                     <label className="label">
-                      <span className="label-text font-semibold">Transaction Data (Base64)</span>
+                      <span className="label-text font-semibold">
+                        Transaction Data (Base64)
+                      </span>
                     </label>
                     <textarea
                       value={unsignedTxn}
@@ -708,7 +478,8 @@ function AddIssuerWalletForm({
                       <strong>Method:</strong> add_issuer
                     </div>
                     <div>
-                      <strong>Size:</strong> {unsignedTxn?.length || 0} characters
+                      <strong>Size:</strong> {unsignedTxn?.length || 0}{" "}
+                      characters
                     </div>
                   </div>
                 </div>
@@ -1290,57 +1061,63 @@ function UpdateMetadataForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [validation, setValidation] = useState<{
-    name: { status: 'idle' | 'validating' | 'valid' | 'invalid'; error?: string };
-    url: { status: 'idle' | 'validating' | 'valid' | 'invalid'; error?: string };
-  }>({ name: { status: 'idle' }, url: { status: 'idle' } });
+    name: {
+      status: "idle" | "validating" | "valid" | "invalid";
+      error?: string;
+    };
+    url: {
+      status: "idle" | "validating" | "valid" | "invalid";
+      error?: string;
+    };
+  }>({ name: { status: "idle" }, url: { status: "idle" } });
 
   const validateMetadata = useCallback(
     debounce(async (nameToValidate: string, urlToValidate: string) => {
       if (!nameToValidate || !urlToValidate) {
-        setValidation({ name: { status: 'idle' }, url: { status: 'idle' } });
+        setValidation({ name: { status: "idle" }, url: { status: "idle" } });
         return;
       }
 
-      setValidation({ 
-        name: { status: 'validating' }, 
-        url: { status: 'validating' } 
+      setValidation({
+        name: { status: "validating" },
+        url: { status: "validating" },
       });
 
       try {
         const formData = new FormData();
-        formData.append('name', nameToValidate);
-        formData.append('url', urlToValidate);
-        formData.append('excludeAddress', issuerAddress); // Exclude current issuer when updating
-        
-        const response = await fetch('/api/issuer-registry/verify-metadata', {
-          method: 'POST',
-          body: formData
+        formData.append("name", nameToValidate);
+        formData.append("url", urlToValidate);
+        formData.append("excludeAddress", issuerAddress); // Exclude current issuer when updating
+
+        const response = await fetch("/api/issuer-registry/verify-metadata", {
+          method: "POST",
+          body: formData,
         });
 
         const result = await response.json();
-        
+
         if (result.valid) {
-          setValidation({ 
-            name: { status: 'valid' }, 
-            url: { status: 'valid' } 
+          setValidation({
+            name: { status: "valid" },
+            url: { status: "valid" },
           });
         } else {
-          const isNameError = result.error.includes('Name');
+          const isNameError = result.error.includes("Name");
           setValidation({
-            name: { 
-              status: 'invalid', 
-              error: isNameError ? result.error : undefined 
+            name: {
+              status: "invalid",
+              error: isNameError ? result.error : undefined,
             },
-            url: { 
-              status: 'invalid', 
-              error: !isNameError ? result.error : undefined 
-            }
+            url: {
+              status: "invalid",
+              error: !isNameError ? result.error : undefined,
+            },
           });
         }
       } catch (error: any) {
         setValidation({
-          name: { status: 'invalid', error: 'Validation failed' },
-          url: { status: 'invalid', error: 'Validation failed' }
+          name: { status: "invalid", error: "Validation failed" },
+          url: { status: "invalid", error: "Validation failed" },
         });
       }
     }, 500),
@@ -1355,16 +1132,16 @@ function UpdateMetadataForm({
 
     try {
       const formData = new FormData();
-      formData.append('issuerAddress', issuerAddress);
-      formData.append('name', name);
-      formData.append('fullName', fullName);
-      formData.append('website', website);
-      formData.append('organizationType', organizationType);
-      formData.append('jurisdiction', jurisdiction);
+      formData.append("issuerAddress", issuerAddress);
+      formData.append("name", name);
+      formData.append("fullName", fullName);
+      formData.append("website", website);
+      formData.append("organizationType", organizationType);
+      formData.append("jurisdiction", jurisdiction);
 
-      const response = await fetch('/api/issuer-registry/update-metadata', {
-        method: 'POST',
-        body: formData
+      const response = await fetch("/api/issuer-registry/update-metadata", {
+        method: "POST",
+        body: formData,
       });
 
       const data = await response.json();
@@ -1419,20 +1196,23 @@ function UpdateMetadataForm({
               }}
               placeholder="California DMV"
               className={`input input-bordered w-full ${
-                validation.name.status === 'invalid' ? 'input-error' : 
-                validation.name.status === 'valid' ? 'input-success' : ''
+                validation.name.status === "invalid"
+                  ? "input-error"
+                  : validation.name.status === "valid"
+                    ? "input-success"
+                    : ""
               }`}
               required
             />
-            {validation.name.status === 'validating' && (
+            {validation.name.status === "validating" && (
               <span className="absolute right-3 top-3 loading loading-spinner loading-xs" />
             )}
-            {validation.name.status === 'valid' && (
+            {validation.name.status === "valid" && (
               <span className="absolute right-3 top-3 text-success">✓</span>
             )}
           </div>
-          
-          {validation.name.status === 'invalid' && (
+
+          {validation.name.status === "invalid" && (
             <label className="label">
               <span className="label-text-alt text-error">
                 {validation.name.error}
@@ -1471,20 +1251,23 @@ function UpdateMetadataForm({
               }}
               placeholder="https://dmv.ca.gov"
               className={`input input-bordered w-full ${
-                validation.url.status === 'invalid' ? 'input-error' : 
-                validation.url.status === 'valid' ? 'input-success' : ''
+                validation.url.status === "invalid"
+                  ? "input-error"
+                  : validation.url.status === "valid"
+                    ? "input-success"
+                    : ""
               }`}
               required
             />
-            {validation.url.status === 'validating' && (
+            {validation.url.status === "validating" && (
               <span className="absolute right-3 top-3 loading loading-spinner loading-xs" />
             )}
-            {validation.url.status === 'valid' && (
+            {validation.url.status === "valid" && (
               <span className="absolute right-3 top-3 text-success">✓</span>
             )}
           </div>
-          
-          {validation.url.status === 'invalid' && (
+
+          {validation.url.status === "invalid" && (
             <label className="label">
               <span className="label-text-alt text-error">
                 {validation.url.error}
@@ -1532,10 +1315,14 @@ function UpdateMetadataForm({
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="btn btn-primary w-full"
-          disabled={loading || validation.name.status !== 'valid' || validation.url.status !== 'valid'}
+          disabled={
+            loading ||
+            validation.name.status !== "valid" ||
+            validation.url.status !== "valid"
+          }
         >
           {loading ? "Updating..." : "Update Metadata"}
         </button>
