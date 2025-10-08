@@ -52,7 +52,7 @@ export async function createCredentialNFT(
       clawback: issuerAddress,
       unitName: "CIDCRED",
       assetName: metadata.name,
-      assetURL: `${baseUrl}/app/wallet-status/${recipientAddress}`,
+      assetURL: `${baseUrl}/w/${recipientAddress}`,
       assetMetadataHash: new Uint8Array(
         Buffer.from(metadata.compositeHash.substring(0, 64), "hex")
       ),
