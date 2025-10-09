@@ -5,7 +5,7 @@
 
 export type VerificationStatus = "pending" | "approved" | "rejected" | "expired";
 
-export type VerificationProvider = "idenfy" | "stripe_identity" | "persona" | "mock";
+export type VerificationProvider = "idenfy" | "stripe_identity" | "persona" | "mock" | "custom";
 
 export interface VerifiedIdentity {
   firstName: string;
@@ -13,8 +13,9 @@ export interface VerifiedIdentity {
   lastName: string;
   birthDate: string;  // ISO format YYYY-MM-DD
   governmentId: string;
-  idType: string;     // "passport" | "government_id"
+  idType: string;     // "passport" | "government_id" | "drivers_license"
   state: string;      // US state code
+  expirationDate?: string;  // ISO format YYYY-MM-DD (ID expiration)
 }
 
 export interface VerificationSession {
@@ -34,6 +35,12 @@ export interface VerificationSession {
   // Credential issuance tracking
   credentialIssued?: boolean;
   walletAddress?: string;
+
+  // Custom verification flow data
+  idPhotoUrl?: string;
+  selfiePhotoUrl?: string;
+  documentAiData?: any;
+  faceMatchResult?: any;
 }
 
 export interface CreateSessionResponse {
