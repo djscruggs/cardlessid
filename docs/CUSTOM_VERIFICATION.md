@@ -255,7 +255,7 @@ image: string (base64 data URL)
 
 **GET** `/api/custom-verification/session/:sessionId`
 
-Retrieves verification session data.
+Retrieves verification session data. This endpoint returns the complete verification session including all extracted data, fraud signals, and verification results.
 
 **Response**:
 
@@ -263,16 +263,61 @@ Retrieves verification session data.
 {
   "success": true,
   "session": {
-    "id": "session_1234567890_abc123",
+    "id": "session_1760055469389_xvmuj",
     "provider": "custom",
+    "providerSessionId": "custom_1760055469389",
     "status": "approved",
-    "verifiedData": { ... },
-    "idPhotoUrl": "...",
-    "selfiePhotoUrl": "...",
-    "faceMatchResult": { ... }
+    "createdAt": 1760055469389,
+    "expiresAt": 1760057269389,
+    "verifiedData": {
+      "firstName": "JOHN",
+      "middleName": "MICHAEL",
+      "lastName": "DOE",
+      "birthDate": "1990-05-15",
+      "governmentId": "D1234567",
+      "idType": "drivers_license",
+      "state": "CA",
+      "expirationDate": "2030-05-15"
+    },
+    "documentAiData": {
+      "fraudSignalsCount": 4,
+      "fraudSignals": [
+        {
+          "type": "fraud_signals_is_identity_document",
+          "result": "PASS"
+        },
+        {
+          "type": "fraud_signals_suspicious_words",
+          "result": "PASS"
+        },
+        {
+          "type": "fraud_signals_image_manipulation",
+          "result": "PASS"
+        },
+        {
+          "type": "fraud_signals_online_duplicate",
+          "result": "PASS"
+        }
+      ],
+      "hasData": true
+    },
+    "idPhotoUrl": "storage/photos/session_1760055469389_xvmuj_id.jpg",
+    "selfiePhotoUrl": "storage/photos/session_1760055469389_xvmuj_selfie.jpg",
+    "faceMatchResult": {
+      "match": true,
+      "confidence": 0.92
+    }
   }
 }
 ```
+
+**Fraud Signal Types:**
+- `fraud_signals_is_identity_document`: Verifies the document is actually an ID document
+- `fraud_signals_suspicious_words`: Checks for suspicious text or watermarks
+- `fraud_signals_image_manipulation`: Detects signs of photo editing or tampering
+- `fraud_signals_online_duplicate`: Checks if the ID image appears in fraud databases
+
+Each fraud signal returns either `PASS` or `FAIL`. Any `FAIL` results indicate potential fraud.
 
 ## Client Usage
 
