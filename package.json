@@ -17,6 +17,8 @@
     "docker:localnet:stop": "docker-compose -f docker/algorand-localnet.yml down"
   },
   "dependencies": {
+    "@aws-sdk/client-rekognition": "^3.907.0",
+    "@aws-sdk/client-textract": "^3.907.0",
     "@emailjs/browser": "^4.4.1",
     "@google-cloud/documentai": "^9.4.0",
     "@react-router/node": "^7.7.1",

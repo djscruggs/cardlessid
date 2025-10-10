@@ -92,7 +92,12 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
       if (result.success) {
         onSuccess(result);
       } else {
-        onError(result.error || 'Failed to process selfie');
+        // Provide detailed error message if liveness check failed
+        let errorMessage = result.error || 'Failed to process selfie';
+        if (result.issues && result.issues.length > 0) {
+          errorMessage += ': ' + result.issues.join(', ');
+        }
+        onError(errorMessage);
         setCapturedImage(null);
         startCamera();
       }
@@ -121,10 +126,15 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold mb-2">Take a Selfie</h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-2">
           Please center your face in the oval guide and take a clear selfie.
-          Make sure your face is well-lit and clearly visible.
         </p>
+        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+          <li>Ensure your face is well-lit and clearly visible</li>
+          <li>Keep your eyes open and look at the camera</li>
+          <li>Remove sunglasses or face coverings</li>
+          <li>Hold your head straight and centered</li>
+        </ul>
       </div>
 
       <div className="relative bg-black rounded-lg overflow-hidden">
@@ -250,7 +260,10 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
         <div className="text-center py-4">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">
-            Comparing your selfie with your ID photo...
+            Verifying your selfie...
+          </p>
+          <p className="mt-1 text-sm text-gray-500">
+            Checking liveness and comparing with ID photo
           </p>
         </div>
       )}

@@ -1,9 +1,9 @@
 /**
- * API endpoint for uploading ID photos and processing with Document AI
+ * API endpoint for uploading ID photos and processing with AWS Textract
  */
 
 import type { ActionFunctionArgs } from 'react-router';
-import { processIdDocument, validateExtractedData } from '~/utils/document-ai.server';
+import { processIdDocument, validateExtractedData } from '~/utils/textract.server';
 import { createVerificationSession, updateVerificationSession } from '~/utils/verification.server';
 import { saveIdPhoto } from '~/utils/photo-storage.server';
 
@@ -24,18 +24,18 @@ export async function action({ request }: ActionFunctionArgs) {
     // Remove data URL prefix if present
     const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
 
-    // Process with Document AI
+    // Process with AWS Textract
     const result = await processIdDocument(base64Data, mimeType);
 
     if (!result.success) {
-      return Response.json({ 
+      return Response.json({
         success: false,
         error: result.error || 'Failed to process document'
       }, { status: 400 });
     }
     // Validate extracted data
     const validation = validateExtractedData(result.extractedData || {});
-    
+
     if (!validation.valid) {
       return Response.json({
         success: false,
@@ -60,12 +60,10 @@ export async function action({ request }: ActionFunctionArgs) {
     const photoUrl = await saveIdPhoto(session.id, base64Data);
 
     // Update session with extracted data and photo
-    // Only save minimal data - not the massive raw responses
     try {
       await updateVerificationSession(session.id, {
-        documentAiData: {
-          fraudSignalsCount: result.fraudSignals?.length || 0,
-          fraudSignals: result.fraudSignals || [],
+        textractData: {
+          lowConfidenceFields: result.lowConfidenceFields || [],
           hasData: !!result.extractedData
         },
         idPhotoUrl: photoUrl,
@@ -79,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       sessionId: session.id,
       extractedData: result.extractedData,
-      fraudSignals: result.fraudSignals || [],
+      lowConfidenceFields: result.lowConfidenceFields || [],
       photoUrl,
       isExpired: validation.isExpired,
       warnings: validation.warnings,
