@@ -10,7 +10,7 @@ This document describes the custom identity verification platform that uses Goog
 The custom verification platform provides a complete end-to-end identity verification flow:
 
 1.  **ID Photo Capture**: User photographs their government-issued ID
-2.  **Document AI Processing**: 
+2.  **Document AI Processing**:
     - Google Document AI fraud detection checks for fraudulent documents
     - Google Document AI parser extracts identity information (name, DOB, etc.)
 3.  **Data Confirmation**: User reviews and confirms extracted data (read-only)
@@ -93,10 +93,12 @@ You need **two separate processors** for the verification system:
 4.  Navigate to Document AI > Processors
 
 **Processor 1: Fraud Detection**
+
 1.  Create a new processor (choose "Fraud Detection Processor" or "Identity Document Fraud Detection")
 2.  Note the processor endpoint URL for `ID_FRAUD_ENDPOINT`
 
 **Processor 2: ID Parser**
+
 1.  Create another processor (choose "Identity Document Parser" or "ID Proofing Parser")
 2.  Note the processor endpoint URL for `ID_PARSE_ENDPOINT`
 
@@ -114,8 +116,8 @@ Endpoint format: `https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/
 
 ```bash
 # Google Document AI - Two processors required
-ID_FRAUD_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/YOUR_PROJECT/locations/us/processors/FRAUD_PROCESSOR_ID:process
-ID_PARSE_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/YOUR_PROJECT/locations/us/processors/PARSER_PROCESSOR_ID:process
+ID_FRAUD_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/locations/us/processors/FRAUD_PROCESSOR_ID:process
+ID_PARSE_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/locations/us/processors/PARSER_PROCESSOR_ID:process
 
 # Google Service Account Credentials
 GOOGLE_APPLICATION_CREDENTIALS=./google-credentials.json
@@ -124,8 +126,9 @@ GOOGLE_APPLICATION_CREDENTIALS=./google-credentials.json
 ```
 
 **How it works:**
-- **ID_FRAUD_ENDPOINT**: First API call checks for fraudulent documents and returns fraud signals
-- **ID_PARSE_ENDPOINT**: Second API call extracts identity data (name_full, date_of_birth, document_id, etc.)
+
+- **ID\_FRAUD\_ENDPOINT**: First API call checks for fraudulent documents and returns fraud signals
+- **ID\_PARSE\_ENDPOINT**: Second API call extracts identity data (name\_full, date\_of\_birth, document\_id, etc.)
 
 ### 2\. Face Comparison Service Configuration
 
@@ -222,8 +225,9 @@ mimeType: string (e.g., 'image/jpeg')
 ```
 
 **Note**: The system automatically:
+
 - Extracts state from address if not directly provided
-- Infers document type (drivers_license vs government_id)
+- Infers document type (passport vs government\_id)
 - Checks for expired IDs and returns warnings
 - Detects fraud signals from the fraud detection processor
 
@@ -312,6 +316,7 @@ Retrieves verification session data. This endpoint returns the complete verifica
 ```
 
 **Fraud Signal Types:**
+
 - `fraud_signals_is_identity_document`: Verifies the document is actually an ID document
 - `fraud_signals_suspicious_words`: Checks for suspicious text or watermarks
 - `fraud_signals_image_manipulation`: Detects signs of photo editing or tampering
@@ -445,6 +450,7 @@ Monitor these metrics:
 - Azure Face API: ~$0.001 per transaction
 
 **Per verification costs:**
+
 - 2 Document AI calls (fraud + parser): ~$0.003 per verification
 - 1 Face comparison call: ~$0.001 per verification
 - **Total: ~$0.004 per complete verification**
@@ -491,8 +497,8 @@ Potential improvements:
 
 - Multi-language support for Document AI
 - Liveness detection for selfies
-- ✅ ~~Document fraud detection~~ (implemented via ID_FRAUD_ENDPOINT)
-- ✅ ~~ID expiration date detection~~ (implemented)
+- ✅ Document fraud detection (implemented via ID\_FRAUD\_ENDPOINT)
+- ✅ ID expiration date detection (implemented)
 - Progressive image quality checks
 - Webhook notifications
 - Admin dashboard for verification review
