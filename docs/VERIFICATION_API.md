@@ -1,3 +1,6 @@
+---
+{}
+---
 # Verification API Documentation
 
 ## Overview
@@ -12,7 +15,7 @@ Mobile App → Start Session → Provider SDK → Webhook → Issue Credential
 
 ## API Endpoints
 
-### 1. Start Verification Session
+### 1\. Start Verification Session
 
 **POST** `/api/verification/start`
 
@@ -33,7 +36,7 @@ Create a new verification session and get auth token for mobile SDK.
 }
 ```
 
-### 2. Check Session Status
+### 2\. Check Session Status
 
 **GET** `/api/verification/status/:sessionId`
 
@@ -51,7 +54,7 @@ Poll to check if verification is complete.
 }
 ```
 
-### 3. Webhook (Provider → Server)
+### 3\. Webhook (Provider → Server)
 
 **POST** `/api/verification/webhook?provider=mock`
 
@@ -78,7 +81,7 @@ Verification provider calls this when verification completes.
 }
 ```
 
-### 4. Issue Credential
+### 4\. Issue Credential
 
 **POST** `/api/credentials`
 
@@ -112,6 +115,7 @@ curl -X POST http://localhost:5173/api/verification/start \
 ```
 
 Response:
+
 ```json
 {
   "sessionId": "session_1727890123_abc123",
@@ -146,6 +150,7 @@ curl http://localhost:5173/api/verification/status/session_1727890123_abc123
 ```
 
 Response:
+
 ```json
 {
   "sessionId": "session_1727890123_abc123",
@@ -169,13 +174,14 @@ curl -X POST http://localhost:5173/api/credentials \
 ## Mobile App Flow
 
 **How it works:**
-1. Mobile app requests a verification session from YOUR server
-2. YOUR server creates a session and gets a token from the verification provider
-3. Mobile app launches the provider's SDK with the token
-4. User completes verification in the provider's SDK (may take several minutes)
-5. **Provider sends webhook to YOUR server** when verification completes
-6. Mobile app polls YOUR server to check if webhook was received
-7. If approved, mobile app requests credential issuance
+
+1.  Mobile app requests a verification session from YOUR server
+2.  YOUR server creates a session and gets a token from the verification provider
+3.  Mobile app launches the provider's SDK with the token
+4.  User completes verification in the provider's SDK (may take several minutes)
+5.  **Provider sends webhook to YOUR server** when verification completes
+6.  Mobile app polls YOUR server to check if webhook was received
+7.  If approved, mobile app requests credential issuance
 
 **Important:** The mobile app ONLY communicates with YOUR server. It never polls the provider directly. The provider sends a webhook to your server when verification is complete.
 
@@ -229,9 +235,9 @@ if (status.ready) {
 
 ## Adding New Providers
 
-1. Create provider class in `app/utils/verification-providers/`
-2. Implement `IVerificationProvider` interface
-3. Register in `app/utils/verification-providers/index.ts`
-4. Set environment variable: `VERIFICATION_PROVIDER=your_provider`
+1.  Create provider class in `app/utils/verification-providers/`
+2.  Implement `IVerificationProvider` interface
+3.  Register in `app/utils/verification-providers/index.ts`
+4.  Set environment variable: `VERIFICATION_PROVIDER=your_provider`
 
 See `mock.ts` for reference implementation.

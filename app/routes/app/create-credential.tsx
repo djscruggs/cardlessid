@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CredentialQR from "~/components/CredentialQR";
 
 export function meta() {
@@ -39,6 +39,39 @@ const CreateCredential = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+
+  // Check for verification session data on mount
+  useEffect(() => {
+    const sessionId = localStorage.getItem('verificationSessionId');
+    if (sessionId) {
+      // Fetch verification session data
+      fetch(`/api/custom-verification/session/${sessionId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.session?.verifiedData) {
+            const verified = data.session.verifiedData;
+            setFormData(prev => ({
+              ...prev,
+              firstName: verified.firstName || prev.firstName,
+              middleName: verified.middleName || prev.middleName,
+              lastName: verified.lastName || prev.lastName,
+              birthDate: verified.birthDate || prev.birthDate,
+              governmentId: verified.governmentId || prev.governmentId,
+              idType: verified.idType || prev.idType,
+              state: verified.state || prev.state,
+            }));
+            setIsVerified(true);
+          }
+          // Clear the session ID from storage
+          localStorage.removeItem('verificationSessionId');
+        })
+        .catch(err => {
+          console.error('Error loading verification session:', err);
+          localStorage.removeItem('verificationSessionId');
+        });
+    }
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -116,6 +149,14 @@ const CreateCredential = () => {
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
           Create Minimal Credential
         </h1>
+
+        {isVerified && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-800">
+              <strong>✓ Identity Verified:</strong> Your information has been pre-filled from your verified identity. Just add your wallet address.
+            </p>
+          </div>
+        )}
 
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
           <p className="text-sm text-blue-800">

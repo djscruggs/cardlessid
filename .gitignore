@@ -5,3 +5,8 @@
 /.react-router/
 /build/
 .vercel
+
+# Custom verification platform
+/storage/
+google-credentials.json
+*-credentials.json

@@ -23,7 +23,7 @@ if (!GOOGLE_CREDENTIALS_PATH && !GOOGLE_CREDENTIALS_JSON) {
 
 export interface FraudSignal {
   type: string;
-  name: string;
+  result: string;
 }
 
 export interface DocumentAIResult {
@@ -79,7 +79,7 @@ export async function processIdDocument(
     if (!fraudResult.success) {
       return {
         success: false,
-        error: `Fraud detection failed: ${fraudResult.error}`
+        error: `This is not a valid ID`
       };
     }
 
@@ -228,7 +228,7 @@ function extractFraudSignals(result: any): FraudSignal[] {
     if (entityType.toLowerCase().includes('fraud_signal')) {
       fraudSignals.push({
         type: entityType,
-        name: entity.mentionText || entity.normalizedValue?.text || 'Unknown'
+        result: entity.mentionText || entity.normalizedValue?.text || 'Unknown'
       });
     }
   }

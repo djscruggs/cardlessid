@@ -48,10 +48,16 @@ export default [
     ...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),
     ]),
+    ...prefix("custom-verification", [
+      route("upload-id", "routes/api/custom-verification/upload-id.ts"),
+      route("upload-selfie", "routes/api/custom-verification/upload-selfie.ts"),
+      route("session/:sessionId", "routes/api/custom-verification/session.$sessionId.ts"),
+    ]),
   ]),
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
     route("create-credential", "routes/app/create-credential.tsx"),
+    route("custom-verify", "routes/app/custom-verify.tsx"),
     route("verify/:txId", "routes/app/verify.$txId.tsx"),
     route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
     route("mock-verification", "routes/app/mock-verification.tsx"),
