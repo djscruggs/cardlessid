@@ -105,6 +105,18 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
     }
   };
 
+  const handleSkipForDev = () => {
+    // Mock successful face match for development
+    onSuccess({
+      success: true,
+      match: true,
+      confidence: 0.95,
+      sessionId: sessionId,
+    });
+  };
+
+  const isDevelopment = import.meta.env.DEV;
+
   return (
     <div className="space-y-6">
       <div>
@@ -174,40 +186,63 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
       </div>
 
       {!capturedImage ? (
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={onBack}
-            className="btn btn-outline flex-1"
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            onClick={captureSelfie}
-            className="btn btn-primary flex-1"
-          >
-            Capture Selfie
-          </button>
+        <div className="space-y-3">
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={onBack}
+              className="btn btn-outline flex-1"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={captureSelfie}
+              className="btn btn-primary flex-1"
+            >
+              Capture Selfie
+            </button>
+          </div>
+          {isDevelopment && (
+            <button
+              type="button"
+              onClick={handleSkipForDev}
+              className="w-full px-4 py-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-300 rounded-md hover:bg-yellow-100"
+            >
+              ⚠️ Skip for Development (Mock Success)
+            </button>
+          )}
         </div>
       ) : (
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={handleRetake}
-            disabled={isProcessing}
-            className="btn btn-outline flex-1"
-          >
-            Retake
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isProcessing}
-            className="btn btn-primary flex-1"
-          >
-            {isProcessing ? 'Verifying...' : 'Submit'}
-          </button>
+        <div className="space-y-3">
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={handleRetake}
+              disabled={isProcessing}
+              className="btn btn-outline flex-1"
+            >
+              Retake
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isProcessing}
+              className="btn btn-primary flex-1"
+            >
+              {isProcessing ? 'Verifying...' : 'Submit'}
+            </button>
+          </div>
+          {isDevelopment && (
+            <button
+              type="button"
+              onClick={handleSkipForDev}
+              disabled={isProcessing}
+              className="w-full px-4 py-2 text-sm text-yellow-700 bg-yellow-50 border border-yellow-300 rounded-md hover:bg-yellow-100"
+            >
+              ⚠️ Skip for Development (Mock Success)
+            </button>
+          )}
         </div>
       )}
 
