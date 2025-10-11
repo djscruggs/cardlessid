@@ -1,6 +1,7 @@
 ---
 {}
 ---
+
 # Cardless ID
 
 ## Table of Contents
@@ -43,12 +44,10 @@ This project is in active development. We're collaborating with partners to inte
 
 ## Privacy & Data Storage
 
-**No personal data is stored.** All identity verification credentials are written directly to the Algorand blockchain. The system:
-
-- **Blockchain Storage**: Credentials are issued as transactions on the Algorand blockchain with verification data hashed and stored in the transaction note field
-- **Duplicate Detection**: Prevents duplicate credentials by checking transaction history using a composite hash (user wallet address + birth date + ID number)
-- **Issuer Verification**: All credentials are tied to the issuer account address, making them publicly verifiable and auditable
-- **Zero Knowledge**: Only the credential holder stores the full identity data in their mobile wallet; the blockchain only contains cryptographic hashes
+- **Images and personal data are transient**: During the initial verification, government ID and selfie images are submitted to the verification provider, then immmediately deleted whether the verification passes, fails or stops mid-process
+- **Blockchain Storage**: Credentials are issued as an NFT on the Algorand blockchain with verification data hashed and stored in the metadata
+- **Duplicate Detection**: Prevents duplicate credentials by checking transaction history using a composite hash (full name + birth date)
+- **Zero Knowledge**: Only the credential holder has access to the full identity data in through their mobile client; the blockchain only contains cryptographic hashes
 
 Firebase is used temporarily during the verification session (typically under 5 minutes) and only stores session state. Once a credential is issued, all session data is marked as consumed and cannot be reused.
 
@@ -80,14 +79,12 @@ This project is built with the following technologies:
     ```bash
     cp env.example .env
     ```
-    
 2.  Configure the following variables in `.env`:**Algorand Configuration:**
     - `VITE_APP_WALLET_ADDRESS` - Your Algorand wallet address (issuer address)
     - `VITE_ALGORAND_NETWORK` - Network to use (`testnet` or `mainnet`)
     - `ISSUER_PRIVATE_KEY` - Your Algorand wallet private key
-    
+
     **⚠️ SECURITY WARNING:** The `ISSUER_PRIVATE_KEY` is sensitive and should NEVER be shared or committed to version control. Keep this secure and never expose it publicly.**Firebase Configuration:**
-    
     - `VITE_FIREBASE_API_KEY`
     - `VITE_FIREBASE_AUTH_DOMAIN`
     - `VITE_FIREBASE_PROJECT_ID`
@@ -95,13 +92,13 @@ This project is built with the following technologies:
     - `VITE_FIREBASE_MESSAGING_SENDER_ID`
     - `VITE_FIREBASE_APP_ID`
     - `VITE_FIREBASE_MEASUREMENT_ID`
-    
+
     Get these values from your Firebase project settings (Project Settings → General → Your apps → SDK setup and configuration).
+
 3.  Install dependencies:
     ```bash
     npm install
     ```
-    
 
 ### Running the Servers
 
@@ -123,7 +120,7 @@ node scripts/mock-provider-server.cjs
 
 Runs on `http://localhost:3001`
 
-The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE\_CLIENT\_TESTING.md](docs/MOBILE_CLIENT_TESTING.md "MOBILE_CLIENT_TESTING.md") for complete integration details.
+The mock provider server simulates a third-party identity verification service (like iDenfy) for testing the verification flow. See [MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md "MOBILE_CLIENT_TESTING.md") for complete integration details.
 
 **VS Code Users:** You can run both servers automatically using the task runner:
 

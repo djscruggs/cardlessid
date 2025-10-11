@@ -17,7 +17,7 @@ interface VerificationState {
   step: VerificationStep;
   sessionId?: string;
   extractedData?: Partial<VerifiedIdentity>;
-  photoUrl?: string;
+  idPhotoBase64?: string; // Store ID photo in client memory (never persisted)
   faceMatchResult?: any;
   error?: string;
 }
@@ -32,7 +32,7 @@ export default function CustomVerify() {
       step: 'confirm-data',
       sessionId: data.sessionId,
       extractedData: data.extractedData,
-      photoUrl: data.photoUrl,
+      idPhotoBase64: data.idPhotoBase64, // Store in client memory
       error: undefined,
     });
   };
@@ -57,6 +57,7 @@ export default function CustomVerify() {
       ...state,
       step: 'result',
       faceMatchResult: result,
+      idPhotoBase64: undefined, // Clear ID photo from memory after successful verification
       error: undefined,
     });
 
@@ -65,19 +66,20 @@ export default function CustomVerify() {
       // This will happen in the result component
     } else {
       // Face match failed - clear data and restart
-      // Photos are already handled by the API
+      // ID photo already cleared above
     }
   };
 
   const handleSelfieError = (error: string) => {
     setState({
       ...state,
+      idPhotoBase64: undefined, // Clear ID photo from memory on error
       error: error
     });
   };
 
   const handleRestart = () => {
-    setState({ step: 'id-photo', error: undefined });
+    setState({ step: 'id-photo', idPhotoBase64: undefined, error: undefined });
   };
 
   return (
@@ -186,9 +188,10 @@ export default function CustomVerify() {
             />
           )}
 
-          {state.step === 'selfie' && state.sessionId && (
+          {state.step === 'selfie' && state.sessionId && state.idPhotoBase64 && (
             <SelfieCapture
               sessionId={state.sessionId}
+              idPhotoBase64={state.idPhotoBase64}
               onSuccess={handleSelfieSuccess}
               onError={handleSelfieError}
               onBack={() => setState({ ...state, step: 'confirm-data', error: undefined })}

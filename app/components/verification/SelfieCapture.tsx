@@ -7,12 +7,13 @@ import { useState, useRef, useEffect } from 'react';
 
 interface SelfieCaptureProps {
   sessionId: string;
+  idPhotoBase64: string; // ID photo from client memory
   onSuccess: (result: any) => void;
   onError: (error: string) => void;
   onBack: () => void;
 }
 
-export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieCaptureProps) {
+export function SelfieCapture({ sessionId, idPhotoBase64, onSuccess, onError, onBack }: SelfieCaptureProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -80,7 +81,8 @@ export function SelfieCapture({ sessionId, onSuccess, onError, onBack }: SelfieC
     try {
       const formData = new FormData();
       formData.append('sessionId', sessionId);
-      formData.append('image', capturedImage);
+      formData.append('selfie', capturedImage); // Selfie from current capture
+      formData.append('idPhoto', idPhotoBase64); // ID photo from client memory
 
       const response = await fetch('/api/custom-verification/upload-selfie', {
         method: 'POST',

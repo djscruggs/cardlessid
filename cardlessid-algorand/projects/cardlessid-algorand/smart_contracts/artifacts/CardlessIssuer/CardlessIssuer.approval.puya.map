@@ -1,0 +1,2179 @@
+{
+  "version": 3,
+  "sources": [
+    "/Users/djscruggs/VSCode/cardlessid/cardlessid-algorand/projects/cardlessid-algorand/smart_contracts/CardlessIssuer/contract.algo.ts"
+  ],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAqBE;AAAkD;AAAlD;AALF;;AAAA;;;AAAA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;;;AAAA;;;;;;;;;;;;;;AAAA;;AAoFE;;AAAA;AAAA;AAAA;;AAAA;AApFF;;;AAAA;AAAA;;AAoFE;;;AAAA;;AATA;;AAAA;AAAA;AAAA;;AAAA;AA3EF;;;AAAA;AAAA;;AA2EE;;;AAAA;AAAA;AAAA;AAAA;AAAA;;AAZA;;AAAA;AAAA;AAAA;;AAAA;AA/DF;;;AAAA;AAAA;;AA+DE;;;AAAA;;;AAAA;AAAA;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;;AArBA;;AAAA;AAAA;AAAA;;AAAA;AA1CF;;;AAAA;AAAA;;AA0CE;;;AAAA;;AAvBA;;AAAA;AAAA;AAAA;;AAAA;AAnBF;;;AAAA;AAAA;;AAAA;;;AAAA;;;AAAA;;;AAAA;;;AAmBE;;;AAAA;;AATA;;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;;;AAAA;;AARA;AASyB;;AAAvB;;AAQF;;;AAEa;;AAnBb;AAAA;AAAA;AAAA;AAmBS;AAAP;AAuEiD;AAAA;;AAAA;AApEb;AAAA;AAAA;;AAA7B;AAAP;AAKQ;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AACD;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AAC4B;;AAAxB;AAJyB;;AAAA;AAAA;;AAAA;AAAA;AAAA;;;AAAA;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;AAApC;;AAAA;;AAAA;AAtBF;AAAA;AAAA;AAAA;AA8BoD;AAAzB;AA9B3B;AA8BE;AAAA;;AAOF;;;AAEa;;AA1Cb;AAAA;AAAA;AAAA;AA0CS;AAAP;AAgDiD;AAAA;;AAAA;AA7Cd;AAAA;AAAA;;AAAnC;AAG+C;AAAA;AAAA;AAC/C;AAAA;AAAA;AACA;;AAAA;;AAAA;AA/CF;AAAA;AAAA;AAAA;AAkDoD;AAAzB;AAlD3B;AAkDE;AAAA;;AAQF;;;AA6BmD;AAAA;;AAAA;AAAA;AA5BhB;AAAA;;AAA7B;;;AACK;AAAP;AAAA;AAEiC;;AAAA;AAAA;AAAM;AAAA;AAAA;;;AAAA;AAAA;;AAAA;;AAAS;AAAlD;AAAA;AAQF;;;AAiBmD;AAAA;;AAAA;AAhBd;AAAA;AAAA;;AAAnC;AACmC;AAAA;AAAnC;AAOF;;;AACa;;AAnFb;AAAA;AAAA;AAAA;AAmFS;AAAP;AAnFF;AAoFE;;AAAA;",
+  "op_pc_offset": 0,
+  "pc_events": {
+    "1": {
+      "subroutine": "@algorandfoundation/algorand-typescript/arc4/index.d.ts::Contract.approvalProgram",
+      "params": {},
+      "block": "main",
+      "stack_in": [],
+      "op": "intcblock 0 1"
+    },
+    "5": {
+      "op": "bytecblock \"issuerCount\" \"admin\" \"i\" 0x151f7c75"
+    },
+    "32": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "reinterpret_bool%0#0"
+      ],
+      "stack_out": [
+        "reinterpret_bool%0#0"
+      ]
+    },
+    "34": {
+      "op": "bnz main_after_if_else@2",
+      "stack_out": []
+    },
+    "37": {
+      "op": "bytec_0 // \"issuerCount\"",
+      "defined_out": [
+        "\"issuerCount\""
+      ],
+      "stack_out": [
+        "\"issuerCount\""
+      ]
+    },
+    "38": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "\"issuerCount\"",
+        "0"
+      ],
+      "stack_out": [
+        "\"issuerCount\"",
+        "0"
+      ]
+    },
+    "39": {
+      "op": "app_global_put",
+      "stack_out": []
+    },
+    "40": {
+      "block": "main_after_if_else@2",
+      "stack_in": [],
+      "op": "txn NumAppArgs",
+      "defined_out": [
+        "tmp%0#1"
+      ],
+      "stack_out": [
+        "tmp%0#1"
+      ]
+    },
+    "42": {
+      "op": "bz main_after_if_else@14",
+      "stack_out": []
+    },
+    "45": {
+      "op": "pushbytess 0xb8447b36 0x272ac801 0x3dd83a3f 0x656971ee 0xa108f335 0x01b81bca // method \"createApplication()void\", method \"addIssuer(account,string,string)void\", method \"removeIssuer(account)void\", method \"isAuthorized(account)bool\", method \"getIssuerInfo(account)(bool,string,string,uint64)\", method \"transferAdmin(account)void\"",
+      "defined_out": [
+        "Method(addIssuer(account,string,string)void)",
+        "Method(createApplication()void)",
+        "Method(getIssuerInfo(account)(bool,string,string,uint64))",
+        "Method(isAuthorized(account)bool)",
+        "Method(removeIssuer(account)void)",
+        "Method(transferAdmin(account)void)"
+      ],
+      "stack_out": [
+        "Method(createApplication()void)",
+        "Method(addIssuer(account,string,string)void)",
+        "Method(removeIssuer(account)void)",
+        "Method(isAuthorized(account)bool)",
+        "Method(getIssuerInfo(account)(bool,string,string,uint64))",
+        "Method(transferAdmin(account)void)"
+      ]
+    },
+    "77": {
+      "op": "txna ApplicationArgs 0",
+      "defined_out": [
+        "Method(addIssuer(account,string,string)void)",
+        "Method(createApplication()void)",
+        "Method(getIssuerInfo(account)(bool,string,string,uint64))",
+        "Method(isAuthorized(account)bool)",
+        "Method(removeIssuer(account)void)",
+        "Method(transferAdmin(account)void)",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "Method(createApplication()void)",
+        "Method(addIssuer(account,string,string)void)",
+        "Method(removeIssuer(account)void)",
+        "Method(isAuthorized(account)bool)",
+        "Method(getIssuerInfo(account)(bool,string,string,uint64))",
+        "Method(transferAdmin(account)void)",
+        "tmp%2#0"
+      ]
+    },
+    "80": {
+      "op": "match main_createApplication_route@5 main_addIssuer_route@6 main_removeIssuer_route@7 main_isAuthorized_route@8 main_getIssuerInfo_route@9 main_transferAdmin_route@10",
+      "stack_out": []
+    },
+    "94": {
+      "block": "main_after_if_else@14",
+      "stack_in": [],
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "95": {
+      "op": "return",
+      "stack_out": []
+    },
+    "96": {
+      "block": "main_transferAdmin_route@10",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%38#0"
+      ],
+      "stack_out": [
+        "tmp%38#0"
+      ]
+    },
+    "98": {
+      "op": "!",
+      "defined_out": [
+        "tmp%39#0"
+      ],
+      "stack_out": [
+        "tmp%39#0"
+      ]
+    },
+    "99": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "100": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%40#0"
+      ],
+      "stack_out": [
+        "tmp%40#0"
+      ]
+    },
+    "102": {
+      "error": "can only call when not creating",
+      "op": "assert // can only call when not creating",
+      "stack_out": []
+    },
+    "103": {
+      "op": "txna ApplicationArgs 1",
+      "defined_out": [
+        "reinterpret_bytes[1]%4#0"
+      ],
+      "stack_out": [
+        "reinterpret_bytes[1]%4#0"
+      ]
+    },
+    "106": {
+      "op": "btoi",
+      "defined_out": [
+        "tmp%42#0"
+      ],
+      "stack_out": [
+        "tmp%42#0"
+      ]
+    },
+    "107": {
+      "op": "txnas Accounts",
+      "defined_out": [
+        "tmp%43#0"
+      ],
+      "stack_out": [
+        "tmp%43#0"
+      ]
+    },
+    "109": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.transferAdmin",
+      "op": "callsub transferAdmin",
+      "stack_out": []
+    },
+    "112": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "113": {
+      "op": "return",
+      "stack_out": []
+    },
+    "114": {
+      "block": "main_getIssuerInfo_route@9",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%30#0"
+      ],
+      "stack_out": [
+        "tmp%30#0"
+      ]
+    },
+    "116": {
+      "op": "!",
+      "defined_out": [
+        "tmp%31#0"
+      ],
+      "stack_out": [
+        "tmp%31#0"
+      ]
+    },
+    "117": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "118": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%32#0"
+      ],
+      "stack_out": [
+        "tmp%32#0"
+      ]
+    },
+    "120": {
+      "error": "can only call when not creating",
+      "op": "assert // can only call when not creating",
+      "stack_out": []
+    },
+    "121": {
+      "op": "txna ApplicationArgs 1",
+      "defined_out": [
+        "reinterpret_bytes[1]%3#0"
+      ],
+      "stack_out": [
+        "reinterpret_bytes[1]%3#0"
+      ]
+    },
+    "124": {
+      "op": "btoi",
+      "defined_out": [
+        "tmp%34#0"
+      ],
+      "stack_out": [
+        "tmp%34#0"
+      ]
+    },
+    "125": {
+      "op": "txnas Accounts",
+      "defined_out": [
+        "tmp%35#0"
+      ],
+      "stack_out": [
+        "tmp%35#0"
+      ]
+    },
+    "127": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.getIssuerInfo",
+      "op": "callsub getIssuerInfo",
+      "defined_out": [
+        "tmp%36#0"
+      ],
+      "stack_out": [
+        "tmp%36#0"
+      ]
+    },
+    "130": {
+      "op": "bytec_3 // 0x151f7c75",
+      "defined_out": [
+        "0x151f7c75",
+        "tmp%36#0"
+      ],
+      "stack_out": [
+        "tmp%36#0",
+        "0x151f7c75"
+      ]
+    },
+    "131": {
+      "op": "swap",
+      "stack_out": [
+        "0x151f7c75",
+        "tmp%36#0"
+      ]
+    },
+    "132": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%37#0"
+      ],
+      "stack_out": [
+        "tmp%37#0"
+      ]
+    },
+    "133": {
+      "op": "log",
+      "stack_out": []
+    },
+    "134": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "135": {
+      "op": "return",
+      "stack_out": []
+    },
+    "136": {
+      "block": "main_isAuthorized_route@8",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%23#0"
+      ],
+      "stack_out": [
+        "tmp%23#0"
+      ]
+    },
+    "138": {
+      "op": "!",
+      "defined_out": [
+        "tmp%24#0"
+      ],
+      "stack_out": [
+        "tmp%24#0"
+      ]
+    },
+    "139": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "140": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%25#0"
+      ],
+      "stack_out": [
+        "tmp%25#0"
+      ]
+    },
+    "142": {
+      "error": "can only call when not creating",
+      "op": "assert // can only call when not creating",
+      "stack_out": []
+    },
+    "143": {
+      "op": "txna ApplicationArgs 1",
+      "defined_out": [
+        "reinterpret_bytes[1]%2#0"
+      ],
+      "stack_out": [
+        "reinterpret_bytes[1]%2#0"
+      ]
+    },
+    "146": {
+      "op": "btoi",
+      "defined_out": [
+        "tmp%27#0"
+      ],
+      "stack_out": [
+        "tmp%27#0"
+      ]
+    },
+    "147": {
+      "op": "txnas Accounts",
+      "defined_out": [
+        "tmp%28#0"
+      ],
+      "stack_out": [
+        "tmp%28#0"
+      ]
+    },
+    "149": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.isAuthorized",
+      "op": "callsub isAuthorized",
+      "defined_out": [
+        "to_encode%0#0"
+      ],
+      "stack_out": [
+        "to_encode%0#0"
+      ]
+    },
+    "152": {
+      "op": "pushbytes 0x00",
+      "defined_out": [
+        "0x00",
+        "to_encode%0#0"
+      ],
+      "stack_out": [
+        "to_encode%0#0",
+        "0x00"
+      ]
+    },
+    "155": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "0",
+        "0x00",
+        "to_encode%0#0"
+      ],
+      "stack_out": [
+        "to_encode%0#0",
+        "0x00",
+        "0"
+      ]
+    },
+    "156": {
+      "op": "uncover 2",
+      "stack_out": [
+        "0x00",
+        "0",
+        "to_encode%0#0"
+      ]
+    },
+    "158": {
+      "op": "setbit",
+      "defined_out": [
+        "encoded_bool%0#0"
+      ],
+      "stack_out": [
+        "encoded_bool%0#0"
+      ]
+    },
+    "159": {
+      "op": "bytec_3 // 0x151f7c75",
+      "defined_out": [
+        "0x151f7c75",
+        "encoded_bool%0#0"
+      ],
+      "stack_out": [
+        "encoded_bool%0#0",
+        "0x151f7c75"
+      ]
+    },
+    "160": {
+      "op": "swap",
+      "stack_out": [
+        "0x151f7c75",
+        "encoded_bool%0#0"
+      ]
+    },
+    "161": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%29#0"
+      ],
+      "stack_out": [
+        "tmp%29#0"
+      ]
+    },
+    "162": {
+      "op": "log",
+      "stack_out": []
+    },
+    "163": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "164": {
+      "op": "return",
+      "stack_out": []
+    },
+    "165": {
+      "block": "main_removeIssuer_route@7",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%17#0"
+      ],
+      "stack_out": [
+        "tmp%17#0"
+      ]
+    },
+    "167": {
+      "op": "!",
+      "defined_out": [
+        "tmp%18#0"
+      ],
+      "stack_out": [
+        "tmp%18#0"
+      ]
+    },
+    "168": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "169": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%19#0"
+      ],
+      "stack_out": [
+        "tmp%19#0"
+      ]
+    },
+    "171": {
+      "error": "can only call when not creating",
+      "op": "assert // can only call when not creating",
+      "stack_out": []
+    },
+    "172": {
+      "op": "txna ApplicationArgs 1",
+      "defined_out": [
+        "reinterpret_bytes[1]%1#0"
+      ],
+      "stack_out": [
+        "reinterpret_bytes[1]%1#0"
+      ]
+    },
+    "175": {
+      "op": "btoi",
+      "defined_out": [
+        "tmp%21#0"
+      ],
+      "stack_out": [
+        "tmp%21#0"
+      ]
+    },
+    "176": {
+      "op": "txnas Accounts",
+      "defined_out": [
+        "tmp%22#0"
+      ],
+      "stack_out": [
+        "tmp%22#0"
+      ]
+    },
+    "178": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.removeIssuer",
+      "op": "callsub removeIssuer",
+      "stack_out": []
+    },
+    "181": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "182": {
+      "op": "return",
+      "stack_out": []
+    },
+    "183": {
+      "block": "main_addIssuer_route@6",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%7#0"
+      ],
+      "stack_out": [
+        "tmp%7#0"
+      ]
+    },
+    "185": {
+      "op": "!",
+      "defined_out": [
+        "tmp%8#0"
+      ],
+      "stack_out": [
+        "tmp%8#0"
+      ]
+    },
+    "186": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "187": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%9#0"
+      ],
+      "stack_out": [
+        "tmp%9#0"
+      ]
+    },
+    "189": {
+      "error": "can only call when not creating",
+      "op": "assert // can only call when not creating",
+      "stack_out": []
+    },
+    "190": {
+      "op": "txna ApplicationArgs 1",
+      "defined_out": [
+        "reinterpret_bytes[1]%0#0"
+      ],
+      "stack_out": [
+        "reinterpret_bytes[1]%0#0"
+      ]
+    },
+    "193": {
+      "op": "btoi",
+      "defined_out": [
+        "tmp%11#0"
+      ],
+      "stack_out": [
+        "tmp%11#0"
+      ]
+    },
+    "194": {
+      "op": "txnas Accounts",
+      "defined_out": [
+        "tmp%12#0"
+      ],
+      "stack_out": [
+        "tmp%12#0"
+      ]
+    },
+    "196": {
+      "op": "txna ApplicationArgs 2",
+      "defined_out": [
+        "tmp%12#0",
+        "tmp%13#0"
+      ],
+      "stack_out": [
+        "tmp%12#0",
+        "tmp%13#0"
+      ]
+    },
+    "199": {
+      "op": "extract 2 0",
+      "defined_out": [
+        "tmp%12#0",
+        "tmp%14#0"
+      ],
+      "stack_out": [
+        "tmp%12#0",
+        "tmp%14#0"
+      ]
+    },
+    "202": {
+      "op": "txna ApplicationArgs 3",
+      "defined_out": [
+        "tmp%12#0",
+        "tmp%14#0",
+        "tmp%15#0"
+      ],
+      "stack_out": [
+        "tmp%12#0",
+        "tmp%14#0",
+        "tmp%15#0"
+      ]
+    },
+    "205": {
+      "op": "extract 2 0",
+      "defined_out": [
+        "tmp%12#0",
+        "tmp%14#0",
+        "tmp%16#0"
+      ],
+      "stack_out": [
+        "tmp%12#0",
+        "tmp%14#0",
+        "tmp%16#0"
+      ]
+    },
+    "208": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.addIssuer",
+      "op": "callsub addIssuer",
+      "stack_out": []
+    },
+    "211": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "212": {
+      "op": "return",
+      "stack_out": []
+    },
+    "213": {
+      "block": "main_createApplication_route@5",
+      "stack_in": [],
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%3#0"
+      ],
+      "stack_out": [
+        "tmp%3#0"
+      ]
+    },
+    "215": {
+      "op": "!",
+      "defined_out": [
+        "tmp%4#0"
+      ],
+      "stack_out": [
+        "tmp%4#0"
+      ]
+    },
+    "216": {
+      "error": "OnCompletion is not NoOp",
+      "op": "assert // OnCompletion is not NoOp",
+      "stack_out": []
+    },
+    "217": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%5#0"
+      ],
+      "stack_out": [
+        "tmp%5#0"
+      ]
+    },
+    "219": {
+      "op": "!",
+      "defined_out": [
+        "tmp%6#0"
+      ],
+      "stack_out": [
+        "tmp%6#0"
+      ]
+    },
+    "220": {
+      "error": "can only call when creating",
+      "op": "assert // can only call when creating",
+      "stack_out": []
+    },
+    "221": {
+      "callsub": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.createApplication",
+      "op": "callsub createApplication"
+    },
+    "224": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "225": {
+      "op": "return",
+      "stack_out": []
+    },
+    "226": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.createApplication",
+      "params": {},
+      "block": "createApplication",
+      "stack_in": [],
+      "op": "bytec_1 // \"admin\"",
+      "defined_out": [
+        "\"admin\""
+      ],
+      "stack_out": [
+        "\"admin\""
+      ]
+    },
+    "227": {
+      "op": "txn Sender",
+      "defined_out": [
+        "\"admin\"",
+        "new_state_value%0#0"
+      ],
+      "stack_out": [
+        "\"admin\"",
+        "new_state_value%0#0"
+      ]
+    },
+    "229": {
+      "op": "app_global_put",
+      "stack_out": []
+    },
+    "230": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "231": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.addIssuer",
+      "params": {
+        "issuerAddress#0": "bytes",
+        "name#0": "bytes",
+        "url#0": "bytes"
+      },
+      "block": "addIssuer",
+      "stack_in": [],
+      "op": "proto 3 0"
+    },
+    "234": {
+      "op": "txn Sender",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "236": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0"
+      ]
+    },
+    "237": {
+      "op": "bytec_1 // \"admin\"",
+      "defined_out": [
+        "\"admin\"",
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0",
+        "\"admin\""
+      ]
+    },
+    "238": {
+      "op": "app_global_get_ex",
+      "defined_out": [
+        "maybe_exists%0#0",
+        "maybe_value%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "239": {
+      "error": "check GlobalState exists",
+      "op": "assert // check GlobalState exists",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0"
+      ]
+    },
+    "240": {
+      "op": "==",
+      "defined_out": [
+        "tmp%1#0"
+      ],
+      "stack_out": [
+        "tmp%1#0"
+      ]
+    },
+    "241": {
+      "error": "Only admin can add issuers",
+      "op": "assert // Only admin can add issuers",
+      "stack_out": []
+    },
+    "242": {
+      "op": "bytec_2 // \"i\"",
+      "defined_out": [
+        "\"i\""
+      ],
+      "stack_out": [
+        "\"i\""
+      ]
+    },
+    "243": {
+      "op": "frame_dig -3",
+      "defined_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ],
+      "stack_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ]
+    },
+    "245": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "246": {
+      "op": "dup",
+      "defined_out": [
+        "tmp%2#0",
+        "tmp%2#0 (copy)"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "tmp%2#0 (copy)"
+      ]
+    },
+    "247": {
+      "op": "box_len",
+      "defined_out": [
+        "maybe_exists%1#0",
+        "maybe_value%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "maybe_value%1#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "248": {
+      "op": "bury 1",
+      "stack_out": [
+        "tmp%2#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "250": {
+      "op": "!",
+      "defined_out": [
+        "tmp%2#0",
+        "tmp%3#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "tmp%3#0"
+      ]
+    },
+    "251": {
+      "error": "Issuer already exists",
+      "op": "assert // Issuer already exists",
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "252": {
+      "op": "frame_dig -2",
+      "defined_out": [
+        "name#0 (copy)",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "name#0 (copy)"
+      ]
+    },
+    "254": {
+      "op": "len",
+      "defined_out": [
+        "length%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "length%0#0"
+      ]
+    },
+    "255": {
+      "op": "itob",
+      "defined_out": [
+        "as_bytes%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "as_bytes%0#0"
+      ]
+    },
+    "256": {
+      "op": "extract 6 2",
+      "defined_out": [
+        "length_uint16%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "length_uint16%0#0"
+      ]
+    },
+    "259": {
+      "op": "frame_dig -2",
+      "stack_out": [
+        "tmp%2#0",
+        "length_uint16%0#0",
+        "name#0 (copy)"
+      ]
+    },
+    "261": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_value%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0"
+      ]
+    },
+    "262": {
+      "op": "frame_dig -1",
+      "defined_out": [
+        "encoded_value%0#0",
+        "tmp%2#0",
+        "url#0 (copy)"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "url#0 (copy)"
+      ]
+    },
+    "264": {
+      "op": "len",
+      "defined_out": [
+        "encoded_value%0#0",
+        "length%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "length%1#0"
+      ]
+    },
+    "265": {
+      "op": "itob",
+      "defined_out": [
+        "as_bytes%1#0",
+        "encoded_value%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "as_bytes%1#0"
+      ]
+    },
+    "266": {
+      "op": "extract 6 2",
+      "defined_out": [
+        "encoded_value%0#0",
+        "length_uint16%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "length_uint16%1#0"
+      ]
+    },
+    "269": {
+      "op": "frame_dig -1",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "length_uint16%1#0",
+        "url#0 (copy)"
+      ]
+    },
+    "271": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0"
+      ]
+    },
+    "272": {
+      "op": "global LatestTimestamp",
+      "defined_out": [
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "to_encode%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "to_encode%0#0"
+      ]
+    },
+    "274": {
+      "op": "itob",
+      "defined_out": [
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0"
+      ]
+    },
+    "275": {
+      "op": "dig 2",
+      "defined_out": [
+        "encoded_value%0#0",
+        "encoded_value%0#0 (copy)",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "encoded_value%0#0 (copy)"
+      ]
+    },
+    "277": {
+      "op": "len",
+      "defined_out": [
+        "data_length%0#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "data_length%0#0"
+      ]
+    },
+    "278": {
+      "op": "pushint 13 // 13",
+      "defined_out": [
+        "13",
+        "data_length%0#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "data_length%0#0",
+        "13"
+      ]
+    },
+    "280": {
+      "op": "+",
+      "defined_out": [
+        "current_tail_offset%1#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "current_tail_offset%1#0"
+      ]
+    },
+    "281": {
+      "op": "itob",
+      "defined_out": [
+        "as_bytes%3#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "as_bytes%3#0"
+      ]
+    },
+    "282": {
+      "op": "extract 6 2",
+      "defined_out": [
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "offset_as_uint16%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "offset_as_uint16%1#0"
+      ]
+    },
+    "285": {
+      "op": "pushbytes 0x80000d",
+      "defined_out": [
+        "0x80000d",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "offset_as_uint16%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "offset_as_uint16%1#0",
+        "0x80000d"
+      ]
+    },
+    "290": {
+      "op": "swap",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "0x80000d",
+        "offset_as_uint16%1#0"
+      ]
+    },
+    "291": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_tuple_buffer%3#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0",
+        "val_as_bytes%0#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "val_as_bytes%0#0",
+        "encoded_tuple_buffer%3#0"
+      ]
+    },
+    "292": {
+      "op": "swap",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "encoded_tuple_buffer%3#0",
+        "val_as_bytes%0#0"
+      ]
+    },
+    "293": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_tuple_buffer%4#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%0#0",
+        "encoded_value%1#0",
+        "encoded_tuple_buffer%4#0"
+      ]
+    },
+    "294": {
+      "op": "uncover 2",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%1#0",
+        "encoded_tuple_buffer%4#0",
+        "encoded_value%0#0"
+      ]
+    },
+    "296": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_tuple_buffer%5#0",
+        "encoded_value%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_value%1#0",
+        "encoded_tuple_buffer%5#0"
+      ]
+    },
+    "297": {
+      "op": "swap",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_tuple_buffer%5#0",
+        "encoded_value%1#0"
+      ]
+    },
+    "298": {
+      "op": "concat",
+      "defined_out": [
+        "encoded_tuple_buffer%6#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_tuple_buffer%6#0"
+      ]
+    },
+    "299": {
+      "op": "dig 1",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_tuple_buffer%6#0",
+        "tmp%2#0 (copy)"
+      ]
+    },
+    "301": {
+      "op": "box_del",
+      "defined_out": [
+        "encoded_tuple_buffer%6#0",
+        "tmp%2#0",
+        "{box_del}"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_tuple_buffer%6#0",
+        "{box_del}"
+      ]
+    },
+    "302": {
+      "op": "pop",
+      "stack_out": [
+        "tmp%2#0",
+        "encoded_tuple_buffer%6#0"
+      ]
+    },
+    "303": {
+      "op": "box_put",
+      "stack_out": []
+    },
+    "304": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "0"
+      ]
+    },
+    "305": {
+      "op": "bytec_0 // \"issuerCount\"",
+      "defined_out": [
+        "\"issuerCount\"",
+        "0"
+      ],
+      "stack_out": [
+        "0",
+        "\"issuerCount\""
+      ]
+    },
+    "306": {
+      "op": "app_global_get_ex",
+      "defined_out": [
+        "maybe_exists%2#0",
+        "maybe_value%2#0"
+      ],
+      "stack_out": [
+        "maybe_value%2#0",
+        "maybe_exists%2#0"
+      ]
+    },
+    "307": {
+      "error": "check GlobalState exists",
+      "op": "assert // check GlobalState exists",
+      "stack_out": [
+        "maybe_value%2#0"
+      ]
+    },
+    "308": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "1",
+        "maybe_value%2#0"
+      ],
+      "stack_out": [
+        "maybe_value%2#0",
+        "1"
+      ]
+    },
+    "309": {
+      "op": "+",
+      "defined_out": [
+        "new_state_value%0#0"
+      ],
+      "stack_out": [
+        "new_state_value%0#0"
+      ]
+    },
+    "310": {
+      "op": "bytec_0 // \"issuerCount\"",
+      "stack_out": [
+        "new_state_value%0#0",
+        "\"issuerCount\""
+      ]
+    },
+    "311": {
+      "op": "swap",
+      "stack_out": [
+        "\"issuerCount\"",
+        "new_state_value%0#0"
+      ]
+    },
+    "312": {
+      "op": "app_global_put",
+      "stack_out": []
+    },
+    "313": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "314": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.removeIssuer",
+      "params": {
+        "issuerAddress#0": "bytes"
+      },
+      "block": "removeIssuer",
+      "stack_in": [],
+      "op": "proto 1 0"
+    },
+    "317": {
+      "op": "txn Sender",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "319": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0"
+      ]
+    },
+    "320": {
+      "op": "bytec_1 // \"admin\"",
+      "defined_out": [
+        "\"admin\"",
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0",
+        "\"admin\""
+      ]
+    },
+    "321": {
+      "op": "app_global_get_ex",
+      "defined_out": [
+        "maybe_exists%0#0",
+        "maybe_value%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "322": {
+      "error": "check GlobalState exists",
+      "op": "assert // check GlobalState exists",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0"
+      ]
+    },
+    "323": {
+      "op": "==",
+      "defined_out": [
+        "tmp%1#0"
+      ],
+      "stack_out": [
+        "tmp%1#0"
+      ]
+    },
+    "324": {
+      "error": "Only admin can remove issuers",
+      "op": "assert // Only admin can remove issuers",
+      "stack_out": []
+    },
+    "325": {
+      "op": "bytec_2 // \"i\"",
+      "defined_out": [
+        "\"i\""
+      ],
+      "stack_out": [
+        "\"i\""
+      ]
+    },
+    "326": {
+      "op": "frame_dig -1",
+      "defined_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ],
+      "stack_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ]
+    },
+    "328": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "329": {
+      "op": "dup",
+      "defined_out": [
+        "tmp%2#0",
+        "tmp%2#0 (copy)"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "tmp%2#0 (copy)"
+      ]
+    },
+    "330": {
+      "op": "box_len",
+      "defined_out": [
+        "maybe_exists%1#0",
+        "maybe_value%1#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "maybe_value%1#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "331": {
+      "op": "bury 1",
+      "stack_out": [
+        "tmp%2#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "333": {
+      "error": "Issuer does not exist",
+      "op": "assert // Issuer does not exist",
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "334": {
+      "op": "dup",
+      "stack_out": [
+        "tmp%2#0",
+        "tmp%2#0 (copy)"
+      ]
+    },
+    "335": {
+      "op": "box_get",
+      "defined_out": [
+        "issuerInfo#0",
+        "maybe_exists%2#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0",
+        "maybe_exists%2#0"
+      ]
+    },
+    "336": {
+      "error": "Box must have value",
+      "op": "assert // Box must have value",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0"
+      ]
+    },
+    "337": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0",
+        "0"
+      ]
+    },
+    "338": {
+      "op": "dup",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0",
+        "0",
+        "0"
+      ]
+    },
+    "339": {
+      "op": "setbit",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0"
+      ]
+    },
+    "340": {
+      "op": "dig 1",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0",
+        "tmp%2#0 (copy)"
+      ]
+    },
+    "342": {
+      "op": "box_del",
+      "defined_out": [
+        "issuerInfo#0",
+        "tmp%2#0",
+        "{box_del}"
+      ],
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0",
+        "{box_del}"
+      ]
+    },
+    "343": {
+      "op": "pop",
+      "stack_out": [
+        "tmp%2#0",
+        "issuerInfo#0"
+      ]
+    },
+    "344": {
+      "op": "box_put",
+      "stack_out": []
+    },
+    "345": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "0"
+      ]
+    },
+    "346": {
+      "op": "bytec_0 // \"issuerCount\"",
+      "defined_out": [
+        "\"issuerCount\"",
+        "0"
+      ],
+      "stack_out": [
+        "0",
+        "\"issuerCount\""
+      ]
+    },
+    "347": {
+      "op": "app_global_get_ex",
+      "defined_out": [
+        "maybe_exists%3#0",
+        "maybe_value%3#0"
+      ],
+      "stack_out": [
+        "maybe_value%3#0",
+        "maybe_exists%3#0"
+      ]
+    },
+    "348": {
+      "error": "check GlobalState exists",
+      "op": "assert // check GlobalState exists",
+      "stack_out": [
+        "maybe_value%3#0"
+      ]
+    },
+    "349": {
+      "op": "intc_1 // 1",
+      "defined_out": [
+        "1",
+        "maybe_value%3#0"
+      ],
+      "stack_out": [
+        "maybe_value%3#0",
+        "1"
+      ]
+    },
+    "350": {
+      "op": "-",
+      "defined_out": [
+        "new_state_value%0#0"
+      ],
+      "stack_out": [
+        "new_state_value%0#0"
+      ]
+    },
+    "351": {
+      "op": "bytec_0 // \"issuerCount\"",
+      "stack_out": [
+        "new_state_value%0#0",
+        "\"issuerCount\""
+      ]
+    },
+    "352": {
+      "op": "swap",
+      "stack_out": [
+        "\"issuerCount\"",
+        "new_state_value%0#0"
+      ]
+    },
+    "353": {
+      "op": "app_global_put",
+      "stack_out": []
+    },
+    "354": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "355": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.isAuthorized",
+      "params": {
+        "issuerAddress#0": "bytes"
+      },
+      "block": "isAuthorized",
+      "stack_in": [],
+      "op": "proto 1 1"
+    },
+    "358": {
+      "op": "bytec_2 // \"i\"",
+      "defined_out": [
+        "\"i\""
+      ],
+      "stack_out": [
+        "\"i\""
+      ]
+    },
+    "359": {
+      "op": "frame_dig -1",
+      "defined_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ],
+      "stack_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ]
+    },
+    "361": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "362": {
+      "op": "dup",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "tmp%0#0"
+      ]
+    },
+    "363": {
+      "op": "box_len",
+      "defined_out": [
+        "maybe_exists%0#0",
+        "maybe_value%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "364": {
+      "op": "bury 1",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "366": {
+      "op": "bnz isAuthorized_after_if_else@2",
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "369": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "tmp%0#0",
+        "0"
+      ]
+    },
+    "370": {
+      "op": "swap"
+    },
+    "371": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "372": {
+      "block": "isAuthorized_after_if_else@2",
+      "stack_in": [
+        "tmp%0#0"
+      ],
+      "op": "frame_dig 0",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "tmp%0#0"
+      ]
+    },
+    "374": {
+      "op": "box_get",
+      "defined_out": [
+        "maybe_exists%1#0",
+        "maybe_value%1#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%1#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "375": {
+      "error": "Box must have value",
+      "op": "assert // Box must have value",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%1#0"
+      ]
+    },
+    "376": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "0",
+        "maybe_value%1#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%1#0",
+        "0"
+      ]
+    },
+    "377": {
+      "op": "getbit",
+      "defined_out": [
+        "is_true%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "is_true%0#0"
+      ]
+    },
+    "378": {
+      "op": "pushbytes 0x00",
+      "defined_out": [
+        "0x00",
+        "is_true%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "is_true%0#0",
+        "0x00"
+      ]
+    },
+    "381": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "tmp%0#0",
+        "is_true%0#0",
+        "0x00",
+        "0"
+      ]
+    },
+    "382": {
+      "op": "uncover 2",
+      "stack_out": [
+        "tmp%0#0",
+        "0x00",
+        "0",
+        "is_true%0#0"
+      ]
+    },
+    "384": {
+      "op": "setbit",
+      "defined_out": [
+        "encoded_bool%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "encoded_bool%0#0"
+      ]
+    },
+    "385": {
+      "op": "intc_0 // 0",
+      "stack_out": [
+        "tmp%0#0",
+        "encoded_bool%0#0",
+        "0"
+      ]
+    },
+    "386": {
+      "op": "getbit",
+      "defined_out": [
+        "tmp%0#0",
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "tmp%2#0"
+      ]
+    },
+    "387": {
+      "op": "swap"
+    },
+    "388": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "389": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.getIssuerInfo",
+      "params": {
+        "issuerAddress#0": "bytes"
+      },
+      "block": "getIssuerInfo",
+      "stack_in": [],
+      "op": "proto 1 1"
+    },
+    "392": {
+      "op": "bytec_2 // \"i\"",
+      "defined_out": [
+        "\"i\""
+      ],
+      "stack_out": [
+        "\"i\""
+      ]
+    },
+    "393": {
+      "op": "frame_dig -1",
+      "defined_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ],
+      "stack_out": [
+        "\"i\"",
+        "issuerAddress#0 (copy)"
+      ]
+    },
+    "395": {
+      "op": "concat",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "396": {
+      "op": "dup",
+      "defined_out": [
+        "tmp%0#0",
+        "tmp%0#0 (copy)"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "tmp%0#0 (copy)"
+      ]
+    },
+    "397": {
+      "op": "box_len",
+      "defined_out": [
+        "maybe_exists%0#0",
+        "maybe_value%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "398": {
+      "op": "bury 1",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "400": {
+      "error": "Issuer not found",
+      "op": "assert // Issuer not found",
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "401": {
+      "op": "box_get",
+      "defined_out": [
+        "maybe_exists%1#0",
+        "maybe_value%1#0"
+      ],
+      "stack_out": [
+        "maybe_value%1#0",
+        "maybe_exists%1#0"
+      ]
+    },
+    "402": {
+      "error": "Box must have value",
+      "op": "assert // Box must have value",
+      "stack_out": [
+        "maybe_value%1#0"
+      ]
+    },
+    "403": {
+      "retsub": true,
+      "op": "retsub"
+    },
+    "404": {
+      "subroutine": "smart_contracts/CardlessIssuer/contract.algo.ts::CardlessIssuer.transferAdmin",
+      "params": {
+        "newAdmin#0": "bytes"
+      },
+      "block": "transferAdmin",
+      "stack_in": [],
+      "op": "proto 1 0"
+    },
+    "407": {
+      "op": "txn Sender",
+      "defined_out": [
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0"
+      ]
+    },
+    "409": {
+      "op": "intc_0 // 0",
+      "defined_out": [
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0"
+      ]
+    },
+    "410": {
+      "op": "bytec_1 // \"admin\"",
+      "defined_out": [
+        "\"admin\"",
+        "0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "0",
+        "\"admin\""
+      ]
+    },
+    "411": {
+      "op": "app_global_get_ex",
+      "defined_out": [
+        "maybe_exists%0#0",
+        "maybe_value%0#0",
+        "tmp%0#0"
+      ],
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0",
+        "maybe_exists%0#0"
+      ]
+    },
+    "412": {
+      "error": "check GlobalState exists",
+      "op": "assert // check GlobalState exists",
+      "stack_out": [
+        "tmp%0#0",
+        "maybe_value%0#0"
+      ]
+    },
+    "413": {
+      "op": "==",
+      "defined_out": [
+        "tmp%1#0"
+      ],
+      "stack_out": [
+        "tmp%1#0"
+      ]
+    },
+    "414": {
+      "error": "Only admin can transfer admin rights",
+      "op": "assert // Only admin can transfer admin rights",
+      "stack_out": []
+    },
+    "415": {
+      "op": "bytec_1 // \"admin\"",
+      "stack_out": [
+        "\"admin\""
+      ]
+    },
+    "416": {
+      "op": "frame_dig -1",
+      "defined_out": [
+        "\"admin\"",
+        "newAdmin#0 (copy)"
+      ],
+      "stack_out": [
+        "\"admin\"",
+        "newAdmin#0 (copy)"
+      ]
+    },
+    "418": {
+      "op": "app_global_put",
+      "stack_out": []
+    },
+    "419": {
+      "retsub": true,
+      "op": "retsub"
+    }
+  }
+}

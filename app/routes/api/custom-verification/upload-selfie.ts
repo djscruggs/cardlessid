@@ -4,7 +4,7 @@
 
 import type { ActionFunctionArgs } from 'react-router';
 import { getVerificationSession, updateVerificationSession } from '~/utils/verification.server';
-import { saveSelfiePhoto, readPhoto } from '~/utils/photo-storage.server';
+import { saveSelfiePhoto, deletePhoto } from '~/utils/temp-photo-storage.server';
 import { compareFaces, checkLiveness } from '~/utils/face-comparison.server';
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -12,12 +12,15 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  let selfieUrl: string | null = null;
+
   try {
     const formData = await request.formData();
     const sessionId = formData.get('sessionId') as string;
-    const imageData = formData.get('image') as string;
+    const selfieData = formData.get('selfie') as string;
+    const idPhotoData = formData.get('idPhoto') as string;
 
-    if (!sessionId || !imageData) {
+    if (!sessionId || !selfieData || !idPhotoData) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -27,19 +30,17 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    if (!session.idPhotoUrl) {
-      return Response.json({ error: 'No ID photo found for this session' }, { status: 400 });
-    }
-
     // Remove data URL prefix if present
-    const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const selfieBase64 = selfieData.replace(/^data:image\/\w+;base64,/, '');
+    const idPhotoBase64 = idPhotoData.replace(/^data:image\/\w+;base64,/, '');
 
     // Step 1: Check for liveness
     console.log('[Upload Selfie] Performing liveness check...');
-    const livenessResult = await checkLiveness(base64Data);
+    const livenessResult = await checkLiveness(selfieBase64);
 
     if (!livenessResult.isLive) {
       console.warn('[Upload Selfie] Liveness check failed:', livenessResult.issues);
+      // No photo saved yet, so nothing to delete
       return Response.json({
         success: false,
         error: livenessResult.error || 'Liveness check failed',
@@ -50,27 +51,25 @@ export async function action({ request }: ActionFunctionArgs) {
 
     console.log('[Upload Selfie] Liveness check passed');
 
-    // Step 2: Save the selfie photo
-    const selfieUrl = await saveSelfiePhoto(sessionId, base64Data);
+    // Step 2: Save the selfie photo temporarily
+    selfieUrl = await saveSelfiePhoto(sessionId, selfieBase64);
 
-    // Step 3: Read ID photo for comparison
-    const idPhotoData = await readPhoto(session.idPhotoUrl);
-
-    // Step 4: Compare faces
+    // Step 3: Compare faces using both photos from client (never stored on server/Firebase)
     console.log('[Upload Selfie] Comparing faces...');
-    const comparisonResult = await compareFaces(idPhotoData, base64Data);
+    const comparisonResult = await compareFaces(idPhotoBase64, selfieBase64);
 
     if (comparisonResult.error) {
       console.error('[Upload Selfie] Face comparison error:', comparisonResult.error);
+      // Delete selfie immediately on failure
+      if (selfieUrl) await deletePhoto(selfieUrl);
       return Response.json({
         success: false,
         error: comparisonResult.error
       }, { status: 400 });
     }
 
-    // Update session with results
+    // Update session with results (no ID photo base64 to clear - it's on client)
     await updateVerificationSession(sessionId, {
-      selfiePhotoUrl: selfieUrl,
       faceMatchResult: comparisonResult,
       livenessResult: livenessResult,
       status: comparisonResult.match ? 'approved' : 'rejected',
@@ -80,6 +79,10 @@ export async function action({ request }: ActionFunctionArgs) {
       match: comparisonResult.match,
       confidence: comparisonResult.confidence
     });
+
+    // Delete selfie immediately after successful processing
+    console.log('[Upload Selfie] Deleting selfie from disk after processing');
+    if (selfieUrl) await deletePhoto(selfieUrl);
 
     return Response.json({
       success: true,
@@ -94,6 +97,8 @@ export async function action({ request }: ActionFunctionArgs) {
     });
   } catch (error) {
     console.error('Upload selfie error:', error);
+    // Delete selfie on any unexpected error
+    if (selfieUrl) await deletePhoto(selfieUrl);
     return Response.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

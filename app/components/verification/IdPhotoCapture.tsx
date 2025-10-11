@@ -86,7 +86,12 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
       const result = await response.json();
 
       if (result.success) {
-        onSuccess(result);
+        // Add the ID photo base64 to the result for client-side storage
+        const base64Data = previewUrl.replace(/^data:image\/\w+;base64,/, '');
+        onSuccess({
+          ...result,
+          idPhotoBase64: base64Data, // Pass to parent component for storage
+        });
       } else {
         onError(result.error || 'Failed to process ID');
         setPreviewUrl(null);
