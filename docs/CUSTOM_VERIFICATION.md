@@ -3,27 +3,28 @@
 ---
 # Custom Verification Platform
 
-This document describes the custom identity verification platform that uses Google Document AI for ID extraction and face comparison for identity verification.
+This document describes the custom identity verification platform that uses **AWS Textract** for ID text extraction, **AWS Rekognition** for face comparison and liveness detection.
+
+> **Note**: This platform was migrated from Google Document AI to AWS services. For legacy Google Document AI setup, see the git history. For current AWS setup, see [AWS_SETUP.md](./AWS_SETUP.md).
 
 ## Overview
 
 The custom verification platform provides a complete end-to-end identity verification flow:
 
 1.  **ID Photo Capture**: User photographs their government-issued ID
-2.  **Document AI Processing**:
-    - Google Document AI fraud detection checks for fraudulent documents
-    - Google Document AI parser extracts identity information (name, DOB, etc.)
+2.  **Text Extraction**: AWS Textract extracts identity information (name, DOB, ID number, etc.)
 3.  **Data Confirmation**: User reviews and confirms extracted data (read-only)
 4.  **Selfie Capture**: User takes a selfie with face centering guide
-5.  **Face Comparison**: System compares ID photo with selfie
-6.  **Credential Issuance**: If verified, user receives their NFT credential
+5.  **Liveness Detection**: AWS Rekognition analyzes face quality to ensure live person
+6.  **Face Comparison**: AWS Rekognition compares ID photo with selfie
+7.  **Credential Issuance**: If verified, user receives their NFT credential
 
 ## Architecture
 
 ```
 ┌─────────────┐
 │   Client    │
-│  (Mobile)   │
+│  (Browser)  │
 └──────┬──────┘
        │
        ├──1. Upload ID Photo
@@ -33,23 +34,14 @@ The custom verification platform provides a complete end-to-end identity verific
 │  verification/upload-id │
 └──────┬──────────────────┘
        │
-       ├──2a. Check for fraud
+       ├──2. Extract ID data
        │
 ┌──────▼─────────────────┐
-│  Google Document AI    │
-│  (Fraud Detection)     │
-│  ID_FRAUD_ENDPOINT     │
+│  AWS Textract          │
+│  (AnalyzeID)           │
 └──────┬─────────────────┘
        │
-       ├──2b. Extract ID data
-       │
-┌──────▼─────────────────┐
-│  Google Document AI    │
-│  (ID Parser)           │
-│  ID_PARSE_ENDPOINT     │
-└──────┬─────────────────┘
-       │
-       ├──3. Return extracted data + fraud signals
+       ├──3. Return extracted data
        │
 ┌──────▼──────┐
 │   Client    │
@@ -63,12 +55,18 @@ The custom verification platform provides a complete end-to-end identity verific
 │  upload-selfie               │
 └──────┬──────────────────────┘
        │
-       ├──5. Compare Faces
+       ├──5a. Check Liveness
        │
 ┌──────▼────────────────┐
-│  Face Comparison      │
-│  Service              │
-│  (AWS/Azure/Mock)     │
+│  AWS Rekognition      │
+│  (DetectFaces)        │
+└──────┬────────────────┘
+       │
+       ├──5b. Compare Faces
+       │
+┌──────▼────────────────┐
+│  AWS Rekognition      │
+│  (CompareFaces)       │
 └──────┬────────────────┘
        │
        ├──6. Return match result
@@ -81,98 +79,49 @@ The custom verification platform provides a complete end-to-end identity verific
 
 ## Setup
 
-### 1\. Google Document AI Configuration
+**📚 For detailed AWS setup instructions, see [AWS_SETUP.md](./AWS_SETUP.md)**
 
-#### Create Document AI Processors
+This section provides a quick overview. Refer to the dedicated AWS setup guide for complete instructions, IAM configuration, and troubleshooting.
 
-You need **two separate processors** for the verification system:
+### 1\. AWS Services Configuration
 
-1.  Go to [Google Cloud Console](https://console.cloud.google.com/ "Google Cloud Console")
-2.  Create a new project or select existing one
-3.  Enable the Document AI API
-4.  Navigate to Document AI > Processors
+#### Required Services
+- **AWS Textract** - ID text extraction
+- **AWS Rekognition** - Face comparison and liveness detection
 
-**Processor 1: Fraud Detection**
+#### Quick Start
 
-1.  Create a new processor (choose "Fraud Detection Processor" or "Identity Document Fraud Detection")
-2.  Note the processor endpoint URL for `ID_FRAUD_ENDPOINT`
-
-**Processor 2: ID Parser**
-
-1.  Create another processor (choose "Identity Document Parser" or "ID Proofing Parser")
-2.  Note the processor endpoint URL for `ID_PARSE_ENDPOINT`
-
-Endpoint format: `https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/processors/{PROCESSOR_ID}:process`
-
-#### Set up Service Account
-
-1.  Go to IAM & Admin > Service Accounts
-2.  Create a service account with "Document AI API User" role
-3.  Create and download a JSON key file
-4.  Save the JSON file to your project (e.g., `./google-credentials.json`)
-5.  Add to `.gitignore` to keep it secure
+1. Create an AWS account
+2. Create IAM user with these permissions:
+   - `textract:AnalyzeID`
+   - `rekognition:CompareFaces`
+   - `rekognition:DetectFaces`
+3. Get access key and secret key
+4. Install SDKs (already included in this project):
+   - `@aws-sdk/client-textract`
+   - `@aws-sdk/client-rekognition`
 
 #### Environment Variables
 
 ```bash
-# Google Document AI - Two processors required
-ID_FRAUD_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/locations/us/processors/FRAUD_PROCESSOR_ID:process
-ID_PARSE_ENDPOINT=https://us-documentai.googleapis.com/v1/projects/{PROJECT_ID}/locations/us/processors/PARSER_PROCESSOR_ID:process
-
-# Google Service Account Credentials
-GOOGLE_APPLICATION_CREDENTIALS=./google-credentials.json
-# OR use JSON string for deployment:
-# GOOGLE_CREDENTIALS_JSON='{"type":"service_account","project_id":"...","private_key":"..."}'
-```
-
-**How it works:**
-
-- **ID\_FRAUD\_ENDPOINT**: First API call checks for fraudulent documents and returns fraud signals
-- **ID\_PARSE\_ENDPOINT**: Second API call extracts identity data (name\_full, date\_of\_birth, document\_id, etc.)
-
-### 2\. Face Comparison Service Configuration
-
-Choose one of the following providers:
-
-#### Option A: Mock (Development)
-
-No setup required. Provides random confidence scores for testing.
-
-```bash
-FACE_COMPARISON_PROVIDER=mock
-FACE_MATCH_THRESHOLD=0.85
-```
-
-#### Option B: AWS Rekognition (Production)
-
-1.  Create an AWS account
-2.  Enable Amazon Rekognition service
-3.  Create IAM user with Rekognition permissions
-4.  Install SDK: `npm install @aws-sdk/client-rekognition`
-
-```bash
-FACE_COMPARISON_PROVIDER=aws-rekognition
-FACE_MATCH_THRESHOLD=0.85
+# AWS Configuration
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=your-access-key-id
 AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_REKOGNITION_THRESHOLD=85
+AWS_TEXTRACT_CONFIDENCE_THRESHOLD=80
+
+# Enable AWS services
+FACE_COMPARISON_PROVIDER=aws-rekognition
 ```
 
-#### Option C: Azure Face API (Production)
-
-1.  Create an Azure account
-2.  Create a Face API resource
-3.  Get endpoint URL and subscription key
-4.  Install SDK: `npm install @azure/cognitiveservices-face @azure/core-auth`
-
+**For development/testing only:**
 ```bash
-FACE_COMPARISON_PROVIDER=azure-face
-FACE_MATCH_THRESHOLD=0.85
-AZURE_FACE_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
-AZURE_FACE_KEY=your-subscription-key
+# Use mock services (no AWS account needed)
+FACE_COMPARISON_PROVIDER=mock
 ```
 
-### 3\. Photo Storage Configuration
+### 2\. Photo Storage Configuration
 
 ```bash
 PHOTO_STORAGE_DIR=./storage/photos
@@ -192,7 +141,7 @@ mkdir -p storage/photos
 
 **POST** `/api/custom-verification/upload-id`
 
-Uploads and processes an ID photo with Google Document AI.
+Uploads and processes an ID photo with AWS Textract.
 
 **Request Body** (FormData):
 
@@ -217,7 +166,7 @@ mimeType: string (e.g., 'image/jpeg')
     "state": "CA",
     "expirationDate": "2028-01-15"
   },
-  "fraudSignals": [],
+  "lowConfidenceFields": [],
   "photoUrl": "./storage/photos/session_1234567890_abc123_id.jpg",
   "isExpired": false,
   "warnings": []
@@ -227,15 +176,15 @@ mimeType: string (e.g., 'image/jpeg')
 **Note**: The system automatically:
 
 - Extracts state from address if not directly provided
-- Infers document type (passport vs government\_id)
+- Infers document type (passport vs drivers_license vs government_id)
 - Checks for expired IDs and returns warnings
-- Detects fraud signals from the fraud detection processor
+- Tracks fields with low confidence scores (< 80%)
 
 ### Upload Selfie
 
 **POST** `/api/custom-verification/upload-selfie`
 
-Uploads a selfie and compares it with the ID photo.
+Uploads a selfie, performs liveness detection, and compares it with the ID photo using AWS Rekognition.
 
 **Request Body** (FormData):
 
@@ -244,14 +193,37 @@ sessionId: string
 image: string (base64 data URL)
 ```
 
-**Response**:
+**Response (Success)**:
 
 ```json
 {
   "success": true,
   "match": true,
   "confidence": 0.92,
+  "livenessResult": {
+    "isLive": true,
+    "confidence": 0.95,
+    "qualityScore": 0.88
+  },
   "sessionId": "session_1234567890_abc123"
+}
+```
+
+**Response (Liveness Check Failed)**:
+
+```json
+{
+  "success": false,
+  "error": "Liveness check failed",
+  "issues": [
+    "Image too dark",
+    "Face turned too far to the side"
+  ],
+  "livenessResult": {
+    "isLive": false,
+    "confidence": 0.42,
+    "qualityScore": 0.55
+  }
 }
 ```
 
@@ -283,26 +255,8 @@ Retrieves verification session data. This endpoint returns the complete verifica
       "state": "CA",
       "expirationDate": "2030-05-15"
     },
-    "documentAiData": {
-      "fraudSignalsCount": 4,
-      "fraudSignals": [
-        {
-          "type": "fraud_signals_is_identity_document",
-          "result": "PASS"
-        },
-        {
-          "type": "fraud_signals_suspicious_words",
-          "result": "PASS"
-        },
-        {
-          "type": "fraud_signals_image_manipulation",
-          "result": "PASS"
-        },
-        {
-          "type": "fraud_signals_online_duplicate",
-          "result": "PASS"
-        }
-      ],
+    "textractData": {
+      "lowConfidenceFields": [],
       "hasData": true
     },
     "idPhotoUrl": "storage/photos/session_1760055469389_xvmuj_id.jpg",
@@ -310,19 +264,22 @@ Retrieves verification session data. This endpoint returns the complete verifica
     "faceMatchResult": {
       "match": true,
       "confidence": 0.92
+    },
+    "livenessResult": {
+      "isLive": true,
+      "confidence": 0.95,
+      "qualityScore": 0.88,
+      "issues": []
     }
   }
 }
 ```
 
-**Fraud Signal Types:**
+**Field Descriptions:**
 
-- `fraud_signals_is_identity_document`: Verifies the document is actually an ID document
-- `fraud_signals_suspicious_words`: Checks for suspicious text or watermarks
-- `fraud_signals_image_manipulation`: Detects signs of photo editing or tampering
-- `fraud_signals_online_duplicate`: Checks if the ID image appears in fraud databases
-
-Each fraud signal returns either `PASS` or `FAIL`. Any `FAIL` results indicate potential fraud.
+- `textractData.lowConfidenceFields`: Array of fields extracted with confidence below threshold (e.g., `["state (72.3%)"]`)
+- `faceMatchResult`: Face comparison result from AWS Rekognition
+- `livenessResult`: Liveness detection result including quality checks for brightness, sharpness, eye detection, and face pose
 
 ## Client Usage
 
@@ -377,23 +334,27 @@ navigate('/app/custom-verify');
 
 ## Error Handling
 
-### Document AI Errors
+### AWS Textract Errors
 
 Common errors and solutions:
 
-- **Invalid endpoint**: Check both `ID_FRAUD_ENDPOINT` and `ID_PARSE_ENDPOINT` format
-- **Authentication failed**: Verify `GOOGLE_APPLICATION_CREDENTIALS` path or `GOOGLE_CREDENTIALS_JSON`
-- **Quota exceeded**: Check Google Cloud quotas and billing
-- **Low quality image**: Ask user to retake photo
-- **Missing processor**: Ensure both fraud detection and parser processors are created
-- **Fraud detection failed**: First API call failed, check fraud processor configuration
-- **Parsing failed**: Second API call failed, check parser processor configuration
+- **AWS credentials not configured**: Set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+- **AccessDeniedException**: IAM user lacks `textract:AnalyzeID` permission
+- **InvalidParameterException**: Image format or size issue - check image is valid JPEG/PNG
+- **ProvisionedThroughputExceededException**: Too many requests - implement rate limiting
+- **Low quality image**: Ask user to retake photo with better lighting
+- **Missing required fields**: Textract couldn't extract firstName, lastName, birthDate, or governmentId
 
-### Face Comparison Errors
+### AWS Rekognition Errors
 
-- **No face detected**: Ensure good lighting and face visibility
-- **Low confidence**: May need multiple attempts or better photos
-- **Service unavailable**: Check API credentials and quotas
+- **No face detected in ID photo**: Ensure ID includes a clear face photo
+- **No face detected in selfie**: Ensure face is centered and clearly visible
+- **Liveness check failed**: User will see specific issues (too dark, eyes closed, sunglasses, etc.)
+- **Face in selfie does not match ID photo**: Faces are genuinely different or quality too low
+- **AccessDeniedException**: IAM user lacks `rekognition:CompareFaces` or `rekognition:DetectFaces` permission
+- **InvalidParameterException**: Image format or size issue
+
+**See [AWS_SETUP.md](./AWS_SETUP.md#troubleshooting) for detailed troubleshooting steps.**
 
 ## Development & Testing
 
@@ -445,28 +406,35 @@ Monitor these metrics:
 
 ### Cost Optimization
 
-- Google Document AI: ~$1.50 per 1,000 pages **per processor** (note: we make 2 API calls per ID)
-- AWS Rekognition: ~$0.001 per image
-- Azure Face API: ~$0.001 per transaction
+**Current AWS Pricing (US East region):**
+- AWS Textract AnalyzeID: ~$0.065 per ID
+- AWS Rekognition CompareFaces: ~$0.001 per comparison
+- AWS Rekognition DetectFaces: ~$0.001 per detection
 
 **Per verification costs:**
+- 1 Textract call: $0.065
+- 1 Liveness check (DetectFaces): $0.001
+- 1 Face comparison: $0.001
+- **Total: ~$0.067 per complete verification**
 
-- 2 Document AI calls (fraud + parser): ~$0.003 per verification
-- 1 Face comparison call: ~$0.001 per verification
-- **Total: ~$0.004 per complete verification**
+**Free Tier Benefits:**
+- Textract: 1,000 pages/month for first 3 months
+- Rekognition: 5,000 images/month for first 12 months
 
-Consider:
+**Optimization Tips:**
+- Cache extracted ID data to avoid re-processing
+- Implement request deduplication
+- Use image compression before upload (maintains quality)
+- Monitor usage with AWS CloudWatch and Budgets
+- Consider batch operations for high-volume scenarios
 
-- Image compression before upload
-- Batch processing where possible
-- Caching successful verifications
-- Skip fraud detection for low-risk scenarios (though not recommended)
+**See [AWS_SETUP.md](./AWS_SETUP.md#cost-considerations) for detailed cost analysis and examples.**
 
 ## Troubleshooting
 
-### "Document AI endpoint not configured"
+### "AWS credentials not configured"
 
-Set both `ID_FRAUD_ENDPOINT` and `ID_PARSE_ENDPOINT` in your environment variables. Both are required for the system to work.
+Set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in your `.env.local` file. Restart the development server after making changes.
 
 ### "Unable to access camera"
 
@@ -476,14 +444,23 @@ Ensure:
 - User has granted camera permissions
 - Camera is not in use by another app
 
-### "Face comparison failed"
+### "Liveness check failed"
+
+The error message will include specific issues:
+- **Image too dark/bright**: Improve lighting conditions
+- **Image not sharp enough**: Hold device steady, ensure camera is focused
+- **Eyes appear closed**: Keep eyes open during photo
+- **Face turned too far**: Face camera directly
+- **Sunglasses detected**: Remove sunglasses or eyewear
+
+### "Face comparison failed" or "Face does not match"
 
 Check:
-
-- `FACE_COMPARISON_PROVIDER` is set correctly
-- API credentials are valid
-- Images are properly formatted
-- Faces are clearly visible in both photos
+- Same person in both photos
+- Good lighting in both images
+- Face clearly visible (not obscured)
+- ID photo includes face (not just back of ID)
+- Consider adjusting `AWS_REKOGNITION_THRESHOLD` (default 85)
 
 ### "Session not found"
 
@@ -491,16 +468,19 @@ Check:
 - Check Firebase Realtime Database connection
 - Verify session ID is correct
 
+**For more troubleshooting, see [AWS_SETUP.md](./AWS_SETUP.md#troubleshooting)**
+
 ## Future Enhancements
 
 Potential improvements:
 
-- Multi-language support for Document AI
-- Liveness detection for selfies
-- ✅ Document fraud detection (implemented via ID\_FRAUD\_ENDPOINT)
+- ✅ Liveness detection for selfies (implemented)
 - ✅ ID expiration date detection (implemented)
+- Multi-language support for Textract
+- Video-based liveness with head movement detection
 - Progressive image quality checks
-- Webhook notifications
-- Admin dashboard for verification review
-- Fraud signal threshold configuration
-- Custom fraud rules engine
+- Webhook notifications for verification events
+- Admin dashboard for verification review and audit
+- Fraud detection integration (third-party service)
+- Custom confidence threshold configuration per field
+- Support for international IDs and passports
