@@ -7,6 +7,7 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
+    "test:aws": "node scripts/test-aws-setup.js",
     "test:algorand": "node scripts/test-algorand.js",
     "test:algorand:testnet": "node scripts/test-algorand.js testnet",
     "test:algorand:localnet": "node scripts/test-algorand.js localnet",
