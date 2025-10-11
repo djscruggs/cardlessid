@@ -1,6 +1,7 @@
 /**
- * Photo storage utilities for ID and selfie images
- * Stores photos locally on the server filesystem
+ * Temporary photo storage utilities for ID and selfie images
+ * Photos are stored VERY briefly on disk during processing, then immediately deleted
+ * All photos are deleted after processing completes (success or failure)
  */
 
 import fs from 'fs/promises';
@@ -66,6 +67,22 @@ export async function readPhoto(filepath: string): Promise<string> {
 }
 
 /**
+ * Delete a specific photo file
+ * @param filepath Path to photo file
+ */
+export async function deletePhoto(filepath: string): Promise<void> {
+  try {
+    await fs.unlink(filepath);
+    console.log(`[Photo Storage] Deleted: ${filepath}`);
+  } catch (error) {
+    // Ignore if file doesn't exist
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.error('[Photo Storage] Error deleting photo:', error);
+    }
+  }
+}
+
+/**
  * Delete photos for a session
  * @param sessionId Verification session ID
  */
@@ -73,13 +90,13 @@ export async function deleteSessionPhotos(sessionId: string): Promise<void> {
   try {
     const idPath = path.join(STORAGE_DIR, `${sessionId}_id.jpg`);
     const selfiePath = path.join(STORAGE_DIR, `${sessionId}_selfie.jpg`);
-    
+
     await Promise.all([
-      fs.unlink(idPath).catch(() => {}),
-      fs.unlink(selfiePath).catch(() => {}),
+      deletePhoto(idPath),
+      deletePhoto(selfiePath),
     ]);
   } catch (error) {
-    console.error('Error deleting session photos:', error);
+    console.error('[Photo Storage] Error deleting session photos:', error);
   }
 }
 
