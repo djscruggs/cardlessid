@@ -17,9 +17,10 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const formData = await request.formData();
     const sessionId = formData.get('sessionId') as string;
-    const imageData = formData.get('image') as string;
+    const selfieData = formData.get('selfie') as string;
+    const idPhotoData = formData.get('idPhoto') as string;
 
-    if (!sessionId || !imageData) {
+    if (!sessionId || !selfieData || !idPhotoData) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -29,13 +30,9 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    // Check if ID photo base64 is available in session
-    if (!session.idPhotoBase64) {
-      return Response.json({ error: 'No ID photo data found for this session' }, { status: 400 });
-    }
-
     // Remove data URL prefix if present
-    const selfieBase64 = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const selfieBase64 = selfieData.replace(/^data:image\/\w+;base64,/, '');
+    const idPhotoBase64 = idPhotoData.replace(/^data:image\/\w+;base64,/, '');
 
     // Step 1: Check for liveness
     console.log('[Upload Selfie] Performing liveness check...');
@@ -57,9 +54,9 @@ export async function action({ request }: ActionFunctionArgs) {
     // Step 2: Save the selfie photo temporarily
     selfieUrl = await saveSelfiePhoto(sessionId, selfieBase64);
 
-    // Step 3: Compare faces using base64 data from session (ID photo) and new selfie
+    // Step 3: Compare faces using both photos from client (never stored on server/Firebase)
     console.log('[Upload Selfie] Comparing faces...');
-    const comparisonResult = await compareFaces(session.idPhotoBase64, selfieBase64);
+    const comparisonResult = await compareFaces(idPhotoBase64, selfieBase64);
 
     if (comparisonResult.error) {
       console.error('[Upload Selfie] Face comparison error:', comparisonResult.error);
@@ -71,12 +68,11 @@ export async function action({ request }: ActionFunctionArgs) {
       }, { status: 400 });
     }
 
-    // Update session with results and remove stored ID photo base64
+    // Update session with results (no ID photo base64 to clear - it's on client)
     await updateVerificationSession(sessionId, {
       faceMatchResult: comparisonResult,
       livenessResult: livenessResult,
       status: comparisonResult.match ? 'approved' : 'rejected',
-      idPhotoBase64: null, // Clear the stored base64 data after use
     });
 
     console.log('[Upload Selfie] Verification complete:', {

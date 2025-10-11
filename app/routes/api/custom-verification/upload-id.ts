@@ -66,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
       console.warn('[Upload ID] Warning: Expired ID detected', validation.warnings);
     }
 
-    // Update session with extracted data AND store ID photo base64 for later comparison
+    // Update session with extracted data (ID photo base64 stays on client)
     try {
       await updateVerificationSession(session.id, {
         textractData: {
@@ -74,14 +74,13 @@ export async function action({ request }: ActionFunctionArgs) {
           hasData: !!result.extractedData
         },
         verifiedData: result.extractedData as any,
-        idPhotoBase64: base64Data, // Store for face comparison later
       });
     } catch (error) {
       console.error('Update verification session error:', error);
     }
 
     // Delete photo immediately after successful processing
-    console.log('[Upload ID] Deleting ID photo from disk after processing');
+    console.log('[Upload ID] Deleting ID photo from disk - base64 stays on client');
     if (photoUrl) await deletePhoto(photoUrl);
 
     return Response.json({
