@@ -37,13 +37,22 @@ export default [
     ...prefix("age-verify", [
       route("create", "routes/api/age-verify/create.ts"),
       route("respond", "routes/api/age-verify/respond.ts"),
-      route("session/:sessionId", "routes/api/age-verify/session.$sessionId.ts"),
+      route(
+        "session/:sessionId",
+        "routes/api/age-verify/session.$sessionId.ts"
+      ),
     ]),
     ...prefix("integrator/challenge", [
       route("create", "routes/api/integrator/challenge/create.ts"),
       route("respond", "routes/api/integrator/challenge/respond.ts"),
-      route("verify/:challengeId", "routes/api/integrator/challenge/verify.$challengeId.ts"),
-      route("details/:challengeId", "routes/api/integrator/challenge/details.$challengeId.ts"),
+      route(
+        "verify/:challengeId",
+        "routes/api/integrator/challenge/verify.$challengeId.ts"
+      ),
+      route(
+        "details/:challengeId",
+        "routes/api/integrator/challenge/details.$challengeId.ts"
+      ),
     ]),
     ...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),
@@ -67,6 +76,9 @@ export default [
     route("wallet-verify", "routes/app/wallet-verify.tsx"),
     route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
     route("wallet-status", "routes/app/wallet-status.tsx"),
-    route("wallet-status/:address", "routes/app/wallet-status.tsx", { id: "wallet-status-with-address" }),
+    route("wallet-status/:address", "routes/app/wallet-status.tsx", {
+      id: "wallet-status-with-address",
+    }),
+    route("issuer-list", "routes/app/issuer-list.tsx"),
   ]),
 ] satisfies RouteConfig;

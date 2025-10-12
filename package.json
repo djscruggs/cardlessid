@@ -15,7 +15,9 @@
     "test:algorand:credential": "node scripts/test-algorand.js credential",
     "setup:localnet": "node scripts/localnet-setup.js",
     "docker:localnet": "docker-compose -f docker/algorand-localnet.yml up -d",
-    "docker:localnet:stop": "docker-compose -f docker/algorand-localnet.yml down"
+    "docker:localnet:stop": "docker-compose -f docker/algorand-localnet.yml down",
+    "algokit:build": "cd cardlessid-algorand && algokit project run build",
+    "algokit:generate": "algokit generate client"
   },
   "dependencies": {
     "@aws-sdk/client-rekognition": "^3.907.0",
@@ -27,6 +29,7 @@
     "@vercel/react-router": "^1.2.3",
     "@worldcoin/idkit": "^2.4.1",
     "algosdk": "^3.5.2",
+    "dotenv": "^17.2.3",
     "emailjs": "^4.0.3",
     "firebase": "^12.3.0",
     "firebase-admin": "^13.5.0",
@@ -38,6 +41,8 @@
     "react-router": "^7.7.1"
   },
   "devDependencies": {
+    "@algorandfoundation/algokit-client-generator": "^6.0.0",
+    "@algorandfoundation/algokit-utils": "^9.1.2",
     "@react-router/dev": "^7.7.1",
     "@tailwindcss/vite": "^4.1.4",
     "@types/firebase": "^2.4.32",
