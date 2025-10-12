@@ -97,6 +97,31 @@ After identity verification is complete, request a credential to be minted.
       "id": "did:algo:USER_ADDRESS",
       "cardlessid:compositeHash": "hash..."
     },
+    "evidence": [
+      {
+        "type": ["DocumentVerification"],
+        "verifier": "did:algo:ISSUER_ADDRESS",
+        "evidenceDocument": "DriversLicense",
+        "subjectPresence": "Digital",
+        "documentPresence": "Digital",
+        "fraudDetection": {
+          "performed": true,
+          "passed": true,
+          "method": "google-document-ai",
+          "provider": "Google Document AI"
+        },
+        "documentAnalysis": {
+          "provider": "aws-textract",
+          "bothSidesAnalyzed": true,
+          "qualityLevel": "high"
+        },
+        "biometricVerification": {
+          "performed": true,
+          "faceMatch": { "confidence": 0.95 },
+          "liveness": { "confidence": 0.92 }
+        }
+      }
+    ],
     "proof": {...}
   },
   "personalData": {
@@ -104,6 +129,16 @@ After identity verification is complete, request a credential to be minted.
     "lastName": "Doe",
     "birthDate": "1990-01-01",
     ...
+  },
+  "verificationQuality": {
+    "level": "high",
+    "fraudCheckPassed": true,
+    "extractionMethod": "aws-textract",
+    "bothSidesProcessed": true,
+    "lowConfidenceFields": [],
+    "fraudSignals": [],
+    "faceMatchConfidence": 0.95,
+    "livenessConfidence": 0.92
   },
   "nft": {
     "assetId": "123456789",
@@ -144,12 +179,27 @@ The `verificationToken` and identity data come from the verification process:
 
 **Important**:
 
-- Store both the `credential` (with proof) and `personalData` locally in the wallet
+- Store the `credential` (with proof), `personalData`, AND `verificationQuality` locally in the wallet
 - The blockchain only stores the NFT with minimal metadata (credential ID, composite hash)
 - NO age or birth information is stored on-chain for privacy
 - `assetId` is returned as a **string** (not number) due to JSON bigint handling
 - **Wallet Funding**: If the wallet has insufficient balance (< 0.101 ALGO), the issuer automatically funds it with 0.2 ALGO to enable asset opt-in. The `funding` field will only appear if funding was needed.
 - **Data Integrity**: The server keeps only a hash of identity data. When you submit the credential request, the server verifies your submitted data matches the stored hash. This prevents data tampering.
+- **Verification Quality**: The credential includes quality metrics from Google Document AI, AWS Textract, and AWS Rekognition. Use these to assess trust level.
+
+**Verification Quality** (W3C Standard):
+
+The credential includes a W3C-standard `evidence` property with detailed verification metadata:
+- **Document fraud detection** from Google Document AI
+- **OCR confidence levels** from AWS Textract
+- **Biometric matching** from AWS Rekognition (face match + liveness)
+
+**Quality Levels** (in `evidence[0].documentAnalysis.qualityLevel`):
+- `high` - Fraud check passed, both sides processed, no low-confidence fields, strong biometrics
+- `medium` - Fraud check passed but minor issues (front-only, some low-confidence fields)
+- `low` - Low-confidence OCR, fraud signals present, or no fraud check
+
+Relying parties can inspect the `evidence` array to make risk-based trust decisions. The evidence property follows W3C VC Data Model standards for interoperability.
 
 ---
 
@@ -347,6 +397,32 @@ interface WalletCredentialStorage {
         id: string;
         "cardlessid:compositeHash": string;
       };
+      // W3C standard evidence property for verification metadata
+      evidence: Array<{
+        type: string[];
+        verifier: string;
+        evidenceDocument: string;
+        subjectPresence: string;
+        documentPresence: string;
+        fraudDetection: {
+          performed: boolean;
+          passed: boolean;
+          method: string;
+          provider: string;
+          signals: any[];
+        };
+        documentAnalysis: {
+          provider: string;
+          bothSidesAnalyzed: boolean;
+          lowConfidenceFields: string[];
+          qualityLevel: 'high' | 'medium' | 'low';
+        };
+        biometricVerification: {
+          performed: boolean;
+          faceMatch: { confidence: number; provider: string };
+          liveness: { confidence: number; provider: string };
+        };
+      }>;
       proof: {
         type: string;
         created: string;
@@ -367,6 +443,18 @@ interface WalletCredentialStorage {
       state: string;
     };
 
+    // Verification quality metrics (use for risk assessment)
+    verificationQuality: {
+      level: 'high' | 'medium' | 'low';
+      fraudCheckPassed: boolean;
+      extractionMethod: string;
+      bothSidesProcessed: boolean;
+      lowConfidenceFields: string[];
+      fraudSignals: any[];
+      faceMatchConfidence: number | null;
+      livenessConfidence: number | null;
+    };
+
     // NFT information
     nft: {
       assetId: number;
@@ -384,6 +472,47 @@ interface WalletCredentialStorage {
 - Never transmit birth date or full personal data
 - Only share: wallet address + true/false age verification result
 - Optionally share cryptographic proof for zero-knowledge verification
+- Store `verificationQuality` for risk assessment and compliance audits
+
+**Using Verification Evidence (W3C Standard)**:
+
+```typescript
+// Example: Risk-based decision making using W3C evidence property
+function shouldAcceptCredential(credential: any): boolean {
+  const evidence = credential.credential.evidence?.[0];
+  
+  if (!evidence) {
+    return false; // No verification evidence
+  }
+  
+  // High-security scenario: Require high quality + strong biometrics
+  if (isHighSecurityContext) {
+    return evidence.documentAnalysis.qualityLevel === 'high' &&
+           evidence.fraudDetection.passed &&
+           evidence.biometricVerification.faceMatch.confidence > 0.9 &&
+           evidence.biometricVerification.liveness.confidence > 0.9;
+  }
+  
+  // Medium-security: Accept high or medium quality
+  if (isMediumSecurityContext) {
+    return (evidence.documentAnalysis.qualityLevel === 'high' || 
+            evidence.documentAnalysis.qualityLevel === 'medium') &&
+           evidence.fraudDetection.passed;
+  }
+  
+  // Standard: Check minimum thresholds
+  return evidence.fraudDetection.passed && 
+         evidence.biometricVerification.faceMatch.confidence > 0.7 &&
+         evidence.biometricVerification.liveness.confidence > 0.7;
+}
+
+// Example: Extract specific confidence scores
+const evidence = credential.credential.evidence[0];
+const faceMatchScore = evidence.biometricVerification.faceMatch.confidence;
+const livenessScore = evidence.biometricVerification.liveness.confidence;
+const qualityLevel = evidence.documentAnalysis.qualityLevel;
+const fraudPassed = evidence.fraudDetection.passed;
+```
 
 ---
 

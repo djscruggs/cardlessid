@@ -30,6 +30,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
           purpose: CARDLESS_FIELDS.compositeHash.purpose,
           example: CARDLESS_FIELDS.compositeHash.example
         },
+        "evidence": {
+          type: CARDLESS_FIELDS.evidence.type,
+          description: CARDLESS_FIELDS.evidence.description,
+          purpose: CARDLESS_FIELDS.evidence.purpose,
+          structure: CARDLESS_FIELDS.evidence.structure
+        },
       },
       usage: USAGE_NOTES,
     },

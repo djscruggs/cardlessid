@@ -78,6 +78,60 @@ export default function CredentialSchemaDocs() {
                   </p>
                 </div>
               </div>
+
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  evidence (W3C Standard)
+                </h3>
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-medium">Type:</span>{" "}
+                    <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                      {CARDLESS_FIELDS.evidence.type}
+                    </code>
+                  </p>
+                  <p>
+                    <span className="font-medium">Description:</span>{" "}
+                    {CARDLESS_FIELDS.evidence.description}
+                  </p>
+                  <p>
+                    <span className="font-medium">Purpose:</span>{" "}
+                    {CARDLESS_FIELDS.evidence.purpose}
+                  </p>
+                  <div className="mt-4">
+                    <p className="font-medium mb-2">Structure:</p>
+                    <div className="bg-gray-50 p-4 rounded space-y-3 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">fraudDetection:</p>
+                        <ul className="ml-4 space-y-1 text-gray-600">
+                          <li>• performed: {CARDLESS_FIELDS.evidence.structure.fraudDetection.performed}</li>
+                          <li>• passed: {CARDLESS_FIELDS.evidence.structure.fraudDetection.passed}</li>
+                          <li>• method: {CARDLESS_FIELDS.evidence.structure.fraudDetection.method}</li>
+                          <li>• provider: {CARDLESS_FIELDS.evidence.structure.fraudDetection.provider}</li>
+                          <li>• signals: {CARDLESS_FIELDS.evidence.structure.fraudDetection.signals}</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-700">documentAnalysis:</p>
+                        <ul className="ml-4 space-y-1 text-gray-600">
+                          <li>• provider: {CARDLESS_FIELDS.evidence.structure.documentAnalysis.provider}</li>
+                          <li>• bothSidesAnalyzed: {CARDLESS_FIELDS.evidence.structure.documentAnalysis.bothSidesAnalyzed}</li>
+                          <li>• lowConfidenceFields: {CARDLESS_FIELDS.evidence.structure.documentAnalysis.lowConfidenceFields}</li>
+                          <li>• qualityLevel: {CARDLESS_FIELDS.evidence.structure.documentAnalysis.qualityLevel}</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-700">biometricVerification:</p>
+                        <ul className="ml-4 space-y-1 text-gray-600">
+                          <li>• performed: {CARDLESS_FIELDS.evidence.structure.biometricVerification.performed}</li>
+                          <li>• faceMatch: {CARDLESS_FIELDS.evidence.structure.biometricVerification.faceMatch}</li>
+                          <li>• liveness: {CARDLESS_FIELDS.evidence.structure.biometricVerification.liveness}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -112,6 +166,13 @@ export default function CredentialSchemaDocs() {
                   Cryptographic Proof
                 </h3>
                 <p className="text-orange-800">{USAGE_NOTES.proof}</p>
+              </div>
+
+              <div className="border-l-4 border-indigo-400 bg-indigo-50 p-4">
+                <h3 className="text-lg font-medium text-indigo-900 mb-2">
+                  Evidence & Verification Quality
+                </h3>
+                <p className="text-indigo-800">{USAGE_NOTES.evidence}</p>
               </div>
             </div>
           </section>
@@ -160,6 +221,19 @@ export default function CredentialSchemaDocs() {
                 <li>
                   • <strong>Composite Hash:</strong> Use the composite hash to
                   prevent duplicate credentials from the same person
+                </li>
+                <li>
+                  • <strong>Evidence Verification:</strong> Check the evidence
+                  property for verification quality - use qualityLevel (high/medium/low)
+                  for risk-based acceptance decisions
+                </li>
+                <li>
+                  • <strong>Fraud Detection:</strong> Review fraudDetection.passed
+                  and fraudDetection.signals for potential fraud indicators
+                </li>
+                <li>
+                  • <strong>Biometric Confidence:</strong> For high-security scenarios,
+                  require faceMatchConfidence and livenessConfidence above threshold (e.g., 0.85)
                 </li>
                 <li>
                   • <strong>Expiration:</strong> Consider implementing

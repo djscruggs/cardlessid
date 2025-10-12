@@ -90,12 +90,15 @@ export async function action({ request }: ActionFunctionArgs) {
       }, { status: 400 });
     }
 
-    // Update session with results (no ID photo base64 to clear - it's on client)
+    // Update session with results (merge with existing metadata to preserve fraud signals)
     await updateVerificationSession(sessionId, {
       status: comparisonResult.match ? 'approved' : 'rejected',
       providerMetadata: {
+        ...session.providerMetadata, // Preserve fraud signals, lowConfidenceFields, etc.
         faceMatchResult: comparisonResult,
-        livenessResult: livenessResult
+        faceMatchConfidence: comparisonResult.confidence,
+        livenessResult: livenessResult,
+        livenessConfidence: livenessResult.confidence
       }
     });
 

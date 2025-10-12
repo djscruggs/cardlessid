@@ -1,6 +1,31 @@
 import type { ActionFunctionArgs } from "react-router";
 
 /**
+ * Determine verification quality level based on provider metadata
+ */
+function determineVerificationLevel(metadata: any): 'high' | 'medium' | 'low' {
+  if (!metadata) return 'low';
+
+  const hasLowConfidence = (metadata.lowConfidenceFields?.length || 0) > 0;
+  const hasFraudCheck = metadata.fraudCheckPassed === true;
+  const hasBothSides = metadata.bothSidesProcessed === true;
+  const hasFraudSignals = (metadata.fraudSignals?.length || 0) > 0;
+
+  // High: Fraud check passed + both sides + no low confidence fields + no fraud signals
+  if (hasFraudCheck && hasBothSides && !hasLowConfidence && !hasFraudSignals) {
+    return 'high';
+  }
+
+  // Low: Has low confidence fields OR has fraud signals OR no fraud check
+  if (hasLowConfidence || hasFraudSignals || !hasFraudCheck) {
+    return 'low';
+  }
+
+  // Medium: Everything else
+  return 'medium';
+}
+
+/**
  * Endpoint for mobile app to request credential after verification
  *
  * Expected payload:
@@ -268,7 +293,29 @@ export async function action({ request }: ActionFunctionArgs) {
     const credentialId = `urn:uuid:${crypto.randomUUID()}`;
     const issuanceDate = new Date().toISOString();
 
+    // Extract verification quality metrics from session
+    const verificationQuality = {
+      fraudCheckPassed: session.providerMetadata?.fraudCheckPassed || false,
+      fraudSignals: session.providerMetadata?.fraudSignals || [],
+      extractionMethod: session.providerMetadata?.extractionMethod || 'unknown',
+      lowConfidenceFields: session.providerMetadata?.lowConfidenceFields || [],
+      bothSidesProcessed: session.providerMetadata?.bothSidesProcessed || false,
+      faceMatchConfidence: session.providerMetadata?.faceMatchConfidence || null,
+      livenessConfidence: session.providerMetadata?.livenessConfidence || null,
+      verificationLevel: determineVerificationLevel(session.providerMetadata),
+    };
+
+    console.log('[Credentials] Verification quality metrics:', {
+      level: verificationQuality.verificationLevel,
+      fraudCheckPassed: verificationQuality.fraudCheckPassed,
+      lowConfidenceFieldCount: verificationQuality.lowConfidenceFields.length,
+      fraudSignalCount: verificationQuality.fraudSignals.length,
+      faceMatchConfidence: verificationQuality.faceMatchConfidence,
+      livenessConfidence: verificationQuality.livenessConfidence
+    });
+
     // Create credential without proof (this is what gets signed)
+    // Using W3C VC Data Model standard "evidence" property for verification metadata
     const credentialWithoutProof = {
       "@context": [
         "https://www.w3.org/ns/credentials/v2",
@@ -285,6 +332,44 @@ export async function action({ request }: ActionFunctionArgs) {
         id: subjectId,
         "cardlessid:compositeHash": compositeHash,
       },
+      // W3C standard evidence property for verification metadata
+      evidence: [
+        {
+          type: ["DocumentVerification"],
+          verifier: issuerId,
+          evidenceDocument: credentialData.idType === 'drivers_license' ? 'DriversLicense' : 
+                           credentialData.idType === 'passport' ? 'Passport' : 
+                           'GovernmentIssuedID',
+          subjectPresence: "Digital",
+          documentPresence: "Digital",
+          // Verification quality and confidence metrics
+          verificationMethod: verificationQuality.extractionMethod,
+          fraudDetection: {
+            performed: verificationQuality.fraudCheckPassed,
+            passed: verificationQuality.fraudCheckPassed,
+            method: "google-document-ai",
+            provider: "Google Document AI",
+            signals: verificationQuality.fraudSignals
+          },
+          documentAnalysis: {
+            provider: verificationQuality.extractionMethod,
+            bothSidesAnalyzed: verificationQuality.bothSidesProcessed,
+            lowConfidenceFields: verificationQuality.lowConfidenceFields,
+            qualityLevel: verificationQuality.verificationLevel
+          },
+          biometricVerification: {
+            performed: verificationQuality.faceMatchConfidence !== null,
+            faceMatch: {
+              confidence: verificationQuality.faceMatchConfidence,
+              provider: "AWS Rekognition"
+            },
+            liveness: {
+              confidence: verificationQuality.livenessConfidence,
+              provider: "AWS Rekognition"
+            }
+          }
+        }
+      ],
     };
 
     // Create canonical JSON string and sign it
@@ -398,6 +483,16 @@ export async function action({ request }: ActionFunctionArgs) {
         governmentId: credentialData.governmentId,
         idType: credentialData.idType,
         state: credentialData.state,
+      },
+      verificationQuality: {
+        level: verificationQuality.verificationLevel,
+        fraudCheckPassed: verificationQuality.fraudCheckPassed,
+        extractionMethod: verificationQuality.extractionMethod,
+        bothSidesProcessed: verificationQuality.bothSidesProcessed,
+        lowConfidenceFields: verificationQuality.lowConfidenceFields,
+        fraudSignals: verificationQuality.fraudSignals,
+        faceMatchConfidence: verificationQuality.faceMatchConfidence,
+        livenessConfidence: verificationQuality.livenessConfidence,
       },
       issuedAt: issuanceDate,
       nft: {

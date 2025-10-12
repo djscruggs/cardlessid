@@ -414,12 +414,12 @@ fetch('/api/custom-verification/upload-id', {
     "middleName": "Michael",
     "lastName": "Doe",
     "birthDate": "1990-01-15",
-    "governmentId": "D1234567",
-    "idType": "drivers_license",
-    "state": "CA",
+      "governmentId": "D1234567",
+      "idType": "drivers_license",
+      "state": "CA",
     "expirationDate": "2028-01-15"
-  },
-  "lowConfidenceFields": [],
+    },
+      "lowConfidenceFields": [],
   "isExpired": false,
   "warnings": null,
   "bothSidesProcessed": true,
@@ -500,13 +500,13 @@ fetch('/api/custom-verification/upload-selfie', {
 ```json
 {
   "success": true,
-  "match": true,
+      "match": true,
   "confidence": 0.92,
-  "livenessResult": {
-    "isLive": true,
-    "confidence": 0.95,
-    "qualityScore": 0.88,
-    "issues": []
+    "livenessResult": {
+      "isLive": true,
+      "confidence": 0.95,
+      "qualityScore": 0.88,
+      "issues": []
   },
   "sessionId": "custom_1234567890"
 }
@@ -588,6 +588,40 @@ fetch('/api/credentials', {
       "id": "did:algo:USER_WALLET_ADDRESS",
       "cardlessid:compositeHash": "hash_of_identity_data"
     },
+    "evidence": [
+      {
+        "type": ["DocumentVerification"],
+        "verifier": "did:algo:ISSUER_ADDRESS",
+        "evidenceDocument": "DriversLicense",
+        "subjectPresence": "Digital",
+        "documentPresence": "Digital",
+        "verificationMethod": "aws-textract",
+        "fraudDetection": {
+          "performed": true,
+          "passed": true,
+          "method": "google-document-ai",
+          "provider": "Google Document AI",
+          "signals": []
+        },
+        "documentAnalysis": {
+          "provider": "aws-textract",
+          "bothSidesAnalyzed": true,
+          "lowConfidenceFields": [],
+          "qualityLevel": "high"
+        },
+        "biometricVerification": {
+          "performed": true,
+          "faceMatch": {
+            "confidence": 0.95,
+            "provider": "AWS Rekognition"
+          },
+          "liveness": {
+            "confidence": 0.92,
+            "provider": "AWS Rekognition"
+          }
+        }
+      }
+    ],
     "proof": {
       "type": "Ed25519Signature2020",
       "created": "2025-10-12T12:34:56.789Z",
@@ -604,6 +638,16 @@ fetch('/api/credentials', {
     "governmentId": "D1234567",
     "idType": "drivers_license",
     "state": "CA"
+  },
+  "verificationQuality": {
+    "level": "high",
+    "fraudCheckPassed": true,
+    "extractionMethod": "aws-textract",
+    "bothSidesProcessed": true,
+    "lowConfidenceFields": [],
+    "fraudSignals": [],
+    "faceMatchConfidence": 0.95,
+    "livenessConfidence": 0.92
   },
   "nft": {
     "assetId": "123456789",
@@ -648,13 +692,128 @@ fetch('/api/credentials', {
 
 This ensures clients cannot modify any identity information after verification without detection.
 
+### Verification Quality Levels
+
+**W3C Standard Compliance**: The credential uses the W3C VC Data Model standard `evidence` property (instead of custom fields) to include verification metadata. This ensures interoperability with other W3C-compliant systems.
+
+The `evidence` array contains `DocumentVerification` objects with detailed confidence metrics from:
+- **Google Document AI** - Fraud detection signals
+- **AWS Textract** - OCR confidence levels
+- **AWS Rekognition** - Face match and liveness confidence
+
+A simplified `verificationQuality` object is also returned in the API response (not in credential) for convenience.
+
+**Quality Levels:**
+
+- **`high`**: 
+  - Fraud check passed ✓
+  - Both sides of ID processed ✓
+  - No low-confidence OCR fields ✓
+  - No fraud signals detected ✓
+  - Best verification quality
+
+- **`medium`**: 
+  - Fraud check passed ✓
+  - Either front-only OR has minor issues
+  - Acceptable for most use cases
+
+- **`low`**: 
+  - Low-confidence OCR fields present OR
+  - Fraud signals detected (but still passed) OR
+  - No fraud check performed
+  - May require additional verification
+
+**Evidence Property Structure (W3C Standard):**
+
+The credential's `evidence` array includes detailed verification metadata:
+
+```typescript
+evidence: [
+  {
+    type: ["DocumentVerification"],
+    verifier: "did:algo:ISSUER_ADDRESS",
+    evidenceDocument: "DriversLicense" | "Passport" | "GovernmentIssuedID",
+    subjectPresence: "Digital",
+    documentPresence: "Digital",
+    verificationMethod: "aws-textract",
+    
+    fraudDetection: {
+      performed: boolean,              // Whether fraud check was performed
+      passed: boolean,                 // Overall fraud check result
+      method: "google-document-ai",    // Fraud detection method/service used
+      provider: "Google Document AI",  // Human-readable provider name
+      signals: array                   // Fraud signals detected (empty if clean)
+    },
+    
+    documentAnalysis: {
+      provider: "aws-textract",
+      bothSidesAnalyzed: boolean,      // Front + back processed
+      lowConfidenceFields: string[],   // Fields with low OCR confidence
+      qualityLevel: "high" | "medium" | "low"
+    },
+    
+    biometricVerification: {
+      performed: boolean,              // Whether face verification was done
+      faceMatch: {
+        confidence: number,            // 0.0 to 1.0
+        provider: "AWS Rekognition"
+      },
+      liveness: {
+        confidence: number,            // 0.0 to 1.0
+        provider: "AWS Rekognition"
+      }
+    }
+  }
+]
+```
+
+**API Response Helper (not in credential):**
+
+For convenience, the API response also includes a simplified `verificationQuality` object:
+
+```typescript
+verificationQuality: {
+  level: 'high' | 'medium' | 'low',
+  fraudCheckPassed: boolean,
+  extractionMethod: string,
+  bothSidesProcessed: boolean,
+  lowConfidenceFields: string[],
+  fraudSignals: array,
+  faceMatchConfidence: number | null,
+  livenessConfidence: number | null
+}
+```
+
+**Use Cases:**
+
+- **High-security applications**: Accept only `level: 'high'` credentials
+- **Risk-based decisions**: Require higher confidence for sensitive operations
+- **Audit trails**: Track verification quality for compliance
+- **User feedback**: Show users their verification confidence score
+- **Fraud investigation**: Review low-quality verifications for patterns
+- **Interoperability**: W3C-standard `evidence` property works with other VC systems
+
+**W3C Standards Compliance:**
+
+This implementation follows:
+- **W3C VC Data Model** - Uses standard `evidence` property for verification metadata
+- **W3C Confidence Method v0.9** - Framework for communicating verification confidence
+- **DocumentVerification** evidence type - Standard for ID document verification
+
+Benefits:
+- ✅ Interoperable with other W3C-compliant credential systems
+- ✅ Standard way to convey verification confidence and methods
+- ✅ Allows verifiers to assess credential trustworthiness
+- ✅ Future-proof as W3C standards evolve
+
 ### Step 5: Store Credential & Opt-in to NFT
 
 **Store Locally (Encrypted):**
 ```typescript
 interface StoredCredential {
-  credential: any;      // W3C VC from response
-  personalData: any;    // Personal data from response
+  credential: any;              // W3C VC from response (includes verificationQuality)
+  personalData: any;            // Personal data from response
+  verificationQuality: any;     // Verification confidence metrics
   nft: {
     assetId: string;
     network: string;
@@ -665,6 +824,7 @@ interface StoredCredential {
 const credentialData: StoredCredential = {
   credential: response.credential,
   personalData: response.personalData,
+  verificationQuality: response.verificationQuality,
   nft: response.nft
 };
 

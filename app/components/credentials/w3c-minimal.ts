@@ -12,6 +12,13 @@
  * - This ensures the credential cannot be forged - only the legitimate issuer can create valid credentials
  * - Signature format: base64-encoded Ed25519 signature
  *
+ * EVIDENCE (W3C Standard):
+ * The evidence property follows W3C VC Data Model standards and includes:
+ * - fraudDetection: Google Document AI fraud signals and pass/fail result
+ * - documentAnalysis: AWS Textract OCR confidence and quality level (high/medium/low)
+ * - biometricVerification: AWS Rekognition face match and liveness confidence scores
+ * This allows relying parties to make risk-based trust decisions based on verification quality.
+ *
  * REVOCATION:
  * The credentialStatus field references the on-chain issuer registry smart contract.
  * Relying parties (verifiers) must check:
@@ -37,6 +44,40 @@ const CardlessCredential = {
     "cardlessid:compositeHash":
       "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
   },
+  evidence: [
+    {
+      type: ["DocumentVerification"],
+      verifier: "did:algo:ISSUER_WALLET_ADDRESS_HERE",
+      evidenceDocument: "DriversLicense",
+      subjectPresence: "Digital",
+      documentPresence: "Digital",
+      verificationMethod: "aws-textract",
+      fraudDetection: {
+        performed: true,
+        passed: true,
+        method: "google-document-ai",
+        provider: "Google Document AI",
+        signals: []
+      },
+      documentAnalysis: {
+        provider: "aws-textract",
+        bothSidesAnalyzed: true,
+        lowConfidenceFields: [],
+        qualityLevel: "high"
+      },
+      biometricVerification: {
+        performed: true,
+        faceMatch: {
+          confidence: 0.95,
+          provider: "AWS Rekognition"
+        },
+        liveness: {
+          confidence: 0.92,
+          provider: "AWS Rekognition"
+        }
+      }
+    }
+  ],
   credentialStatus: {
     id: "did:algo:app:REGISTRY_APP_ID",
     type: "AlgorandIssuerRegistry2025",

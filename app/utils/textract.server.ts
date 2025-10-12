@@ -24,7 +24,79 @@ export interface TextractResult {
 }
 
 /**
- * Process ID document image with AWS Textract
+ * Process ID document with both front and back images using AWS Textract
+ * Uses AnalyzeID API which can handle multiple pages in a single call
+ * @param frontImageBase64 Base64 encoded front image (without data:image prefix)
+ * @param backImageBase64 Base64 encoded back image (without data:image prefix)
+ * @param mimeType Image MIME type (e.g., 'image/jpeg', 'image/png')
+ */
+export async function processIdDocumentBothSides(
+  frontImageBase64: string,
+  backImageBase64: string,
+  mimeType: string = 'image/jpeg'
+): Promise<TextractResult> {
+  if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+    return {
+      success: false,
+      error: 'AWS credentials not configured'
+    };
+  }
+
+  try {
+    const client = new TextractClient({
+      region: AWS_REGION,
+      credentials: {
+        accessKeyId: AWS_ACCESS_KEY_ID,
+        secretAccessKey: AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    const frontBuffer = Buffer.from(frontImageBase64, 'base64');
+    const backBuffer = Buffer.from(backImageBase64, 'base64');
+
+    console.log('[Textract] Processing ID document (front and back)...');
+
+    // AnalyzeID can process multiple pages in a single call
+    const command = new AnalyzeIDCommand({
+      DocumentPages: [
+        {
+          Bytes: frontBuffer,
+        },
+        {
+          Bytes: backBuffer,
+        },
+      ],
+    });
+
+    const response = await client.send(command);
+    console.log('[Textract] Both sides processed successfully');
+    console.log(`[Textract] Found ${response.IdentityDocuments?.length || 0} identity documents`);
+
+    // Extract identity fields from both documents
+    const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromBothSides(response);
+    console.log('[Textract] Extracted data fields:', Object.keys(extractedData));
+
+    if (lowConfidenceFields.length > 0) {
+      console.warn('[Textract] Low confidence fields (quality warnings):', lowConfidenceFields);
+    }
+
+    return {
+      success: true,
+      extractedData,
+      lowConfidenceFields,
+      rawResponse: response,
+    };
+  } catch (error) {
+    console.error('Textract processing error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error processing document',
+    };
+  }
+}
+
+/**
+ * Process ID document image with AWS Textract (single side)
  * Uses AnalyzeID API for identity documents
  * @param imageBase64 Base64 encoded image data (without data:image prefix)
  * @param mimeType Image MIME type (e.g., 'image/jpeg', 'image/png')
@@ -89,20 +161,57 @@ export async function processIdDocument(
 }
 
 /**
- * Extract identity fields from Textract AnalyzeID response
+ * Extract identity fields from Textract AnalyzeID response (multiple documents/pages)
+ * Merges data from front and back, with front taking priority
  */
-function extractIdentityFields(response: any): {
+function extractIdentityFieldsFromBothSides(response: any): {
+  extractedData: Partial<VerifiedIdentity>;
+  lowConfidenceFields: string[];
+} {
+  if (!response.IdentityDocuments || response.IdentityDocuments.length === 0) {
+    return { extractedData: {}, lowConfidenceFields: [] };
+  }
+
+  // Process each document (front and back)
+  const allData: Partial<VerifiedIdentity>[] = [];
+  const allLowConfidenceFields: string[] = [];
+
+  for (let i = 0; i < response.IdentityDocuments.length; i++) {
+    const document = response.IdentityDocuments[i];
+    const side = i === 0 ? 'front' : 'back';
+    
+    console.log(`[Textract] Processing ${side} side of ID...`);
+    const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromDocument(document, side);
+    
+    allData.push(extractedData);
+    allLowConfidenceFields.push(...lowConfidenceFields.map(f => `${side}: ${f}`));
+  }
+
+  // Merge data - later documents (back) supplement earlier ones (front), but front takes priority
+  let mergedData: Partial<VerifiedIdentity> = {};
+  for (let i = allData.length - 1; i >= 0; i--) {
+    mergedData = { ...mergedData, ...allData[i] };
+  }
+
+  console.log(`[Textract Debug Summary]`);
+  console.log(`  Total documents processed: ${response.IdentityDocuments.length}`);
+  console.log(`  Total low confidence fields: ${allLowConfidenceFields.length}`);
+
+  return { 
+    extractedData: mergedData, 
+    lowConfidenceFields: allLowConfidenceFields 
+  };
+}
+
+/**
+ * Extract identity fields from a single Textract identity document
+ */
+function extractIdentityFieldsFromDocument(document: any, side: string = 'single'): {
   extractedData: Partial<VerifiedIdentity>;
   lowConfidenceFields: string[];
 } {
   const identityData: Partial<VerifiedIdentity> = {};
   const lowConfidenceFields: string[] = [];
-
-  if (!response.IdentityDocuments || response.IdentityDocuments.length === 0) {
-    return { extractedData: identityData, lowConfidenceFields };
-  }
-
-  const document = response.IdentityDocuments[0];
   const fields = document.IdentityDocumentFields || [];
 
   for (const field of fields) {
@@ -114,7 +223,7 @@ function extractIdentityFields(response: any): {
     if (!value) continue;
 
     // Debug: Show raw AWS data for each field
-    console.log(`[Textract Debug] Field: ${fieldType}`);
+    console.log(`[Textract Debug ${side}] Field: ${fieldType}`);
     console.log(`  Raw value: "${value}"`);
     console.log(`  Confidence: ${confidence.toFixed(1)}%`);
     if (normalized) {
@@ -185,12 +294,29 @@ function extractIdentityFields(response: any): {
     identityData.idType = 'government_id';
   }
 
+  return { extractedData: identityData, lowConfidenceFields };
+}
+
+/**
+ * Extract identity fields from Textract AnalyzeID response (single document wrapper)
+ */
+function extractIdentityFields(response: any): {
+  extractedData: Partial<VerifiedIdentity>;
+  lowConfidenceFields: string[];
+} {
+  if (!response.IdentityDocuments || response.IdentityDocuments.length === 0) {
+    return { extractedData: {}, lowConfidenceFields: [] };
+  }
+
+  const document = response.IdentityDocuments[0];
+  const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromDocument(document, 'single');
+  
   // Debug summary
   console.log(`[Textract Debug Summary]`);
-  console.log(`  Total fields processed: ${fields.length}`);
+  console.log(`  Total fields processed: ${document.IdentityDocumentFields?.length || 0}`);
   console.log(`  Low confidence fields: ${lowConfidenceFields.length}`);
 
-  return { extractedData: identityData, lowConfidenceFields };
+  return { extractedData, lowConfidenceFields };
 }
 
 /**

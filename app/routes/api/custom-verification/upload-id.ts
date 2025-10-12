@@ -161,13 +161,17 @@ export async function action({ request }: ActionFunctionArgs) {
     
     console.log('[Upload ID] Generated data integrity HMAC');
 
-    // Update session with extracted data and HMAC
+    // Collect fraud signals for credential quality assessment
+    const fraudSignals = fraudCheck?.fraudSignals || fraudCheck?.signals || [];
+
+    // Update session with extracted data, HMAC, and verification quality metrics
     try {
       await updateVerificationSession(session.id, {
         verifiedData: result.extractedData as any,
         providerMetadata: {
           lowConfidenceFields: result.lowConfidenceFields || [],
           fraudCheckPassed: true,
+          fraudSignals: fraudSignals, // Store fraud signals for credential quality
           extractionMethod: 'aws-textract',
           bothSidesProcessed: hasBothSides,
           dataHmac // Store HMAC in session for verification during credential issuance
