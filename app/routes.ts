@@ -79,6 +79,6 @@ export default [
     route("wallet-status/:address", "routes/app/wallet-status.tsx", {
       id: "wallet-status-with-address",
     }),
-    route("issuer-list", "routes/app/issuer-list.tsx"),
+    route("issuers", "routes/app/issuers.tsx"),
   ]),
 ] satisfies RouteConfig;
