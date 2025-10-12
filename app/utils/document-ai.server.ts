@@ -9,12 +9,11 @@ import path from 'path';
 import fs from 'fs';
 
 const ID_FRAUD_ENDPOINT = process.env.ID_FRAUD_ENDPOINT;
-const ID_PARSE_ENDPOINT = process.env.ID_PARSE_ENDPOINT;
 const GOOGLE_CREDENTIALS_PATH = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const GOOGLE_CREDENTIALS_JSON = process.env.GOOGLE_CREDENTIALS_JSON;
 
-if (!ID_FRAUD_ENDPOINT || !ID_PARSE_ENDPOINT) {
-  console.warn('Document AI endpoints not set - ID_FRAUD_ENDPOINT and ID_PARSE_ENDPOINT are required');
+if (!ID_FRAUD_ENDPOINT) {
+  console.warn('Document AI fraud endpoint not set - ID_FRAUD_ENDPOINT is required for fraud detection');
 }
 
 if (!GOOGLE_CREDENTIALS_PATH && !GOOGLE_CREDENTIALS_JSON) {
@@ -111,21 +110,73 @@ export async function checkDocumentFraud(
 }
 
 /**
- * Process ID document image with Google Document AI
- * Makes two requests:
- * 1. Fraud detection to ID_FRAUD_ENDPOINT
- * 2. Data extraction to ID_PARSE_ENDPOINT
- * @param imageBase64 Base64 encoded image data (without data:image prefix)
- * @param mimeType Image MIME type (e.g., 'image/jpeg', 'image/png')
+ * Check fraud on both front and back of ID
+ * Checks both sides and aggregates fraud signals
+ */
+export async function checkDocumentFraudBothSides(
+  frontImageBase64: string,
+  backImageBase64: string,
+  mimeType: string = 'image/jpeg'
+): Promise<FraudCheckResult> {
+  if (!ID_FRAUD_ENDPOINT) {
+    return {
+      success: false,
+      fraudDetected: false,
+      fraudSignals: [],
+      error: 'Document AI fraud endpoint not configured'
+    };
+  }
+
+  // Check both sides in parallel
+  const [frontCheck, backCheck] = await Promise.all([
+    checkDocumentFraud(frontImageBase64, mimeType),
+    checkDocumentFraud(backImageBase64, mimeType)
+  ]);
+
+  // If either check failed (not configured), return error
+  if (!frontCheck.success || !backCheck.success) {
+    return {
+      success: false,
+      fraudDetected: false,
+      fraudSignals: [],
+      error: frontCheck.error || backCheck.error || 'Fraud check failed'
+    };
+  }
+
+  // Combine fraud signals from both sides
+  const allSignals = [
+    ...frontCheck.fraudSignals.map(s => ({ ...s, side: 'front' })),
+    ...backCheck.fraudSignals.map(s => ({ ...s, side: 'back' }))
+  ];
+
+  const fraudDetected = frontCheck.fraudDetected || backCheck.fraudDetected;
+
+  console.log('[Document AI] Both sides checked:', {
+    frontFraudDetected: frontCheck.fraudDetected,
+    backFraudDetected: backCheck.fraudDetected,
+    totalSignals: allSignals.length
+  });
+
+  return {
+    success: true,
+    fraudDetected,
+    fraudSignals: allSignals,
+  };
+}
+
+/**
+ * Process ID document image with Google Document AI (LEGACY - NOT USED)
+ * @deprecated Use checkDocumentFraud() + AWS Textract instead
+ * This function is kept for backward compatibility but is not used in the current flow
  */
 export async function processIdDocument(
   imageBase64: string,
   mimeType: string = 'image/jpeg'
 ): Promise<DocumentAIResult> {
-  if (!ID_FRAUD_ENDPOINT || !ID_PARSE_ENDPOINT) {
+  if (!ID_FRAUD_ENDPOINT) {
     return {
       success: false,
-      error: 'Document AI endpoints not configured - both ID_FRAUD_ENDPOINT and ID_PARSE_ENDPOINT are required'
+      error: 'Document AI fraud endpoint not configured - ID_FRAUD_ENDPOINT is required'
     };
   }
 
@@ -162,33 +213,13 @@ export async function processIdDocument(
     console.log('[Document AI] Fraud signals found:', fraudSignals.length);
     console.log(fraudSignals)
 
-    // Step 2: Parse ID data
-    console.log('[Document AI] Step 2: Parsing ID data');
-    const parseResult = await processWithEndpoint(
-      client,
-      ID_PARSE_ENDPOINT,
-      imageBuffer,
-      mimeType
-    );
-
-    if (!parseResult.success) {
-      return {
-        success: false,
-        error: `ID parsing failed: ${parseResult.error}`,
-        fraudSignals,
-        rawFraudResponse: fraudResult.response
-      };
-    }
-
-    const extractedData = extractIdentityFields(parseResult.response);
-    console.log('[Document AI] Extracted data fields:', Object.keys(extractedData));
-
+    // NOTE: This function no longer extracts data (use AWS Textract instead)
+    // It only checks for fraud and returns signals
     return {
       success: true,
-      extractedData,
+      extractedData: {},
       fraudSignals,
       rawFraudResponse: fraudResult.response,
-      rawParseResponse: parseResult.response,
     };
   } catch (error) {
     console.error('Document AI processing error:', error);
