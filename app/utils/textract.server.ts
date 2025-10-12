@@ -70,7 +70,7 @@ export async function processIdDocument(
     console.log('[Textract] Extracted data fields:', Object.keys(extractedData));
 
     if (lowConfidenceFields.length > 0) {
-      console.warn('[Textract] Low confidence fields:', lowConfidenceFields);
+      console.warn('[Textract] Low confidence fields (quality warnings):', lowConfidenceFields);
     }
 
     return {
@@ -109,12 +109,23 @@ function extractIdentityFields(response: any): {
     const fieldType = field.Type?.Text || '';
     const value = field.ValueDetection?.Text || '';
     const confidence = field.ValueDetection?.Confidence || 0;
+    const normalized = field.ValueDetection?.NormalizedValue;
 
     if (!value) continue;
 
-    // Track low confidence fields
+    // Debug: Show raw AWS data for each field
+    console.log(`[Textract Debug] Field: ${fieldType}`);
+    console.log(`  Raw value: "${value}"`);
+    console.log(`  Confidence: ${confidence.toFixed(1)}%`);
+    if (normalized) {
+      console.log(`  Normalized value: "${normalized.Value}"`);
+      console.log(`  Value type: ${normalized.ValueType}`);
+    }
+
+    // Track low confidence fields (quality warnings only)
     if (confidence < CONFIDENCE_THRESHOLD) {
       lowConfidenceFields.push(`${fieldType} (${confidence.toFixed(1)}%)`);
+      console.log(`  ⚠️ Quality Warning: Low OCR confidence (${confidence.toFixed(1)}%)`);
     }
 
     // Map Textract field types to our identity fields
@@ -173,6 +184,11 @@ function extractIdentityFields(response: any): {
   if (!identityData.idType) {
     identityData.idType = 'government_id';
   }
+
+  // Debug summary
+  console.log(`[Textract Debug Summary]`);
+  console.log(`  Total fields processed: ${fields.length}`);
+  console.log(`  Low confidence fields: ${lowConfidenceFields.length}`);
 
   return { extractedData: identityData, lowConfidenceFields };
 }

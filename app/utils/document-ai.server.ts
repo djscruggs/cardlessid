@@ -35,6 +35,81 @@ export interface DocumentAIResult {
   error?: string;
 }
 
+export interface FraudCheckResult {
+  success: boolean;
+  fraudDetected: boolean;
+  fraudSignals: FraudSignal[];
+  rawResponse?: any;
+  error?: string;
+}
+
+/**
+ * Check for document fraud only (no data extraction)
+ */
+export async function checkDocumentFraud(
+  imageBase64: string,
+  mimeType: string = 'image/jpeg'
+): Promise<FraudCheckResult> {
+  if (!ID_FRAUD_ENDPOINT) {
+    return {
+      success: false,
+      fraudDetected: false,
+      fraudSignals: [],
+      error: 'Document AI fraud endpoint not configured'
+    };
+  }
+
+  try {
+    const clientConfig = await getClientConfig();
+    if ('error' in clientConfig) {
+      return {
+        success: false,
+        fraudDetected: false,
+        fraudSignals: [],
+        error: clientConfig.error
+      };
+    }
+    
+    const client = new DocumentProcessorServiceClient(clientConfig);
+    const imageBuffer = Buffer.from(imageBase64, 'base64');
+
+    const fraudResult = await processWithEndpoint(
+      client,
+      ID_FRAUD_ENDPOINT,
+      imageBuffer,
+      mimeType
+    );
+
+    if (!fraudResult.success) {
+      return {
+        success: false,
+        fraudDetected: true,
+        fraudSignals: [],
+        error: 'Document validation failed'
+      };
+    }
+
+    const fraudSignals = extractFraudSignals(fraudResult.response);
+    const fraudDetected = fraudSignals.some(signal => 
+      signal.result && signal.result.toUpperCase() !== 'PASS'
+    );
+
+    return {
+      success: true,
+      fraudDetected,
+      fraudSignals,
+      rawResponse: fraudResult.response,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      fraudDetected: false,
+      fraudSignals: [],
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
 /**
  * Process ID document image with Google Document AI
  * Makes two requests:

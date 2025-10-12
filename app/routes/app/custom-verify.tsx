@@ -16,6 +16,7 @@ type VerificationStep = 'id-photo' | 'confirm-data' | 'selfie' | 'result';
 interface VerificationState {
   step: VerificationStep;
   sessionId?: string;
+  verificationToken?: string; // Signed token for secure credential creation
   extractedData?: Partial<VerifiedIdentity>;
   idPhotoBase64?: string; // Store ID photo in client memory (never persisted)
   faceMatchResult?: any;
@@ -28,9 +29,21 @@ export default function CustomVerify() {
   });
 
   const handleIdPhotoSuccess = (data: any) => {
+    // Store verification token and extracted data in sessionStorage for credential creation
+    if (data.verificationToken) {
+      sessionStorage.setItem('verificationToken', data.verificationToken);
+    }
+    if (data.sessionId) {
+      sessionStorage.setItem('verificationSessionId', data.sessionId);
+    }
+    if (data.extractedData) {
+      sessionStorage.setItem('extractedData', JSON.stringify(data.extractedData));
+    }
+
     setState({
       step: 'confirm-data',
       sessionId: data.sessionId,
+      verificationToken: data.verificationToken,
       extractedData: data.extractedData,
       idPhotoBase64: data.idPhotoBase64, // Store in client memory
       error: undefined,

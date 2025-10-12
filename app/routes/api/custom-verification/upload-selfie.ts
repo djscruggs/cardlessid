@@ -16,12 +16,34 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const formData = await request.formData();
+    
+    // Debug: Log all form data keys received
+    const receivedKeys = Array.from(formData.keys());
+    console.log('[Upload Selfie] Received form data keys:', receivedKeys);
+    
     const sessionId = formData.get('sessionId') as string;
     const selfieData = formData.get('selfie') as string;
     const idPhotoData = formData.get('idPhoto') as string;
-
+    
+    // Debug: Check each field
+    console.log('[Upload Selfie] Field values:', {
+      sessionId: sessionId ? `✓ ${sessionId.substring(0, 30)}...` : '✗ MISSING',
+      selfie: selfieData ? `✓ ${selfieData.length} chars` : '✗ MISSING',
+      idPhoto: idPhotoData ? `✓ ${idPhotoData.length} chars` : '✗ MISSING'
+    });
+    
     if (!sessionId || !selfieData || !idPhotoData) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+      const missingFields = [];
+      if (!sessionId) missingFields.push('sessionId');
+      if (!selfieData) missingFields.push('selfie');
+      if (!idPhotoData) missingFields.push('idPhoto');
+      
+      console.error('[Upload Selfie] ❌ Missing required fields:', missingFields);
+      return Response.json({ 
+        error: 'Missing required fields',
+        missingFields,
+        receivedKeys
+      }, { status: 400 });
     }
 
     // Get verification session
@@ -70,9 +92,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Update session with results (no ID photo base64 to clear - it's on client)
     await updateVerificationSession(sessionId, {
-      faceMatchResult: comparisonResult,
-      livenessResult: livenessResult,
       status: comparisonResult.match ? 'approved' : 'rejected',
+      providerMetadata: {
+        faceMatchResult: comparisonResult,
+        livenessResult: livenessResult
+      }
     });
 
     console.log('[Upload Selfie] Verification complete:', {

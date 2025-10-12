@@ -36,12 +36,26 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   try {
-    const { verificationSessionId, walletAddress } = await request.json();
+    const body = await request.json();
+    const { 
+      verificationToken, 
+      verificationSessionId, 
+      walletAddress,
+      // Identity data submitted by client (for verification)
+      firstName,
+      middleName,
+      lastName,
+      birthDate,
+      governmentId,
+      idType,
+      state,
+      expirationDate
+    } = body;
 
     // Validate required inputs
-    if (!verificationSessionId) {
+    if (!verificationToken && !verificationSessionId) {
       return Response.json(
-        { error: "Missing verificationSessionId" },
+        { error: "Missing verificationToken or verificationSessionId" },
         { status: 400 }
       );
     }
@@ -50,8 +64,66 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Missing walletAddress" }, { status: 400 });
     }
 
+    // Import data integrity utilities
+    const { verifyVerificationToken, verifyDataHMAC, generateDataHMAC } = await import('~/utils/data-integrity.server');
+
+    let sessionId: string;
+    let expectedDataHmac: string | null = null;
+
+    // Verify token if provided (secure method with HMAC)
+    if (verificationToken) {
+      const tokenData = verifyVerificationToken(verificationToken);
+      
+      if (!tokenData) {
+        return Response.json(
+          { error: "Invalid or tampered verification token" },
+          { status: 403 }
+        );
+      }
+
+      sessionId = tokenData.sessionId;
+      expectedDataHmac = tokenData.dataHmac;
+      console.log('[Credentials] Verified token signature');
+
+      // Validate that client submitted identity data
+      if (!firstName || !lastName || !birthDate || !governmentId) {
+        return Response.json(
+          { error: "Missing identity data - firstName, lastName, birthDate, and governmentId are required" },
+          { status: 400 }
+        );
+      }
+
+      // Verify submitted data matches stored hash
+      const submittedData = {
+        firstName,
+        middleName: middleName || '',
+        lastName,
+        birthDate,
+        governmentId,
+        idType: idType || '',
+        state: state || '',
+        expirationDate: expirationDate || ''
+      };
+
+      const submittedDataHmac = generateDataHMAC(submittedData);
+
+      if (submittedDataHmac !== expectedDataHmac) {
+        console.error('[Credentials] Data tampering detected - submitted data does not match verified hash');
+        return Response.json(
+          { error: "Data tampering detected - the identity information you submitted does not match what was verified" },
+          { status: 400 }
+        );
+      }
+
+      console.log('[Credentials] Submitted identity data verified - hash matches');
+    } else {
+      // Fallback to plain sessionId (backwards compatibility - for manual credential creation)
+      sessionId = verificationSessionId;
+      console.warn('[Credentials] Using legacy sessionId without token verification');
+    }
+
     // Get verification session
-    const session = await getVerificationSession(verificationSessionId);
+    const session = await getVerificationSession(sessionId);
 
     if (!session) {
       return Response.json(
@@ -67,19 +139,43 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: validationError }, { status: 400 });
     }
 
-    // Extract verified identity data from session
-    const {
-      firstName,
-      middleName = "",
-      lastName,
-      birthDate,
-      governmentId,
-      idType,
-      state,
-    } = session.verifiedData!;
+    // Use submitted data if token was provided and verified, otherwise use session data
+    let credentialData: {
+      firstName: string;
+      middleName: string;
+      lastName: string;
+      birthDate: string;
+      governmentId: string;
+      idType: string;
+      state: string;
+    };
+
+    if (verificationToken) {
+      // Use verified submitted data
+      credentialData = {
+        firstName,
+        middleName: middleName || "",
+        lastName,
+        birthDate,
+        governmentId,
+        idType: idType || "government_id",
+        state: state || "",
+      };
+    } else {
+      // Use session data (legacy/manual mode)
+      credentialData = {
+        firstName: session.verifiedData!.firstName,
+        middleName: session.verifiedData!.middleName || "",
+        lastName: session.verifiedData!.lastName,
+        birthDate: session.verifiedData!.birthDate,
+        governmentId: session.verifiedData!.governmentId,
+        idType: session.verifiedData!.idType,
+        state: session.verifiedData!.state,
+      };
+    }
 
     // Validate birthDate is at least 13 years ago
-    const birthDateObj = new Date(birthDate);
+    const birthDateObj = new Date(credentialData.birthDate);
     const today = new Date();
     const thirteenYearsAgo = new Date(
       today.getFullYear() - 13,
@@ -116,7 +212,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Create composite hash for duplicate detection
-    const compositeData = `${firstName}|${middleName}|${lastName}|${birthDate}`;
+    const compositeData = `${credentialData.firstName}|${credentialData.middleName}|${credentialData.lastName}|${credentialData.birthDate}`;
     const compositeHashBuffer = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(compositeData)
@@ -295,13 +391,13 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       credential,
       personalData: {
-        firstName,
-        middleName,
-        lastName,
-        birthDate,
-        governmentId,
-        idType,
-        state,
+        firstName: credentialData.firstName,
+        middleName: credentialData.middleName,
+        lastName: credentialData.lastName,
+        birthDate: credentialData.birthDate,
+        governmentId: credentialData.governmentId,
+        idType: credentialData.idType,
+        state: credentialData.state,
       },
       issuedAt: issuanceDate,
       nft: {

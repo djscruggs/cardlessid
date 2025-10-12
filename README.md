@@ -44,12 +44,26 @@ This project is in active development. We're collaborating with partners to inte
 
 ## Privacy & Data Storage
 
-- **Images and personal data are transient**: During the initial verification, government ID and selfie images are submitted to the verification provider, then immmediately deleted whether the verification passes, fails or stops mid-process
-- **Blockchain Storage**: Credentials are issued as an NFT on the Algorand blockchain with verification data hashed and stored in the metadata
-- **Duplicate Detection**: Prevents duplicate credentials by checking transaction history using a composite hash (full name + birth date)
-- **Zero Knowledge**: Only the credential holder has access to the full identity data in through their mobile client; the blockchain only contains cryptographic hashes
+**Transient Data Model** - Identity data is never stored permanently on our servers:
 
-Firebase is used temporarily during the verification session (typically under 5 minutes) and only stores session state. Once a credential is issued, all session data is marked as consumed and cannot be reused.
+- **Images**: Government ID and selfie photos are processed and immediately deleted (whether verification passes or fails)
+- **Identity Data**: Verified information (name, birth date, etc.) is:
+  - Returned once to the client during verification
+  - **Not stored** in the session database (only an HMAC hash is kept)
+  - Submitted by client during credential creation for hash verification
+  - Immediately discarded after credential issuance
+- **Hash-Based Verification**: Server keeps only HMAC hashes to verify data integrity without storing sensitive data
+- **Session Storage**: Firebase stores only session metadata (status, timestamps) - not identity data
+- **Blockchain Storage**: Credentials are issued as NFTs on Algorand with only cryptographic hashes in metadata
+- **Zero Knowledge**: Only the credential holder has access to full identity data through their mobile client
+
+**Security Features:**
+- HMAC-SHA256 hash verification prevents data tampering
+- Signed verification tokens prevent session hijacking
+- Timing-safe hash comparison prevents timing attacks
+- Server breach cannot expose identity data (not stored)
+
+See [CUSTOM_VERIFICATION.md](./docs/CUSTOM_VERIFICATION.md) for complete security documentation.
 
 ## How to Contribute
 

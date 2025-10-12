@@ -15,41 +15,10 @@ interface VerificationResultProps {
 }
 
 export function VerificationResult({ result, sessionId, onRestart }: VerificationResultProps) {
-  const [sessionData, setSessionData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (result.match) {
-      // Fetch session data to display
-      fetchSessionData();
-    }
-  }, [result.match]);
-
-  const fetchSessionData = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/custom-verification/session/${sessionId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setSessionData(data.session);
-      } else {
-        setError(data.error || 'Failed to fetch session data');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch session data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    if (sessionData) {
-      navigator.clipboard.writeText(JSON.stringify(sessionData, null, 2));
-    }
+  const handleCreateCredential = () => {
+    // Navigate to credential creation
+    // sessionId and verificationToken are already in sessionStorage
+    window.location.href = '/app/create-credential';
   };
 
   if (!result.match) {
@@ -121,70 +90,52 @@ export function VerificationResult({ result, sessionId, onRestart }: Verificatio
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Identity Verified!
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-6">
           Your selfie matches your ID photo with {Math.round(result.confidence * 100)}% confidence.
         </p>
       </div>
 
-      {isLoading && (
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">
-            Loading session data...
-          </p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
-          <button
-            type="button"
-            onClick={fetchSessionData}
-            className="mt-4 btn btn-primary"
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start">
+          <svg
+            className="h-5 w-5 text-green-600 mt-0.5 mr-3 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {sessionData && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Verification Session Data
-            </h3>
-            <button
-              type="button"
-              onClick={copyToClipboard}
-              className="text-sm px-3 py-1 text-blue-600 hover:text-blue-700 border border-blue-300 rounded hover:bg-blue-50"
-            >
-              Copy JSON
-            </button>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-4 overflow-auto max-h-96">
-            <pre className="text-sm text-green-400 font-mono">
-              {JSON.stringify(sessionData, null, 2)}
-            </pre>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Next steps:</strong> Use this verified identity data to issue a credential, 
-              create an account, or integrate with your application's authentication flow.
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 className="font-medium text-green-900">Verification Complete</h3>
+            <p className="text-sm text-green-700 mt-1">
+              Your identity has been verified and secured. You can now proceed to create your credential.
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={onRestart}
-            className="w-full btn btn-outline"
-          >
-            Verify Another Identity
-          </button>
         </div>
-      )}
+      </div>
+
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={handleCreateCredential}
+          className="w-full btn btn-primary"
+        >
+          Create Credential
+        </button>
+
+        <button
+          type="button"
+          onClick={onRestart}
+          className="w-full btn btn-outline"
+        >
+          Verify Another Identity
+        </button>
+      </div>
     </div>
   );
 }

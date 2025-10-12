@@ -40,36 +40,40 @@ const CreateCredential = () => {
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
 
-  // Check for verification session data on mount
+  // Check for verification token and load extracted data on mount
   useEffect(() => {
-    const sessionId = localStorage.getItem('verificationSessionId');
-    if (sessionId) {
-      // Fetch verification session data
-      fetch(`/api/custom-verification/session/${sessionId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.session?.verifiedData) {
-            const verified = data.session.verifiedData;
-            setFormData(prev => ({
-              ...prev,
-              firstName: verified.firstName || prev.firstName,
-              middleName: verified.middleName || prev.middleName,
-              lastName: verified.lastName || prev.lastName,
-              birthDate: verified.birthDate || prev.birthDate,
-              governmentId: verified.governmentId || prev.governmentId,
-              idType: verified.idType || prev.idType,
-              state: verified.state || prev.state,
-            }));
-            setIsVerified(true);
-          }
-          // Clear the session ID from storage
-          localStorage.removeItem('verificationSessionId');
-        })
-        .catch(err => {
-          console.error('Error loading verification session:', err);
-          localStorage.removeItem('verificationSessionId');
-        });
+    const token = sessionStorage.getItem('verificationToken');
+    const extractedDataJson = sessionStorage.getItem('extractedData');
+    
+    if (token) {
+      // User has completed verification
+      setVerificationToken(token);
+      setIsVerified(true);
+      console.log('[Credential Creation] Verification token found - user is verified');
+
+      // Pre-fill form with extracted data
+      if (extractedDataJson) {
+        try {
+          const extractedData = JSON.parse(extractedDataJson);
+          setFormData(prev => ({
+            ...prev,
+            firstName: extractedData.firstName || prev.firstName,
+            middleName: extractedData.middleName || prev.middleName,
+            lastName: extractedData.lastName || prev.lastName,
+            birthDate: extractedData.birthDate || prev.birthDate,
+            governmentId: extractedData.governmentId || prev.governmentId,
+            idType: extractedData.idType || prev.idType,
+            state: extractedData.state || prev.state,
+          }));
+          console.log('[Credential Creation] Pre-filled form with verified identity data');
+        } catch (err) {
+          console.error('[Credential Creation] Failed to parse extracted data:', err);
+        }
+      }
+    } else {
+      console.warn('[Credential Creation] No verification token - user must complete verification first');
     }
   }, []);
 
@@ -104,27 +108,58 @@ const CreateCredential = () => {
     }
 
     // Validate required fields
-    if (
-      !formData.walletAddress ||
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.birthDate ||
-      !formData.governmentId ||
-      !formData.idType ||
-      !formData.state
-    ) {
-      setError("Please fill in all required fields");
+    if (!formData.walletAddress) {
+      setError("Please enter your wallet address");
       setIsSubmitting(false);
       return;
     }
 
+    // For manual mode (no verification token), require all fields
+    if (!verificationToken) {
+      if (
+        !formData.firstName ||
+        !formData.lastName ||
+        !formData.birthDate ||
+        !formData.governmentId ||
+        !formData.idType ||
+        !formData.state
+      ) {
+        setError("Please fill in all required fields");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
+      // Prepare payload for credential creation
+      // Always send identity data for verification
+      const payload: any = {
+        walletAddress: formData.walletAddress,
+        firstName: formData.firstName,
+        middleName: formData.middleName,
+        lastName: formData.lastName,
+        birthDate: formData.birthDate,
+        governmentId: formData.governmentId,
+        idType: formData.idType,
+        state: formData.state,
+      };
+
+      // Add verification token if available (secure verified flow)
+      if (verificationToken) {
+        payload.verificationToken = verificationToken;
+        console.log('[Credential Creation] Submitting verified identity data with signed token');
+        console.log('[Credential Creation] Server will verify data hash before creating credential');
+      } else {
+        // Manual credential creation (for testing/admin only)
+        console.warn('[Credential Creation] Manual mode - no verification token');
+      }
+
       const response = await fetch("/api/credentials", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -134,6 +169,10 @@ const CreateCredential = () => {
         setIsSubmitting(false);
         return;
       }
+
+      // Clear verification tokens after successful credential creation
+      sessionStorage.removeItem('verificationToken');
+      sessionStorage.removeItem('verificationSessionId');
 
       setApiResponse(data);
     } catch (err) {

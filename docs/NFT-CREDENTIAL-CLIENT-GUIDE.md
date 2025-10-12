@@ -60,10 +60,26 @@ After identity verification is complete, request a credential to be minted.
 
 ```json
 {
-  "verificationSessionId": "session_xxx",
-  "walletAddress": "AAAAA...ZZZZZ"
+  "verificationToken": "sessionId:dataHmac:signature",
+  "walletAddress": "AAAAA...ZZZZZ",
+  "firstName": "John",
+  "middleName": "Michael",
+  "lastName": "Doe",
+  "birthDate": "1990-01-01",
+  "governmentId": "D1234567",
+  "idType": "drivers_license",
+  "state": "CA",
+  "expirationDate": "2030-01-01"
 }
 ```
+
+**Required Fields**:
+- `verificationToken` - Signed token from verification (includes data hash for integrity check)
+- `walletAddress` - Algorand wallet address for NFT
+- `firstName`, `lastName`, `birthDate`, `governmentId` - Identity data from verification
+- Other fields optional but recommended
+
+**Security Note**: The server verifies the submitted identity data matches the hash embedded in the `verificationToken`. If data has been tampered with, the request will be rejected with a 400 error.
 
 **Response**:
 
@@ -114,6 +130,18 @@ After identity verification is complete, request a credential to be minted.
 }
 ```
 
+**Where to Get the Data**:
+
+The `verificationToken` and identity data come from the verification process:
+
+1. **Complete ID Verification**: Use the custom verification endpoints (see [CUSTOM_VERIFICATION.md](./CUSTOM_VERIFICATION.md))
+   - Upload ID photos → Receive `verificationToken` and `extractedData`
+   - Complete selfie face match
+2. **Store Verification Data**: 
+   - `verificationToken` - Needed for credential issuance
+   - `extractedData` - Identity fields to submit with credential request
+3. **Request Credential**: Submit token + identity data as shown above
+
 **Important**:
 
 - Store both the `credential` (with proof) and `personalData` locally in the wallet
@@ -121,6 +149,7 @@ After identity verification is complete, request a credential to be minted.
 - NO age or birth information is stored on-chain for privacy
 - `assetId` is returned as a **string** (not number) due to JSON bigint handling
 - **Wallet Funding**: If the wallet has insufficient balance (< 0.101 ALGO), the issuer automatically funds it with 0.2 ALGO to enable asset opt-in. The `funding` field will only appear if funding was needed.
+- **Data Integrity**: The server keeps only a hash of identity data. When you submit the credential request, the server verifies your submitted data matches the stored hash. This prevents data tampering.
 
 ---
 
