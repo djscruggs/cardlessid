@@ -45,6 +45,38 @@ export default function DelegatedVerificationGuide() {
           and want to provide them with portable, privacy-preserving digital credentials.
         </p>
 
+        {/* Important Note */}
+        <div className="bg-orange-50 border-l-4 border-orange-400 p-6 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold text-orange-900 mb-2">
+                Issuer Registry & Security Audit Required
+              </h3>
+              <p className="text-orange-800 mb-3">
+                CardlessID maintains an <strong>Algorand smart contract</strong> that serves as a registry
+                of trusted issuers. Only credentials issued by addresses in this on-chain registry will be
+                recognized as valid by verifiers in the CardlessID ecosystem.
+              </p>
+              <p className="text-orange-800 mb-3">
+                <strong>Before production deployment:</strong> Your organization must complete a security
+                audit and approval process. We review your verification procedures, security practices,
+                and compliance measures before adding your issuer address to the registry.
+              </p>
+              <p className="text-orange-800 mb-2">
+                <strong>Contact:</strong> partnerships@cardlessid.com
+              </p>
+              <p className="text-orange-800 text-sm">
+                <strong>Subject line:</strong> "Issuer Registry Application - [Your Organization Name]"
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Diagram */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
