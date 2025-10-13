@@ -19,6 +19,8 @@ export default [
       route("/", "routes/docs.tsx"),
       route("credential-schema", "routes/docs/credential-schema.tsx"),
       route("integration-guide", "routes/docs/integration-guide.tsx"),
+      route("custom-verification-guide", "routes/docs/custom-verification-guide.tsx"),
+      route("delegated-verification", "routes/docs/delegated-verification.tsx"),
     ]),
   ]),
   ...prefix("api", [
@@ -61,6 +63,9 @@ export default [
       route("upload-id", "routes/api/custom-verification/upload-id.ts"),
       route("upload-selfie", "routes/api/custom-verification/upload-selfie.ts"),
       route("session/:sessionId", "routes/api/custom-verification/session.$sessionId.ts"),
+    ]),
+    ...prefix("delegated-verification", [
+      route("issue", "routes/api/delegated-verification/issue.ts"),
     ]),
   ]),
   ...prefix("app", [
