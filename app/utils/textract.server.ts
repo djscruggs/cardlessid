@@ -3,16 +3,24 @@
  * Processes ID photos and extracts structured data
  */
 
-import { TextractClient, AnalyzeIDCommand, AnalyzeDocumentCommand } from '@aws-sdk/client-textract';
-import type { VerifiedIdentity } from '~/types/verification';
+import {
+  TextractClient,
+  AnalyzeIDCommand,
+  AnalyzeDocumentCommand,
+} from "@aws-sdk/client-textract";
+import type { VerifiedIdentity } from "~/types/verification";
 
-const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+const AWS_REGION = process.env.AWS_REGION || "us-east-1";
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const CONFIDENCE_THRESHOLD = parseFloat(process.env.AWS_TEXTRACT_CONFIDENCE_THRESHOLD || '80');
+const CONFIDENCE_THRESHOLD = parseFloat(
+  process.env.AWS_TEXTRACT_CONFIDENCE_THRESHOLD || "80"
+);
 
 if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-  console.warn('AWS credentials not configured - set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY');
+  console.warn(
+    "AWS credentials not configured - set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+  );
 }
 
 export interface TextractResult {
@@ -33,12 +41,12 @@ export interface TextractResult {
 export async function processIdDocumentBothSides(
   frontImageBase64: string,
   backImageBase64: string,
-  mimeType: string = 'image/jpeg'
+  mimeType: string = "image/jpeg"
 ): Promise<TextractResult> {
   if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
     return {
       success: false,
-      error: 'AWS credentials not configured'
+      error: "AWS credentials not configured",
     };
   }
 
@@ -51,10 +59,10 @@ export async function processIdDocumentBothSides(
       },
     });
 
-    const frontBuffer = Buffer.from(frontImageBase64, 'base64');
-    const backBuffer = Buffer.from(backImageBase64, 'base64');
+    const frontBuffer = Buffer.from(frontImageBase64, "base64");
+    const backBuffer = Buffer.from(backImageBase64, "base64");
 
-    console.log('[Textract] Processing ID document (front and back)...');
+    console.log("[Textract] Processing ID document (front and back)...");
 
     // AnalyzeID can process multiple pages in a single call
     const command = new AnalyzeIDCommand({
@@ -69,15 +77,24 @@ export async function processIdDocumentBothSides(
     });
 
     const response = await client.send(command);
-    console.log('[Textract] Both sides processed successfully');
-    console.log(`[Textract] Found ${response.IdentityDocuments?.length || 0} identity documents`);
+    console.log("[Textract] Both sides processed successfully");
+    console.log(
+      `[Textract] Found ${response.IdentityDocuments?.length || 0} identity documents`
+    );
 
     // Extract identity fields from both documents
-    const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromBothSides(response);
-    console.log('[Textract] Extracted data fields:', Object.keys(extractedData));
+    const { extractedData, lowConfidenceFields } =
+      extractIdentityFieldsFromBothSides(response);
+    console.log(
+      "[Textract] Extracted data fields:",
+      Object.keys(extractedData)
+    );
 
     if (lowConfidenceFields.length > 0) {
-      console.warn('[Textract] Low confidence fields (quality warnings):', lowConfidenceFields);
+      console.warn(
+        "[Textract] Low confidence fields (quality warnings):",
+        lowConfidenceFields
+      );
     }
 
     return {
@@ -87,10 +104,13 @@ export async function processIdDocumentBothSides(
       rawResponse: response,
     };
   } catch (error) {
-    console.error('Textract processing error:', error);
+    console.error("Textract processing error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error processing document',
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error processing document",
     };
   }
 }
@@ -103,12 +123,12 @@ export async function processIdDocumentBothSides(
  */
 export async function processIdDocument(
   imageBase64: string,
-  mimeType: string = 'image/jpeg'
+  mimeType: string = "image/jpeg"
 ): Promise<TextractResult> {
   if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
     return {
       success: false,
-      error: 'AWS credentials not configured'
+      error: "AWS credentials not configured",
     };
   }
 
@@ -121,9 +141,9 @@ export async function processIdDocument(
       },
     });
 
-    const imageBuffer = Buffer.from(imageBase64, 'base64');
+    const imageBuffer = Buffer.from(imageBase64, "base64");
 
-    console.log('[Textract] Processing ID document...');
+    console.log("[Textract] Processing ID document...");
 
     // Use AnalyzeID API for identity documents
     const command = new AnalyzeIDCommand({
@@ -135,14 +155,21 @@ export async function processIdDocument(
     });
 
     const response = await client.send(command);
-    console.log('[Textract] Document processed successfully');
+    console.log("[Textract] Document processed successfully");
 
     // Extract identity fields from response
-    const { extractedData, lowConfidenceFields } = extractIdentityFields(response);
-    console.log('[Textract] Extracted data fields:', Object.keys(extractedData));
+    const { extractedData, lowConfidenceFields } =
+      extractIdentityFields(response);
+    console.log(
+      "[Textract] Extracted data fields:",
+      Object.keys(extractedData)
+    );
 
     if (lowConfidenceFields.length > 0) {
-      console.warn('[Textract] Low confidence fields (quality warnings):', lowConfidenceFields);
+      console.warn(
+        "[Textract] Low confidence fields (quality warnings):",
+        lowConfidenceFields
+      );
     }
 
     return {
@@ -152,10 +179,13 @@ export async function processIdDocument(
       rawResponse: response,
     };
   } catch (error) {
-    console.error('Textract processing error:', error);
+    console.error("Textract processing error:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error processing document',
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error processing document",
     };
   }
 }
@@ -178,13 +208,16 @@ function extractIdentityFieldsFromBothSides(response: any): {
 
   for (let i = 0; i < response.IdentityDocuments.length; i++) {
     const document = response.IdentityDocuments[i];
-    const side = i === 0 ? 'front' : 'back';
-    
+    const side = i === 0 ? "front" : "back";
+
     console.log(`[Textract] Processing ${side} side of ID...`);
-    const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromDocument(document, side);
-    
+    const { extractedData, lowConfidenceFields } =
+      extractIdentityFieldsFromDocument(document, side);
+
     allData.push(extractedData);
-    allLowConfidenceFields.push(...lowConfidenceFields.map(f => `${side}: ${f}`));
+    allLowConfidenceFields.push(
+      ...lowConfidenceFields.map((f) => `${side}: ${f}`)
+    );
   }
 
   // Merge data - later documents (back) supplement earlier ones (front), but front takes priority
@@ -194,19 +227,26 @@ function extractIdentityFieldsFromBothSides(response: any): {
   }
 
   console.log(`[Textract Debug Summary]`);
-  console.log(`  Total documents processed: ${response.IdentityDocuments.length}`);
-  console.log(`  Total low confidence fields: ${allLowConfidenceFields.length}`);
+  console.log(
+    `  Total documents processed: ${response.IdentityDocuments.length}`
+  );
+  console.log(
+    `  Total low confidence fields: ${allLowConfidenceFields.length}`
+  );
 
-  return { 
-    extractedData: mergedData, 
-    lowConfidenceFields: allLowConfidenceFields 
+  return {
+    extractedData: mergedData,
+    lowConfidenceFields: allLowConfidenceFields,
   };
 }
 
 /**
  * Extract identity fields from a single Textract identity document
  */
-function extractIdentityFieldsFromDocument(document: any, side: string = 'single'): {
+function extractIdentityFieldsFromDocument(
+  document: any,
+  side: string = "single"
+): {
   extractedData: Partial<VerifiedIdentity>;
   lowConfidenceFields: string[];
 } {
@@ -215,69 +255,62 @@ function extractIdentityFieldsFromDocument(document: any, side: string = 'single
   const fields = document.IdentityDocumentFields || [];
 
   for (const field of fields) {
-    const fieldType = field.Type?.Text || '';
-    const value = field.ValueDetection?.Text || '';
+    const fieldType = field.Type?.Text || "";
+    const value = field.ValueDetection?.Text || "";
     const confidence = field.ValueDetection?.Confidence || 0;
     const normalized = field.ValueDetection?.NormalizedValue;
 
     if (!value) continue;
 
-    // Debug: Show raw AWS data for each field
-    console.log(`[Textract Debug ${side}] Field: ${fieldType}`);
-    console.log(`  Raw value: "${value}"`);
-    console.log(`  Confidence: ${confidence.toFixed(1)}%`);
-    if (normalized) {
-      console.log(`  Normalized value: "${normalized.Value}"`);
-      console.log(`  Value type: ${normalized.ValueType}`);
-    }
-
     // Track low confidence fields (quality warnings only)
     if (confidence < CONFIDENCE_THRESHOLD) {
       lowConfidenceFields.push(`${fieldType} (${confidence.toFixed(1)}%)`);
-      console.log(`  ⚠️ Quality Warning: Low OCR confidence (${confidence.toFixed(1)}%)`);
+      console.log(
+        `  ⚠️ Quality Warning: Low OCR confidence (${confidence.toFixed(1)}%)`
+      );
     }
 
     // Map Textract field types to our identity fields
     switch (fieldType) {
-      case 'FIRST_NAME':
+      case "FIRST_NAME":
         identityData.firstName = value;
         break;
 
-      case 'MIDDLE_NAME':
+      case "MIDDLE_NAME":
         identityData.middleName = value;
         break;
 
-      case 'LAST_NAME':
-      case 'SURNAME':
+      case "LAST_NAME":
+      case "SURNAME":
         identityData.lastName = value;
         break;
 
-      case 'DATE_OF_BIRTH':
+      case "DATE_OF_BIRTH":
         identityData.birthDate = normalizeDateFormat(value);
         break;
 
-      case 'DATE_OF_EXPIRY':
-      case 'EXPIRATION_DATE':
+      case "DATE_OF_EXPIRY":
+      case "EXPIRATION_DATE":
         identityData.expirationDate = normalizeDateFormat(value);
         break;
 
-      case 'ID_NUMBER':
-      case 'DOCUMENT_NUMBER':
+      case "ID_NUMBER":
+      case "DOCUMENT_NUMBER":
         identityData.governmentId = value;
         break;
 
-      case 'ID_TYPE':
-      case 'DOCUMENT_TYPE':
+      case "ID_TYPE":
+      case "DOCUMENT_TYPE":
         identityData.idType = normalizeIdType(value);
         break;
 
-      case 'STATE':
-      case 'STATE_NAME':
-      case 'ISSUING_STATE':
+      case "STATE":
+      case "STATE_NAME":
+      case "ISSUING_STATE":
         identityData.state = value;
         break;
 
-      case 'ADDRESS':
+      case "ADDRESS":
         // Store full address, can extract state from it if needed
         if (!identityData.state) {
           const stateFromAddress = extractStateFromAddress(value);
@@ -291,7 +324,7 @@ function extractIdentityFieldsFromDocument(document: any, side: string = 'single
 
   // Infer document type if not explicitly provided
   if (!identityData.idType) {
-    identityData.idType = 'government_id';
+    identityData.idType = "government_id";
   }
 
   return { extractedData: identityData, lowConfidenceFields };
@@ -309,11 +342,14 @@ function extractIdentityFields(response: any): {
   }
 
   const document = response.IdentityDocuments[0];
-  const { extractedData, lowConfidenceFields } = extractIdentityFieldsFromDocument(document, 'single');
-  
+  const { extractedData, lowConfidenceFields } =
+    extractIdentityFieldsFromDocument(document, "single");
+
   // Debug summary
   console.log(`[Textract Debug Summary]`);
-  console.log(`  Total fields processed: ${document.IdentityDocumentFields?.length || 0}`);
+  console.log(
+    `  Total fields processed: ${document.IdentityDocumentFields?.length || 0}`
+  );
   console.log(`  Low confidence fields: ${lowConfidenceFields.length}`);
 
   return { extractedData, lowConfidenceFields };
@@ -333,7 +369,7 @@ function normalizeDateFormat(dateStr: string): string {
   const slashFormat = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (slashFormat) {
     const [, month, day, year] = slashFormat;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
 
   // DD-MM-YYYY or MM-DD-YYYY
@@ -341,7 +377,7 @@ function normalizeDateFormat(dateStr: string): string {
   if (dashFormat) {
     const [, first, second, year] = dashFormat;
     // Assume MM-DD-YYYY for US IDs
-    return `${year}-${first.padStart(2, '0')}-${second.padStart(2, '0')}`;
+    return `${year}-${first.padStart(2, "0")}-${second.padStart(2, "0")}`;
   }
 
   // YYYYMMDD
@@ -376,19 +412,23 @@ function extractStateFromAddress(address: string): string | null {
 function normalizeIdType(typeStr: string): string {
   const lower = typeStr.toLowerCase();
 
-  if (lower.includes('passport')) {
-    return 'passport';
+  if (lower.includes("passport")) {
+    return "passport";
   }
 
-  if (lower.includes('driver') || lower.includes('license') || lower.includes('dl')) {
-    return 'drivers_license';
+  if (
+    lower.includes("driver") ||
+    lower.includes("license") ||
+    lower.includes("dl")
+  ) {
+    return "drivers_license";
   }
 
-  if (lower.includes('state') || lower.includes('government')) {
-    return 'government_id';
+  if (lower.includes("state") || lower.includes("government")) {
+    return "government_id";
   }
 
-  return 'government_id'; // Default
+  return "government_id"; // Default
 }
 
 /**
@@ -400,17 +440,17 @@ export function validateExtractedData(data: Partial<VerifiedIdentity>): {
   isExpired?: boolean;
   warnings?: string[];
 } {
-  console.log('[Textract] Validating extracted data:', data);
+  console.log("[Textract] Validating extracted data");
 
   const requiredFields: (keyof VerifiedIdentity)[] = [
-    'firstName',
-    'lastName',
-    'birthDate',
-    'governmentId',
+    "firstName",
+    "lastName",
+    "birthDate",
+    "governmentId",
   ];
 
-  const missingFields = requiredFields.filter(field => !data[field]);
-  console.log('[Textract] Missing fields:', missingFields);
+  const missingFields = requiredFields.filter((field) => !data[field]);
+  console.log("[Textract] Missing fields:", missingFields);
 
   // Check if ID is expired
   let isExpired = false;
@@ -440,11 +480,11 @@ export function validateExtractedData(data: Partial<VerifiedIdentity>): {
  */
 export function validateTextractConfig(): { valid: boolean; error?: string } {
   if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
-    return { valid: false, error: 'AWS credentials not configured' };
+    return { valid: false, error: "AWS credentials not configured" };
   }
 
   if (!AWS_REGION) {
-    return { valid: false, error: 'AWS region not configured' };
+    return { valid: false, error: "AWS region not configured" };
   }
 
   return { valid: true };
