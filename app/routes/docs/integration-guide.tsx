@@ -4,11 +4,11 @@ import CodeBlock from "~/components/CodeBlock";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Integration Guide - CardlessID" },
+    { title: "Integration Guide - Cardless ID" },
     {
       name: "description",
       content:
-        "Complete guide to integrating CardlessID age verification into your application",
+        "Complete guide to integrating Cardless ID age verification into your application",
     },
   ];
 };
@@ -25,7 +25,7 @@ export default function IntegrationGuide() {
           ← Back to Documentation
         </Link>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          CardlessID Age Verification - Integration Guide
+          Cardless ID Age Verification - Integration Guide
         </h1>
         <p className="text-lg text-gray-600">
           Complete guide to integrating secure, privacy-preserving age
@@ -81,7 +81,7 @@ export default function IntegrationGuide() {
       <section id="overview" className="mb-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Overview</h2>
         <p className="text-gray-700 mb-4">
-          CardlessID provides zero-knowledge age verification using
+          Cardless ID provides zero-knowledge age verification using
           decentralized identity credentials on the Algorand blockchain. Users
           prove they meet an age requirement without revealing their actual
           birthdate.
@@ -127,9 +127,9 @@ export default function IntegrationGuide() {
             <strong>Your backend</strong> creates a challenge with your required
             age
           </li>
-          <li>CardlessID generates a unique, single-use challenge ID</li>
+          <li>Cardless ID generates a unique, single-use challenge ID</li>
           <li>User scans QR code with their wallet</li>
-          <li>Wallet verifies age requirement and responds to CardlessID</li>
+          <li>Wallet verifies age requirement and responds to Cardless ID</li>
           <li>
             <strong>Your backend</strong> polls or receives webhook to confirm
             verification
@@ -183,9 +183,9 @@ export default function IntegrationGuide() {
           3. Basic Usage
         </h3>
         <div className="mb-6">
-          <CodeBlock language="javascript">{`const CardlessID = require('@cardlessid/verifier');
+          <CodeBlock language="javascript">{`const Cardless ID = require('@cardlessid/verifier');
 
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY
 });
 
@@ -212,7 +212,7 @@ if (result.verified) {
           Constructor
         </h3>
         <div className="mb-6">
-          <CodeBlock language="javascript">{`const verifier = new CardlessID({
+          <CodeBlock language="javascript">{`const verifier = new Cardless ID({
   apiKey: 'your_api_key',
   baseUrl: 'https://cardlessid.com' // optional
 });`}</CodeBlock>
@@ -352,10 +352,10 @@ X-API-Key: your_api_key`}</CodeBlock>
         </h3>
         <div className="mb-6">
           <CodeBlock language="javascript">{`const express = require('express');
-const CardlessID = require('@cardlessid/verifier');
+const Cardless ID = require('@cardlessid/verifier');
 
 const app = express();
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY
 });
 
