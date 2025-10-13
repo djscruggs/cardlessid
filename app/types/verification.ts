@@ -5,7 +5,7 @@
 
 export type VerificationStatus = "pending" | "approved" | "rejected" | "expired";
 
-export type VerificationProvider = "idenfy" | "stripe_identity" | "persona" | "mock" | "custom";
+export type VerificationProvider = "cardlessid" | "idenfy" | "stripe_identity" | "persona" | "mock" | "custom";
 
 export interface VerifiedIdentity {
   firstName: string;

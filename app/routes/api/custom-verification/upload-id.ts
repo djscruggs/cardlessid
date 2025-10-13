@@ -35,8 +35,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Create verification session first
     const session = await createVerificationSession(
-      'custom',
-      `custom_${Date.now()}`
+      'cardlessid',
+      `cardlessid_${Date.now()}`
     );
 
     // Save the ID photo(s) temporarily

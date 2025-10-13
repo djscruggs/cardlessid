@@ -539,6 +539,22 @@ const { authToken, sessionId } = await response.json();
         </h2>
 
         <div className="space-y-4">
+          <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-red-900 mb-2">
+              🚨 Mock Provider Production Protection
+            </h3>
+            <p className="text-red-800 text-sm mb-2">
+              <strong>The mock verification provider is automatically blocked in production environments.</strong>
+            </p>
+            <ul className="space-y-1 text-red-800 text-sm">
+              <li>• Mock provider throws an error if <code className="bg-red-100 px-1 rounded">NODE_ENV=production</code></li>
+              <li>• In production, the default provider is <code className="bg-red-100 px-1 rounded">cardlessid</code> (Google Document AI + AWS)</li>
+              <li>• Set <code className="bg-red-100 px-1 rounded">VERIFICATION_PROVIDER</code> environment variable to override the default</li>
+              <li>• Valid production values: <code className="bg-red-100 px-1 rounded">cardlessid</code>, <code className="bg-red-100 px-1 rounded">idenfy</code>, <code className="bg-red-100 px-1 rounded">stripe_identity</code>, <code className="bg-red-100 px-1 rounded">persona</code>, <code className="bg-red-100 px-1 rounded">custom</code></li>
+              <li>• To temporarily allow mock in production for testing (NOT RECOMMENDED), set <code className="bg-red-100 px-1 rounded">ALLOW_MOCK_VERIFICATION=true</code></li>
+            </ul>
+          </div>
+
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-red-900 mb-2">
               API Key Management
