@@ -218,6 +218,55 @@ These indexes are critical for:
 - **compositeHash**: Efficient duplicate credential detection
 - **createdAt**: Fast announcement sorting by date
 
+## Deployment
+
+### Deploying to Vercel
+
+When deploying to serverless platforms like Vercel, you cannot use file-based credentials (`GOOGLE_APPLICATION_CREDENTIALS`). Instead, you must use the JSON string method:
+
+#### Step 1: Prepare Your Credentials
+
+Minify your Google credentials JSON to a single line to avoid issues with newline characters:
+
+```bash
+cat google-credentials.json | jq -c .
+```
+
+This outputs a single-line JSON string like:
+```
+{"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n..."}
+```
+
+#### Step 2: Add to Vercel
+
+**Via Vercel Dashboard:**
+1. Go to your project's **Settings** → **Environment Variables**
+2. Add a new variable:
+   - Name: `GOOGLE_CREDENTIALS_JSON`
+   - Value: Paste the entire minified JSON string from Step 1
+   - Select which environments (Production, Preview, Development)
+3. Click **Save**
+
+**Via Vercel CLI:**
+```bash
+vercel env add GOOGLE_CREDENTIALS_JSON
+```
+When prompted, paste the minified JSON string.
+
+#### Step 3: Redeploy
+
+After adding the environment variable, redeploy your application:
+- Push a new commit to trigger automatic deployment, or
+- Go to **Deployments** tab and click **Redeploy** on the latest deployment
+
+**Important Notes:**
+- The minified JSON format prevents warnings about return characters in Vercel
+- Your code already supports both `GOOGLE_CREDENTIALS_JSON` (JSON string) and `GOOGLE_APPLICATION_CREDENTIALS` (file path)
+- Use `GOOGLE_CREDENTIALS_JSON` for serverless deployments (Vercel, AWS Lambda, etc.)
+- Use `GOOGLE_APPLICATION_CREDENTIALS` for local development or traditional servers
+
+See [document-ai.server.ts](app/utils/document-ai.server.ts) for implementation details.
+
 ## License
 
 See [LICENSE](LICENSE.md "LICENSE") for details.

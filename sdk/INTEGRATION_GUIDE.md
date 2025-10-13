@@ -45,7 +45,7 @@ The verification flow uses a **challenge-response pattern** to prevent tampering
 
 ### 1. Get Your API Key
 
-Contact CardlessID to receive your API key. For development, you can create a test key:
+Contact Cardless ID to receive your API key. For development, you can create a test key:
 
 ```bash
 # In production, this would be done via admin panel

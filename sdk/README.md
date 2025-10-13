@@ -19,7 +19,7 @@ npm install @cardlessid/verifier
 
 ### 2. Get API Key
 
-Contact CardlessID to receive your API key.
+Contact Cardless ID to receive your API key.
 
 ### 3. Start Verifying
 

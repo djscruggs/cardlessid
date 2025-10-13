@@ -93,11 +93,11 @@ This example uses in-memory storage for simplicity. In production:
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CARDLESSID_API_KEY` | Your API key (required) | - |
-| `CARDLESSID_URL` | API base URL | `https://cardlessid.com` |
-| `PORT` | Server port | `3000` |
+| Variable             | Description             | Default                  |
+| -------------------- | ----------------------- | ------------------------ |
+| `CARDLESSID_API_KEY` | Your API key (required) | -                        |
+| `CARDLESSID_URL`     | API base URL            | `https://cardlessid.com` |
+| `PORT`               | Server port             | `3000`                   |
 
 ## API Endpoints
 
@@ -106,6 +106,7 @@ This example uses in-memory storage for simplicity. In production:
 Create a new verification challenge.
 
 **Request:**
+
 ```json
 {
   "minAge": 21
@@ -113,6 +114,7 @@ Create a new verification challenge.
 ```
 
 **Response:**
+
 ```json
 {
   "sessionId": "1234567890",
@@ -125,6 +127,7 @@ Create a new verification challenge.
 Check verification status.
 
 **Response:**
+
 ```json
 {
   "status": "approved",
@@ -140,7 +143,7 @@ Check verification status.
 Edit the `minAge` parameter in the frontend:
 
 ```javascript
-body: JSON.stringify({ minAge: 18 }) // Change to your requirement
+body: JSON.stringify({ minAge: 18 }); // Change to your requirement
 ```
 
 ### Add Webhook
@@ -150,7 +153,7 @@ Set `callbackUrl` when creating challenge:
 ```javascript
 const challenge = await verifier.createChallenge({
   minAge: 21,
-  callbackUrl: 'https://yourapp.com/api/verify/webhook'
+  callbackUrl: "https://yourapp.com/api/verify/webhook",
 });
 ```
 
@@ -161,15 +164,18 @@ The HTML includes inline CSS. Extract to a separate file or use a framework like
 ## Troubleshooting
 
 **"Invalid API key" error:**
+
 - Make sure `CARDLESSID_API_KEY` is set correctly
-- Contact CardlessID support to obtain an API key
+- Contact Cardless ID support to obtain an API key
 
 **QR code doesn't load:**
+
 - Check that `CARDLESSID_URL` points to correct server
 - Verify network connectivity
 - Check browser console for errors
 
 **Verification never completes:**
+
 - Ensure wallet app is properly installed
 - Check that challenge hasn't expired (10 minute limit)
 - Verify polling is working in browser console
