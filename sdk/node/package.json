@@ -1,7 +1,7 @@
 {
   "name": "@cardlessid/verifier",
   "version": "1.0.0",
-  "description": "Node.js SDK for CardlessID age verification",
+  "description": "Node.js SDK for Cardless ID age verification",
   "main": "cardlessid-verifier.js",
   "types": "cardlessid-verifier.d.ts",
   "scripts": {
@@ -14,7 +14,7 @@
     "did",
     "blockchain"
   ],
-  "author": "CardlessID",
+  "author": "Cardless ID",
   "license": "MIT",
   "repository": {
     "type": "git",

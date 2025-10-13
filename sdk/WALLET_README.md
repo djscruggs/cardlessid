@@ -1,4 +1,4 @@
-# Building a CardlessID-Compatible Wallet App
+# Building a Cardless ID-Compatible Wallet App
 
 Quick reference for wallet app developers.
 

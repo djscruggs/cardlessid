@@ -38,9 +38,43 @@ export default function DocsIndex() {
               </Link>
             </h3>
             <p className="text-gray-600">
-              Complete guide to integrating CardlessID age verification into
+              Complete guide to integrating Cardless ID age verification into
               your application. Includes SDK documentation, REST API reference,
               code examples, and best practices.
+            </p>
+          </div>
+
+          <div className="border border-purple-200 bg-purple-50 rounded-lg p-6 hover:bg-purple-100 transition-colors">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Link
+                to="/docs/custom-verification-guide"
+                className="text-purple-600 hover:text-purple-800"
+              >
+                Custom Verification Provider Guide
+              </Link>
+              <span className="ml-2 text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded">NEW</span>
+            </h3>
+            <p className="text-gray-600">
+              Build custom identity verification flows for CardlessID. Learn how to
+              implement full verification providers (document + biometric) or integrate
+              with cloud verification services like Stripe Identity, Persona, or Onfido.
+            </p>
+          </div>
+
+          <div className="border border-green-200 bg-green-50 rounded-lg p-6 hover:bg-green-100 transition-colors">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Link
+                to="/docs/delegated-verification"
+                className="text-green-600 hover:text-green-800"
+              >
+                Delegated Verification Guide
+              </Link>
+              <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-1 rounded">NEW</span>
+            </h3>
+            <p className="text-gray-600">
+              For trusted issuers (banks, DMVs, universities, employers, healthcare providers):
+              Issue CardlessID credentials to your verified users via API. Includes API reference,
+              code examples, and integration patterns.
             </p>
           </div>
 
@@ -136,6 +170,29 @@ export default function DocsIndex() {
               <li>
                 <code className="bg-purple-100 px-2 py-1 rounded">
                   GET /api/integrator/challenge/verify/:id
+                </code>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <h3 className="text-lg font-medium text-orange-900 mb-2">
+              Verification API
+            </h3>
+            <ul className="space-y-1 text-orange-800 text-sm">
+              <li>
+                <code className="bg-orange-100 px-2 py-1 rounded">
+                  POST /api/verification/start
+                </code>
+              </li>
+              <li>
+                <code className="bg-orange-100 px-2 py-1 rounded">
+                  GET /api/verification/status/:id
+                </code>
+              </li>
+              <li>
+                <code className="bg-orange-100 px-2 py-1 rounded">
+                  POST /api/delegated-verification/issue
                 </code>
               </li>
             </ul>

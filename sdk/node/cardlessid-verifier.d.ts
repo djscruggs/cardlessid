@@ -1,8 +1,8 @@
 /**
- * Configuration for CardlessID Verifier
+ * Configuration for Cardless ID Verifier
  */
 export interface CardlessIDConfig {
-  /** Your CardlessID API key */
+  /** Your Cardless ID API key */
   apiKey: string;
   /** Base URL for API (defaults to https://cardlessid.com) */
   baseUrl?: string;
@@ -37,7 +37,7 @@ export interface ChallengeResult {
 /**
  * Challenge verification status
  */
-export type ChallengeStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+export type ChallengeStatus = "pending" | "approved" | "rejected" | "expired";
 
 /**
  * Verification result
@@ -72,11 +72,11 @@ export interface PollOptions {
 }
 
 /**
- * CardlessID Age Verification SDK
+ * Cardless ID Age Verification SDK
  */
 declare class CardlessIDVerifier {
   /**
-   * Create a new CardlessID verifier instance
+   * Create a new Cardless ID verifier instance
    * @param config - Configuration object
    */
   constructor(config: CardlessIDConfig);

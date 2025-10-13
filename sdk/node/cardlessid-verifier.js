@@ -1,13 +1,13 @@
 /**
- * CardlessID Age Verification SDK for Node.js
+ * Cardless ID Age Verification SDK for Node.js
  *
- * This SDK allows you to integrate CardlessID age verification into your application.
+ * This SDK allows you to integrate Cardless ID age verification into your application.
  *
  * @example
  * ```javascript
- * const CardlessID = require('./cardlessid-verifier');
+ * const Cardless ID = require('./cardlessid-verifier');
  *
- * const verifier = new CardlessID({
+ * const verifier = new Cardless ID({
  *   apiKey: 'your_api_key_here',
  *   baseUrl: 'https://cardlessid.com' // optional, defaults to production
  * });
@@ -33,16 +33,16 @@
 class CardlessIDVerifier {
   /**
    * @param {Object} config - Configuration object
-   * @param {string} config.apiKey - Your CardlessID API key
+   * @param {string} config.apiKey - Your Cardless ID API key
    * @param {string} [config.baseUrl='https://cardlessid.com'] - Base URL for API
    */
   constructor(config) {
     if (!config.apiKey) {
-      throw new Error('API key is required');
+      throw new Error("API key is required");
     }
 
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://cardlessid.com';
+    this.baseUrl = config.baseUrl || "https://cardlessid.com";
   }
 
   /**
@@ -60,25 +60,28 @@ class CardlessIDVerifier {
   async createChallenge(params) {
     const { minAge, callbackUrl } = params;
 
-    if (!minAge || typeof minAge !== 'number' || minAge < 1 || minAge > 150) {
-      throw new Error('minAge must be a number between 1 and 150');
+    if (!minAge || typeof minAge !== "number" || minAge < 1 || minAge > 150) {
+      throw new Error("minAge must be a number between 1 and 150");
     }
 
-    const response = await fetch(`${this.baseUrl}/api/integrator/challenge/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        apiKey: this.apiKey,
-        minAge,
-        callbackUrl,
-      }),
-    });
+    const response = await fetch(
+      `${this.baseUrl}/api/integrator/challenge/create`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          apiKey: this.apiKey,
+          minAge,
+          callbackUrl,
+        }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to create challenge');
+      throw new Error(error.error || "Failed to create challenge");
     }
 
     return await response.json();
@@ -99,22 +102,22 @@ class CardlessIDVerifier {
    */
   async verifyChallenge(challengeId) {
     if (!challengeId) {
-      throw new Error('challengeId is required');
+      throw new Error("challengeId is required");
     }
 
     const response = await fetch(
       `${this.baseUrl}/api/integrator/challenge/verify/${challengeId}`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'X-API-Key': this.apiKey,
+          "X-API-Key": this.apiKey,
         },
       }
     );
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to verify challenge');
+      throw new Error(error.error || "Failed to verify challenge");
     }
 
     return await response.json();
@@ -140,20 +143,20 @@ class CardlessIDVerifier {
           const result = await this.verifyChallenge(challengeId);
 
           // Check if completed
-          if (result.status === 'approved' || result.status === 'rejected') {
+          if (result.status === "approved" || result.status === "rejected") {
             resolve(result);
             return;
           }
 
           // Check if expired
-          if (result.status === 'expired') {
-            reject(new Error('Challenge expired'));
+          if (result.status === "expired") {
+            reject(new Error("Challenge expired"));
             return;
           }
 
           // Check timeout
           if (Date.now() - startTime > timeout) {
-            reject(new Error('Polling timeout'));
+            reject(new Error("Polling timeout"));
             return;
           }
 

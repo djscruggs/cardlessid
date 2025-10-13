@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document compares CardlessID's approach with canonical decentralized identity (DID) systems like walt.id and centralized identity approaches like OAuth/OIDC. **Key finding:** CardlessID is philosophically aligned with W3C DID standards and is actually more privacy-preserving than many DID implementations, while the custom `did:algo` method is well-suited for blockchain-based identity.
+This document compares Cardless ID's approach with canonical decentralized identity (DID) systems like walt.id and centralized identity approaches like OAuth/OIDC. **Key finding:** Cardless ID is philosophically aligned with W3C DID standards and is actually more privacy-preserving than many DID implementations, while the custom `did:algo` method is well-suited for blockchain-based identity.
 
 ---
 
@@ -11,11 +11,13 @@ This document compares CardlessID's approach with canonical decentralized identi
 ### Walt.id - Canonical Implementation
 
 **Architecture:**
+
 - **Trust Triangle Model**: Issuer → Holder → Verifier
 - **Abstraction Layer**: Hides technical complexity while ensuring standards compliance
 - **Multiple Standards Support**: W3C VCs, ISO/IEC 18013-5/-7 (mdoc), OpenID4VC
 
 **Key Components:**
+
 - Cryptographic keys for control/encryption/authentication
 - DIDs establishing public key infrastructure
 - Privacy-preserving technologies (Selective Disclosure, Zero-Knowledge Proofs)
@@ -23,6 +25,7 @@ This document compares CardlessID's approach with canonical decentralized identi
 - Trust registries and verifiable data registries
 
 **Standards Followed:**
+
 - W3C Verifiable Credentials Data Model v2.0
 - W3C Decentralized Identifiers (DIDs) v1.0
 - ISO/IEC standards for mobile credentials
@@ -32,6 +35,7 @@ This document compares CardlessID's approach with canonical decentralized identi
 ### W3C Verifiable Credentials Standard
 
 **Required Components:**
+
 1. **@context**: Must include `"https://www.w3.org/ns/credentials/v2"` as first URL
 2. **type**: Must include `"VerifiableCredential"` plus specific credential type
 3. **issuer**: The entity creating the credential
@@ -39,6 +43,7 @@ This document compares CardlessID's approach with canonical decentralized identi
 5. **Cryptographic proof**: At least one proof method required
 
 **Optional but Common:**
+
 - `id`: Unique identifier
 - `validFrom` and `validUntil`: Validity period
 - `credentialStatus`: For revocation checking
@@ -47,11 +52,12 @@ This document compares CardlessID's approach with canonical decentralized identi
 
 ---
 
-## 2. CardlessID Implementation Analysis
+## 2. Cardless ID Implementation Analysis
 
 ### Current W3C Compliance ✅
 
 **Strengths:**
+
 - ✅ Proper W3C VC Data Model v2.0 structure
 - ✅ All required fields present: `@context`, `type`, `issuer`, `credentialSubject`
 - ✅ Cryptographic proof (Ed25519Signature2020)
@@ -65,7 +71,7 @@ This document compares CardlessID's approach with canonical decentralized identi
 3. **Single-Purpose**: Focused on age verification vs. general-purpose credentials
 4. **Simplified Trust Model**: No separate trust registry beyond Algorand blockchain
 
-### Example: CardlessID Credential
+### Example: Cardless ID Credential
 
 ```json
 {
@@ -92,7 +98,7 @@ This document compares CardlessID's approach with canonical decentralized identi
 }
 ```
 
-**Privacy Advantage:** Unlike typical implementations that store actual birth dates, CardlessID stores only a hash, achieving true zero-knowledge proof.
+**Privacy Advantage:** Unlike typical implementations that store actual birth dates, Cardless ID stores only a hash, achieving true zero-knowledge proof.
 
 ---
 
@@ -101,24 +107,28 @@ This document compares CardlessID's approach with canonical decentralized identi
 ### OAuth/OIDC (Standard Centralized)
 
 **Architecture:**
+
 - Central identity provider (IdP) stores all user data
 - Authentication via JWT tokens (ID tokens)
 - Single Sign-On (SSO) across multiple applications
 - Examples: Auth0, Okta, Microsoft Entra ID, Google Sign-In
 
 **How It Works:**
+
 1. User authenticates with central IdP
 2. IdP issues ID token (JWT) with user claims
 3. Applications trust the IdP and accept tokens
 4. User data lives in centralized database
 
 **Privacy Model:**
+
 - ❌ IdP knows all authentication events
 - ❌ Full PII stored centrally (lucrative target for attacks)
 - ❌ Trust placed in single authority
 - ❌ Users have no control over their data
 
 **Advantages:**
+
 - ✅ Rapid deployment
 - ✅ Universal interoperability (OIDC widely adopted)
 - ✅ Mature tooling and SDKs
@@ -128,75 +138,85 @@ This document compares CardlessID's approach with canonical decentralized identi
 
 ## 4. Comparison Matrix
 
-| Feature | CardlessID | Walt.id (DID) | OAuth/OIDC (Centralized) |
-|---------|-----------|---------------|--------------------------|
-| **User Control** | ✅ High (self-sovereign) | ✅ High (self-sovereign) | ❌ Low (IdP controls) |
-| **Privacy** | ✅ Excellent (hash only) | ✅ Good (selective disclosure) | ❌ Poor (full PII shared) |
-| **Data Storage** | ✅ Blockchain + wallet | ✅ User's wallet only | ❌ Central database |
-| **Standards Compliance** | ⚠️ Partial W3C VC | ✅ Full W3C/ISO compliance | ✅ IETF standards |
-| **Attack Surface** | ✅ Distributed | ✅ Distributed | ❌ Single point of failure |
-| **Interoperability** | ⚠️ Limited (custom DID) | ✅ High (multiple protocols) | ✅ High (OIDC universal) |
-| **Use Case** | Age verification only | General credentials | General auth/authz |
-| **Zero-Knowledge** | ✅ Yes (hash-based) | ✅ Yes (ZKP support) | ❌ No |
-| **Sybil Resistance** | ✅ Yes (composite hash) | ⚠️ Depends on implementation | ⚠️ Depends on IdP |
-| **Censorship Resistance** | ✅ High (blockchain) | ⚠️ Medium (varies by DID method) | ❌ Low (IdP control) |
-| **Key Rotation** | ⚠️ Difficult (tied to wallet) | ✅ Easy | ✅ Easy |
-| **Infrastructure Cost** | ✅ Low (blockchain fees only) | ⚠️ Medium (wallet infra) | ⚠️ High (IdP hosting) |
+| Feature                   | Cardless ID                   | Walt.id (DID)                    | OAuth/OIDC (Centralized)   |
+| ------------------------- | ----------------------------- | -------------------------------- | -------------------------- |
+| **User Control**          | ✅ High (self-sovereign)      | ✅ High (self-sovereign)         | ❌ Low (IdP controls)      |
+| **Privacy**               | ✅ Excellent (hash only)      | ✅ Good (selective disclosure)   | ❌ Poor (full PII shared)  |
+| **Data Storage**          | ✅ Blockchain + wallet        | ✅ User's wallet only            | ❌ Central database        |
+| **Standards Compliance**  | ⚠️ Partial W3C VC             | ✅ Full W3C/ISO compliance       | ✅ IETF standards          |
+| **Attack Surface**        | ✅ Distributed                | ✅ Distributed                   | ❌ Single point of failure |
+| **Interoperability**      | ⚠️ Limited (custom DID)       | ✅ High (multiple protocols)     | ✅ High (OIDC universal)   |
+| **Use Case**              | Age verification only         | General credentials              | General auth/authz         |
+| **Zero-Knowledge**        | ✅ Yes (hash-based)           | ✅ Yes (ZKP support)             | ❌ No                      |
+| **Sybil Resistance**      | ✅ Yes (composite hash)       | ⚠️ Depends on implementation     | ⚠️ Depends on IdP          |
+| **Censorship Resistance** | ✅ High (blockchain)          | ⚠️ Medium (varies by DID method) | ❌ Low (IdP control)       |
+| **Key Rotation**          | ⚠️ Difficult (tied to wallet) | ✅ Easy                          | ✅ Easy                    |
+| **Infrastructure Cost**   | ✅ Low (blockchain fees only) | ⚠️ Medium (wallet infra)         | ⚠️ High (IdP hosting)      |
 
 ---
 
 ## 5. DID Methods Comparison
 
-Understanding the differences between DID methods helps clarify why `did:algo` is appropriate for CardlessID:
+Understanding the differences between DID methods helps clarify why `did:algo` is appropriate for Cardless ID:
 
 ### `did:web` - Web-hosted
+
 **Format:** `did:web:cardlessid.org:users:alice`
 
 **Resolution:** Fetch DID Document from `https://cardlessid.org/users/alice/did.json`
 
 **Pros:**
+
 - Simple HTTP request (no blockchain needed)
 - Works with existing web infrastructure
 - Easy to update keys if compromised
 
 **Cons:**
+
 - ❌ Centralized (domain owner controls it)
 - ❌ Requires web hosting
 - ❌ Domain could go offline or be seized
 
 **Note:** The DID Document only contains public keys, **NOT credentials**. Credentials remain in user's wallet.
 
-### `did:algo` - Blockchain-derived (CardlessID's approach)
+### `did:algo` - Blockchain-derived (Cardless ID's approach)
+
 **Format:** `did:algo:WALLET_ADDRESS`
 
 **Resolution:** Public key is cryptographically derived from Algorand wallet address
 
 **Pros:**
+
 - ✅ No web hosting needed
 - ✅ Truly decentralized (lives on blockchain)
 - ✅ Immutable and censorship-resistant
 - ✅ Aligned with blockchain-based architecture
 
 **Cons:**
+
 - ⚠️ Non-standard method (requires documentation of resolution process)
 - ⚠️ Difficult to rotate keys (tied to wallet address)
 
 ### `did:key` - Self-contained
+
 **Format:** `did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH`
 
 **Resolution:** Public key is encoded directly in the DID itself
 
 **Pros:**
+
 - No hosting or blockchain needed
 - Completely portable
 
 **Cons:**
+
 - Can't rotate keys (DID changes if key changes)
 - Long, ugly identifiers
 
-### Recommendation for CardlessID
+### Recommendation for Cardless ID
 
 **Stick with `did:algo`** because:
+
 1. ✅ Algorand wallet addresses already have discoverable public keys
 2. ✅ You're not changing keys frequently
 3. ✅ You want decentralization (web hosting contradicts that)
@@ -211,6 +231,7 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 ### 2025 Industry Trends
 
 **Emerging Technologies:**
+
 - **Zero-Knowledge Proofs**: Proving age without revealing birth date
 - **Blockchain-based verification**: Confirming age without exposing PII
 - **Anonymous systems**: Using biometric age estimation
@@ -223,22 +244,24 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 - Smaller sites cannot afford costly compliance systems
 - Privacy concerns around PII collection and storage
 
-### CardlessID's Competitive Position
+### Cardless ID's Competitive Position
 
 **✅ Ahead of the Curve:**
+
 - Already using hash-based zero-knowledge approach
 - Privacy-first design with no PII in credentials
 - Blockchain-based for security and immutability
 - Lightweight and accessible for smaller sites
 
 **⚠️ Considerations:**
+
 - Still requires trusted third-party verifier (identity verification provider TBD)
 - Trust model needs documentation
 - Consider implementing credential status/revocation mechanism
 
 ---
 
-## 7. Recommendations for CardlessID
+## 7. Recommendations for Cardless ID
 
 ### To Better Align with DID Standards
 
@@ -274,7 +297,8 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 
 ## 8. Decision Framework: Which Approach to Use
 
-### Choose CardlessID When:
+### Choose Cardless ID When:
+
 - ✅ Privacy is paramount
 - ✅ Age verification is the primary use case
 - ✅ Sybil resistance is required
@@ -283,6 +307,7 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 - ✅ Censorship resistance is important
 
 ### Choose Walt.id or Similar DID Platform When:
+
 - Multiple credential types needed (education, employment, licenses, etc.)
 - General-purpose verifiable credential infrastructure required
 - Maximum interoperability across ecosystems needed
@@ -290,6 +315,7 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 - Need support for multiple DID methods and trust frameworks
 
 ### Choose OAuth/OIDC (Centralized) When:
+
 - Full user profile data needed beyond age verification
 - Rapid deployment is critical
 - Users already have IdP accounts (Google, Microsoft, etc.)
@@ -301,7 +327,7 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 
 ## 9. Conclusion
 
-**CardlessID is well-positioned as a privacy-preserving, decentralized age verification solution.** The implementation:
+**Cardless ID is well-positioned as a privacy-preserving, decentralized age verification solution.** The implementation:
 
 1. ✅ **Follows W3C VC standards** where it matters (credential structure, cryptographic proofs)
 2. ✅ **Exceeds typical privacy standards** by using hash-based zero-knowledge proofs
@@ -310,7 +336,7 @@ Understanding the differences between DID methods helps clarify why `did:algo` i
 
 The main opportunities for improvement are around **formal documentation** of the `did:algo` resolution process and **trust infrastructure** (issuer registries, credential status), but these are not blockers for the core use case.
 
-For the specific problem of privacy-preserving age verification, CardlessID's approach is **superior to both traditional centralized systems and many decentralized implementations** that still expose birth date data.
+For the specific problem of privacy-preserving age verification, Cardless ID's approach is **superior to both traditional centralized systems and many decentralized implementations** that still expose birth date data.
 
 ---
 

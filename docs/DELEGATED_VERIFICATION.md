@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Delegated verification** allows trusted issuers (banks, government agencies, employers, universities, etc.) to issue CardlessID credentials to their users without requiring them to go through a full identity verification flow.
+**Delegated verification** allows trusted issuers (banks, government agencies, employers, universities, etc.) to issue Cardless ID credentials to their users without requiring them to go through a full identity verification flow.
 
 This is ideal for organizations that have already verified their users' identities and want to provide them with portable, privacy-preserving digital credentials.
 
@@ -12,7 +12,7 @@ This is ideal for organizations that have already verified their users' identiti
 
 ```
 ┌─────────────┐                           ┌──────────────┐
-│   Bank/DMV  │                           │  CardlessID  │
+│   Bank/DMV  │                           │  Cardless ID  │
 │   (Issuer)  │                           │   Platform   │
 └─────────────┘                           └──────────────┘
        │                                          │
@@ -37,7 +37,7 @@ This is ideal for organizations that have already verified their users' identiti
        │<─────────────────────────────────────────│
        │                                          │
        │  8. Notify user                          │
-       │     "Your CardlessID is ready!"          │
+       │     "Your Cardless ID is ready!"          │
        │                                          │
 ```
 
@@ -47,63 +47,68 @@ This is ideal for organizations that have already verified their users' identiti
 
 ### 1. Banks (KYC Completed)
 
-Banks that have completed Know Your Customer (KYC) verification can issue CardlessID credentials to their account holders.
+Banks that have completed Know Your Customer (KYC) verification can issue Cardless ID credentials to their account holders.
 
 **Benefits:**
+
 - Users don't need to verify again
 - Bank maintains trust relationship
 - Users get portable identity credential
 - Privacy-preserving age verification
 
-**Example:** Chase Bank issues CardlessID to verified customers, allowing them to prove age for online purchases without sharing banking information.
+**Example:** Chase Bank issues Cardless ID to verified customers, allowing them to prove age for online purchases without sharing banking information.
 
 ### 2. Government Agencies (DMV, Social Security)
 
 Government agencies that issue identity documents can directly issue digital credentials.
 
 **Benefits:**
+
 - Highest level of trust
 - No duplicate verification needed
 - Instant issuance
 - Reduces fraud
 
-**Example:** California DMV issues CardlessID when renewing driver's license, providing digital age verification.
+**Example:** California DMV issues Cardless ID when renewing driver's license, providing digital age verification.
 
 ### 3. Universities (Student Credentials)
 
 Universities can issue credentials to enrolled students for age verification and student discounts.
 
 **Benefits:**
+
 - Verify student status
 - Age verification for events
 - Privacy-preserving
 - Works off-campus
 
-**Example:** Stanford issues CardlessID to all students, used for campus events and online student discounts.
+**Example:** Stanford issues Cardless ID to all students, used for campus events and online student discounts.
 
 ### 4. Employers (Employee Verification)
 
 Employers can issue credentials to employees for workplace access and benefits.
 
 **Benefits:**
+
 - Prove employment status
 - Access control
 - Benefits verification
 - Privacy-preserving
 
-**Example:** Google issues CardlessID to employees for building access and corporate discounts.
+**Example:** Google issues Cardless ID to employees for building access and corporate discounts.
 
 ### 5. Healthcare Providers
 
 Healthcare organizations can issue credentials to patients for age-gated services.
 
 **Benefits:**
+
 - HIPAA-compliant age verification
 - No sharing of health data
 - Portable credential
 - Privacy-preserving
 
-**Example:** Kaiser Permanente issues CardlessID to patients for prescription refills requiring age verification.
+**Example:** Kaiser Permanente issues Cardless ID to patients for prescription refills requiring age verification.
 
 ---
 
@@ -111,12 +116,13 @@ Healthcare organizations can issue credentials to patients for age-gated service
 
 ### Step 1: Request API Key
 
-Contact CardlessID to request an API key for your organization:
+Contact Cardless ID to request an API key for your organization:
 
 - **Email:** partnerships@cardlessid.com
 - **Subject:** "Delegated Verification API Key Request"
 
 Include:
+
 - Organization name
 - Organization type (bank, government, employer, etc.)
 - Contact email
@@ -127,6 +133,7 @@ Include:
 ### Step 2: Receive Credentials
 
 You'll receive:
+
 - **API Key:** `sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 - **Documentation:** This guide
 - **Sandbox API Key:** For testing
@@ -169,17 +176,17 @@ Include your API key in the request body.
 
 ### Request Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `apiKey` | string | Yes | Your API key from CardlessID |
-| `walletAddress` | string | Yes | User's Algorand wallet address (58 characters) |
-| `identity.firstName` | string | Yes | User's first name |
-| `identity.lastName` | string | Yes | User's last name |
-| `identity.dateOfBirth` | string | Yes | User's date of birth (YYYY-MM-DD format) |
-| `identity.documentNumber` | string | No | ID document number |
-| `identity.documentType` | string | No | Type: `drivers_license`, `passport`, or `state_id` |
-| `identity.issuingCountry` | string | No | Two-letter country code (default: US) |
-| `identity.issuingState` | string | No | Two-letter state code (e.g., CA, NY) |
+| Field                     | Type   | Required | Description                                             |
+| ------------------------- | ------ | -------- | ------------------------------------------------------- |
+| `apiKey`                  | string | Yes      | Your API key from Cardless ID                           |
+| `walletAddress`           | string | Yes      | User's Algorand wallet address (58 characters)          |
+| `identity.firstName`      | string | Yes      | User's first name                                       |
+| `identity.lastName`       | string | Yes      | User's last name                                        |
+| `identity.dateOfBirth`    | string | Yes      | User's date of birth (YYYY-MM-DD format)                |
+| `identity.documentNumber` | string | No       | ID document number                                      |
+| `identity.documentType`   | string | No       | Type: `drivers_license`, `passport`, or `government_id` |
+| `identity.issuingCountry` | string | No       | Two-letter country code (default: US)                   |
+| `identity.issuingState`   | string | No       | Two-letter state code (e.g., CA, NY)                    |
 
 ### Response (Success)
 
@@ -199,15 +206,15 @@ Include your API key in the request body.
 
 ### Response Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `success` | boolean | Whether credential was issued successfully |
-| `credentialId` | string | Unique credential identifier |
-| `walletAddress` | string | User's wallet address |
-| `compositeHash` | string | Unique hash for this identity (prevents duplicates) |
-| `sessionId` | string | Verification session ID |
-| `issuer.name` | string | Your organization name |
-| `issuer.type` | string | Your organization type |
+| Field           | Type    | Description                                         |
+| --------------- | ------- | --------------------------------------------------- |
+| `success`       | boolean | Whether credential was issued successfully          |
+| `credentialId`  | string  | Unique credential identifier                        |
+| `walletAddress` | string  | User's wallet address                               |
+| `compositeHash` | string  | Unique hash for this identity (prevents duplicates) |
+| `sessionId`     | string  | Verification session ID                             |
+| `issuer.name`   | string  | Your organization name                              |
+| `issuer.type`   | string  | Your organization type                              |
 
 ### Error Responses
 
@@ -255,7 +262,7 @@ Include your API key in the request body.
 ### Node.js / TypeScript
 
 ```typescript
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
 async function issueCardlessId(
   walletAddress: string,
@@ -265,17 +272,20 @@ async function issueCardlessId(
     dateOfBirth: string;
   }
 ) {
-  const response = await fetch('https://cardlessid.com/api/delegated-verification/issue', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      apiKey: process.env.CARDLESSID_API_KEY,
-      walletAddress,
-      identity: userData
-    })
-  });
+  const response = await fetch(
+    "https://cardlessid.com/api/delegated-verification/issue",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        apiKey: process.env.CARDLESSID_API_KEY,
+        walletAddress,
+        identity: userData,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -283,18 +293,18 @@ async function issueCardlessId(
   }
 
   const result = await response.json();
-  console.log('Credential issued:', result.credentialId);
+  console.log("Credential issued:", result.credentialId);
 
   return result;
 }
 
 // Usage
 await issueCardlessId(
-  'MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM',
+  "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
   {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    dateOfBirth: '1990-01-15'
+    firstName: "Jane",
+    lastName: "Doe",
+    dateOfBirth: "1990-01-15",
   }
 );
 ```
@@ -360,15 +370,15 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 
 1. User logs into your app/website
 2. Generate QR code with user's wallet address
-3. User scans QR code with CardlessID wallet
+3. User scans QR code with Cardless ID wallet
 4. Wallet sends address to your backend
 5. Backend calls delegated verification API
 6. User receives credential in wallet
 
 ### Option 2: Deep Link
 
-1. User taps "Get CardlessID" button in your app
-2. App opens CardlessID wallet via deep link
+1. User taps "Get Cardless ID" button in your app
+2. App opens Cardless ID wallet via deep link
 3. Wallet provides address to your app
 4. App calls delegated verification API
 5. User receives credential in wallet
@@ -415,7 +425,7 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 
 2. **Rate Limiting**
    - Implement rate limiting on your side
-   - Respect CardlessID rate limits
+   - Respect Cardless ID rate limits
    - Batch issuance when possible
    - Handle 429 responses gracefully
 
@@ -428,7 +438,7 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 ### User Experience
 
 1. **Clear Communication**
-   - Explain what CardlessID is
+   - Explain what Cardless ID is
    - Show benefits to users
    - Provide support links
    - Handle opt-out gracefully
@@ -452,11 +462,13 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 ### Sandbox Environment
 
 Use test API key for development:
+
 ```
 sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 **Sandbox URL:**
+
 ```
 POST https://sandbox.cardlessid.com/api/delegated-verification/issue
 ```
@@ -540,6 +552,7 @@ TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 Contact partnerships@cardlessid.com for pricing information.
 
 **Factors:**
+
 - Monthly volume
 - Organization type
 - Support level
@@ -549,7 +562,7 @@ Contact partnerships@cardlessid.com for pricing information.
 
 ## License
 
-CardlessID API is proprietary. Contact us for licensing terms.
+Cardless ID API is proprietary. Contact us for licensing terms.
 
 ---
 
@@ -568,7 +581,7 @@ CardlessID API is proprietary. Contact us for licensing terms.
 
 ### Q: Can I issue credentials for users under 18?
 
-**A:** Yes, CardlessID credentials store date of birth and can verify any age threshold.
+**A:** Yes, Cardless ID credentials store date of birth and can verify any age threshold.
 
 ### Q: How long do credentials last?
 
@@ -576,7 +589,7 @@ CardlessID API is proprietary. Contact us for licensing terms.
 
 ### Q: Can I revoke a credential?
 
-**A:** Yes, CardlessID supports revocation. Contact us for implementation details.
+**A:** Yes, Cardless ID supports revocation. Contact us for implementation details.
 
 ### Q: What if a user loses their wallet?
 

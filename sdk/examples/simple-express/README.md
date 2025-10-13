@@ -1,6 +1,6 @@
-# CardlessID Age Verification - Express.js Example
+# Cardless ID Age Verification - Express.js Example
 
-A simple, complete example of integrating CardlessID age verification into an Express.js application.
+A simple, complete example of integrating Cardless ID age verification into an Express.js application.
 
 ## Features
 
@@ -51,12 +51,12 @@ Navigate to: http://localhost:3000
 ### Backend Flow
 
 1. **Create Challenge** - POST `/api/verify/create`
-   - Calls CardlessID API to create a verification challenge
+   - Calls Cardless ID API to create a verification challenge
    - Stores session with challenge ID
    - Returns QR code URL to frontend
 
 2. **Check Status** - GET `/api/verify/status/:sessionId`
-   - Polls CardlessID API for challenge status
+   - Polls Cardless ID API for challenge status
    - Updates session with result
    - Returns verification status
 

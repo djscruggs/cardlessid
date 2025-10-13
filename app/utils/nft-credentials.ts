@@ -2,7 +2,7 @@ import algosdk from "algosdk";
 import { algodClient, indexerClient } from "./algorand";
 
 /**
- * NFT-based credential system for CardlessID
+ * NFT-based credential system for Cardless ID
  * Uses Algorand ASAs (Algorand Standard Assets) as non-transferable credentials
  */
 
@@ -29,9 +29,10 @@ export async function createCredentialNFT(
     const suggestedParams = await algodClient.getTransactionParams().do();
 
     // Determine base URL based on environment
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? 'https://cardlessid.org'
-      : 'http://localhost:5173';
+    const baseUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://cardlessid.org"
+        : "http://localhost:5173";
 
     // Create ASA with these properties:
     // - total = 1 (unique NFT)

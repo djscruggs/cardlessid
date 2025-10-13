@@ -1,5 +1,5 @@
 /**
- * Simple Express.js example for CardlessID age verification
+ * Simple Express.js example for Cardless ID age verification
  *
  * This example demonstrates a complete integration with:
  * - Age verification flow
@@ -15,13 +15,13 @@
  */
 
 const express = require('express');
-const CardlessID = require('../../node/cardlessid-verifier');
+const Cardless ID = require('../../node/cardlessid-verifier');
 
 const app = express();
 app.use(express.json());
 
 // Initialize verifier
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY || 'demo_key',
   baseUrl: process.env.CARDLESSID_URL || 'http://localhost:5173'
 });
@@ -98,7 +98,7 @@ app.get('/', (req, res) => {
         </div>
 
         <div id="qrcode" style="display: none;">
-          <h3>Scan this QR code with your CardlessID wallet:</h3>
+          <h3>Scan this QR code with your Cardless ID wallet:</h3>
           <img id="qrcode-img" src="" alt="QR Code" width="300" height="300">
           <div id="status" class="status pending">
             <p>⏳ Waiting for verification...</p>
@@ -189,7 +189,7 @@ app.post('/api/verify/create', async (req, res) => {
   try {
     const { minAge } = req.body;
 
-    // Create challenge with CardlessID
+    // Create challenge with Cardless ID
     const challenge = await verifier.createChallenge({
       minAge: minAge || 21
     });
@@ -225,7 +225,7 @@ app.get('/api/verify/status/:sessionId', async (req, res) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
-    // Check challenge status with CardlessID
+    // Check challenge status with Cardless ID
     const result = await verifier.verifyChallenge(session.challengeId);
 
     // Update session
@@ -274,7 +274,7 @@ function cleanupSessions() {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(\`
-🚀 CardlessID Age Verification Demo
+🚀 Cardless ID Age Verification Demo
 
 Server running at: http://localhost:\${PORT}
 

@@ -38,13 +38,41 @@ export default function CustomVerificationGuide() {
           Table of Contents
         </h2>
         <ul className="space-y-2 text-blue-700">
-          <li><a href="#overview" className="hover:underline">Overview</a></li>
-          <li><a href="#provider-types" className="hover:underline">Provider Types</a></li>
-          <li><a href="#architecture" className="hover:underline">Architecture Overview</a></li>
-          <li><a href="#full-verification" className="hover:underline">Building a Full Verification Provider</a></li>
-          <li><a href="#delegated-verification" className="hover:underline">Building a Delegated Verification Provider</a></li>
-          <li><a href="#api-reference" className="hover:underline">API Reference</a></li>
-          <li><a href="#security" className="hover:underline">Security Considerations</a></li>
+          <li>
+            <a href="#overview" className="hover:underline">
+              Overview
+            </a>
+          </li>
+          <li>
+            <a href="#provider-types" className="hover:underline">
+              Provider Types
+            </a>
+          </li>
+          <li>
+            <a href="#architecture" className="hover:underline">
+              Architecture Overview
+            </a>
+          </li>
+          <li>
+            <a href="#full-verification" className="hover:underline">
+              Building a Full Verification Provider
+            </a>
+          </li>
+          <li>
+            <a href="#delegated-verification" className="hover:underline">
+              Building a Delegated Verification Provider
+            </a>
+          </li>
+          <li>
+            <a href="#api-reference" className="hover:underline">
+              API Reference
+            </a>
+          </li>
+          <li>
+            <a href="#security" className="hover:underline">
+              Security Considerations
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -52,17 +80,28 @@ export default function CustomVerificationGuide() {
       <section id="overview" className="mb-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Overview</h2>
         <p className="text-gray-700 mb-4">
-          A verification provider is a module that handles the identity verification process
-          and returns verified identity data. CardlessID then uses this data to issue a W3C
-          Verifiable Credential on the Algorand blockchain.
+          A verification provider is a module that handles the identity
+          verification process and returns verified identity data. CardlessID
+          then uses this data to issue a W3C Verifiable Credential on the
+          Algorand blockchain.
         </p>
 
         {/* Important Note */}
         <div className="bg-orange-50 border-l-4 border-orange-400 p-6 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="h-6 w-6 text-orange-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -70,16 +109,20 @@ export default function CustomVerificationGuide() {
                 Production Deployment & Issuer Registry
               </h3>
               <p className="text-orange-800 mb-3">
-                CardlessID uses an <strong>Algorand smart contract</strong> as a registry of allowed issuers.
-                Only credentials issued by addresses in this registry will be recognized as valid by verifiers.
+                CardlessID uses a <strong>smart contract</strong> as a&nbsp;
+                <Link to="/app/issuers">registry of allowed issuers</Link>. Only
+                credentials issued by addresses in this registry will be
+                recognized as valid by verifiers.
               </p>
               <p className="text-orange-800 mb-3">
-                <strong>For production deployment:</strong> You must contact us and complete a security audit
-                before we add your issuer address to the on-chain registry. This ensures the integrity of
-                the CardlessID ecosystem.
+                <strong>For production deployment:</strong> You must complete a
+                security audit before we add your issuer address to the on-chain
+                registry. This ensures the integrity of the CardlessID
+                ecosystem.
               </p>
               <p className="text-orange-800">
-                <strong>Contact:</strong> partnerships@cardlessid.com with subject "Issuer Registry Application"
+                <Link to="/contact">Contact us</Link> to request addition to the
+                registry
               </p>
             </div>
           </div>
@@ -100,7 +143,9 @@ export default function CustomVerificationGuide() {
 
       {/* Provider Types */}
       <section id="provider-types" className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Provider Types</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Provider Types
+        </h2>
 
         <div className="space-y-6">
           <div className="border border-gray-200 rounded-lg p-6">
@@ -108,20 +153,40 @@ export default function CustomVerificationGuide() {
               1. Full Verification Provider
             </h3>
             <p className="text-gray-700 mb-4">
-              A <strong>full verification provider</strong> implements a complete identity
-              verification flow, similar to the default custom verification flow.
+              A <strong>full verification provider</strong> implements a
+              complete identity verification flow, similar to the default custom
+              verification flow.
             </p>
-            <h4 className="font-semibold text-gray-900 mb-2">Typical Components:</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              Typical Components:
+            </h4>
             <ul className="space-y-2 text-gray-700 mb-4 list-disc list-inside">
-              <li><strong>Document capture</strong> - Photo of government ID</li>
-              <li><strong>OCR/Data extraction</strong> - Extract name, DOB, document number</li>
-              <li><strong>Fraud detection</strong> - Check for fake or altered documents</li>
-              <li><strong>Biometric verification</strong> - Selfie capture and face matching</li>
-              <li><strong>Liveness detection</strong> - Ensure real person, not a photo</li>
+              <li>
+                <strong>Document capture</strong> - Photo of government ID
+              </li>
+              <li>
+                <strong>OCR/Data extraction</strong> - Extract name, DOB,
+                document number
+              </li>
+              <li>
+                <strong>Fraud detection</strong> - Check for fake or altered
+                documents
+              </li>
+              <li>
+                <strong>Biometric verification</strong> - Selfie capture and
+                face matching
+              </li>
+              <li>
+                <strong>Liveness detection</strong> - Ensure real person, not a
+                photo
+              </li>
             </ul>
             <h4 className="font-semibold text-gray-900 mb-2">Use Cases:</h4>
             <ul className="space-y-1 text-gray-700 list-disc list-inside">
-              <li>Cloud-based verification (e.g., Stripe Identity, Persona, Onfido)</li>
+              <li>
+                Cloud-based verification (e.g., Stripe Identity, Persona,
+                Onfido)
+              </li>
               <li>Custom ML-based verification</li>
               <li>Hardware-based verification (NFC passport readers)</li>
               <li>Manual review workflows</li>
@@ -133,9 +198,10 @@ export default function CustomVerificationGuide() {
               2. Delegated Verification Provider
             </h3>
             <p className="text-gray-700 mb-4">
-              A <strong>delegated verification provider</strong> issues credentials based on
-              existing verification from a trusted authority. The provider trusts that
-              verification has already occurred and simply signs the credential.
+              A <strong>delegated verification provider</strong> issues
+              credentials based on existing verification from a trusted
+              authority. The provider trusts that verification has already
+              occurred and simply signs the credential.
             </p>
             <h4 className="font-semibold text-gray-900 mb-2">Use Cases:</h4>
             <ul className="space-y-1 text-gray-700 list-disc list-inside mb-4">
@@ -148,7 +214,10 @@ export default function CustomVerificationGuide() {
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-blue-800">
                 <strong>→</strong> See the{" "}
-                <Link to="/docs/delegated-verification" className="underline font-medium">
+                <Link
+                  to="/docs/delegated-verification"
+                  className="underline font-medium"
+                >
                   Delegated Verification Guide
                 </Link>{" "}
                 for detailed implementation instructions.
@@ -160,11 +229,19 @@ export default function CustomVerificationGuide() {
 
       {/* Architecture */}
       <section id="architecture" className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Architecture Overview</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Architecture Overview
+        </h2>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3">Provider Interface</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+          Provider Interface
+        </h3>
         <p className="text-gray-700 mb-4">
-          All verification providers must implement the <code className="bg-gray-100 px-2 py-1 rounded">VerificationProvider</code> interface:
+          All verification providers must implement the{" "}
+          <code className="bg-gray-100 px-2 py-1 rounded">
+            VerificationProvider
+          </code>{" "}
+          interface:
         </p>
 
         <CodeBlock language="typescript">{`interface VerificationProvider {
@@ -191,7 +268,7 @@ interface VerifiedIdentity {
   lastName: string;
   dateOfBirth: string; // YYYY-MM-DD
   documentNumber?: string;
-  documentType?: 'drivers_license' | 'passport' | 'state_id';
+  documentType?: 'drivers_license' | 'passport' | 'government_id';
   issuingCountry?: string;
   issuingState?: string;
   compositeHash: string; // Unique identifier
@@ -218,7 +295,9 @@ interface VerifiedIdentity {
   };
 }`}</CodeBlock>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">Directory Structure</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">
+          Directory Structure
+        </h3>
         <CodeBlock language="bash">{`app/
 ├── utils/
 │   └── verification-providers/
@@ -245,9 +324,15 @@ interface VerifiedIdentity {
           Building a Full Verification Provider
         </h2>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3">Step 1: Create Provider File</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+          Step 1: Create Provider File
+        </h3>
         <p className="text-gray-700 mb-4">
-          Create a new file in <code className="bg-gray-100 px-2 py-1 rounded">app/utils/verification-providers/your-provider.ts</code>:
+          Create a new file in{" "}
+          <code className="bg-gray-100 px-2 py-1 rounded">
+            app/utils/verification-providers/your-provider.ts
+          </code>
+          :
         </p>
 
         <CodeBlock language="typescript">{`import type { VerificationProvider, VerifiedIdentity } from '~/types/verification';
@@ -340,19 +425,25 @@ export class YourVerificationProvider implements VerificationProvider {
     return identity;
   }
 
-  private mapDocumentType(providerType: string): 'drivers_license' | 'passport' | 'state_id' {
+  private mapDocumentType(providerType: string): 'drivers_license' | 'passport' | 'government_id' {
     const mapping: Record<string, any> = {
       'driving_license': 'drivers_license',
       'passport': 'passport',
-      'id_card': 'state_id'
+      'id_card': 'government_id'
     };
-    return mapping[providerType] || 'state_id';
+    return mapping[providerType] || 'government_id';
   }
 }`}</CodeBlock>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">Step 2: Register Provider</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">
+          Step 2: Register Provider
+        </h3>
         <p className="text-gray-700 mb-4">
-          Add your provider to <code className="bg-gray-100 px-2 py-1 rounded">app/utils/verification-providers/index.ts</code>:
+          Add your provider to{" "}
+          <code className="bg-gray-100 px-2 py-1 rounded">
+            app/utils/verification-providers/index.ts
+          </code>
+          :
         </p>
 
         <CodeBlock language="typescript">{`import { YourVerificationProvider } from './your-provider';
@@ -375,10 +466,14 @@ export function getProvider(name?: string): VerificationProvider {
   return provider;
 }`}</CodeBlock>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">Step 3: Configure Environment</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">
+          Step 3: Configure Environment
+        </h3>
         <CodeBlock language="bash">{`YOUR_PROVIDER_API_KEY=sk_live_xxxxxxxxxxxxx`}</CodeBlock>
 
-        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">Step 4: Use Provider</h3>
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3 mt-8">
+          Step 4: Use Provider
+        </h3>
         <CodeBlock language="typescript">{`// Start verification with your provider
 const response = await fetch('/api/verification/start', {
   method: 'POST',
@@ -400,7 +495,9 @@ const { authToken, sessionId } = await response.json();
             <h3 className="text-2xl font-semibold text-gray-900 mb-3">
               POST /api/verification/start
             </h3>
-            <p className="text-gray-700 mb-4">Create a new verification session.</p>
+            <p className="text-gray-700 mb-4">
+              Create a new verification session.
+            </p>
 
             <h4 className="font-semibold text-gray-900 mb-2">Request:</h4>
             <CodeBlock language="json">{`{
@@ -420,7 +517,9 @@ const { authToken, sessionId } = await response.json();
             <h3 className="text-2xl font-semibold text-gray-900 mb-3">
               GET /api/verification/status/:sessionId
             </h3>
-            <p className="text-gray-700 mb-4">Check verification session status.</p>
+            <p className="text-gray-700 mb-4">
+              Check verification session status.
+            </p>
 
             <h4 className="font-semibold text-gray-900 mb-2">Response:</h4>
             <CodeBlock language="json">{`{
@@ -435,11 +534,15 @@ const { authToken, sessionId } = await response.json();
 
       {/* Security */}
       <section id="security" className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Security Considerations</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Security Considerations
+        </h2>
 
         <div className="space-y-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-900 mb-2">API Key Management</h3>
+            <h3 className="text-lg font-semibold text-red-900 mb-2">
+              API Key Management
+            </h3>
             <ul className="space-y-1 text-red-800 text-sm">
               <li>• Store API keys in environment variables</li>
               <li>• Rotate keys regularly</li>
@@ -448,7 +551,9 @@ const { authToken, sessionId } = await response.json();
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-orange-900 mb-2">Webhook Verification</h3>
+            <h3 className="text-lg font-semibold text-orange-900 mb-2">
+              Webhook Verification
+            </h3>
             <ul className="space-y-1 text-orange-800 text-sm">
               <li>• Verify webhook signatures from providers</li>
               <li>• Use HTTPS for all webhook endpoints</li>
@@ -457,7 +562,9 @@ const { authToken, sessionId } = await response.json();
           </div>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-yellow-900 mb-2">Data Retention</h3>
+            <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+              Data Retention
+            </h3>
             <ul className="space-y-1 text-yellow-800 text-sm">
               <li>• Delete ID photos after verification</li>
               <li>• Store only minimal PII</li>
@@ -466,7 +573,9 @@ const { authToken, sessionId } = await response.json();
           </div>
 
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-purple-900 mb-2">Fraud Prevention</h3>
+            <h3 className="text-lg font-semibold text-purple-900 mb-2">
+              Fraud Prevention
+            </h3>
             <ul className="space-y-1 text-purple-800 text-sm">
               <li>• Implement rate limiting</li>
               <li>• Monitor for duplicate composite hashes</li>
@@ -478,15 +587,26 @@ const { authToken, sessionId } = await response.json();
 
       {/* Related Docs */}
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Related Documentation</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          Related Documentation
+        </h2>
         <div className="space-y-2">
-          <Link to="/docs/delegated-verification" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/delegated-verification"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Delegated Verification Guide
           </Link>
-          <Link to="/docs/integration-guide" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/integration-guide"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Integration Guide
           </Link>
-          <Link to="/docs/credential-schema" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/credential-schema"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Credential Schema Documentation
           </Link>
         </div>

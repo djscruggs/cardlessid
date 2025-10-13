@@ -1,11 +1,12 @@
 ---
 {}
 ---
-# CardlessID NFT Credential Client Implementation Guide
+
+# Cardless ID NFT Credential Client Implementation Guide
 
 ## Overview
 
-CardlessID uses **non-transferable NFTs** (also called "soulbound tokens") on the Algorand blockchain to issue verifiable age credentials. This guide explains how client applications (mobile wallets) should interact with the CardlessID system.
+Cardless ID uses **non-transferable NFTs** (also called "soulbound tokens") on the Algorand blockchain to issue verifiable age credentials. This guide explains how client applications (mobile wallets) should interact with the Cardless ID system.
 
 ### How It Works
 
@@ -74,6 +75,7 @@ After identity verification is complete, request a credential to be minted.
 ```
 
 **Required Fields**:
+
 - `verificationToken` - Signed token from verification (includes data hash for integrity check)
 - `walletAddress` - Algorand wallet address for NFT
 - `firstName`, `lastName`, `birthDate`, `governmentId` - Identity data from verification
@@ -172,7 +174,7 @@ The `verificationToken` and identity data come from the verification process:
 1. **Complete ID Verification**: Use the custom verification endpoints (see [CUSTOM_VERIFICATION.md](./CUSTOM_VERIFICATION.md))
    - Upload ID photos → Receive `verificationToken` and `extractedData`
    - Complete selfie face match
-2. **Store Verification Data**: 
+2. **Store Verification Data**:
    - `verificationToken` - Needed for credential issuance
    - `extractedData` - Identity fields to submit with credential request
 3. **Request Credential**: Submit token + identity data as shown above
@@ -190,11 +192,13 @@ The `verificationToken` and identity data come from the verification process:
 **Verification Quality** (W3C Standard):
 
 The credential includes a W3C-standard `evidence` property with detailed verification metadata:
+
 - **Document fraud detection** from Google Document AI
 - **OCR confidence levels** from AWS Textract
 - **Biometric matching** from AWS Rekognition (face match + liveness)
 
 **Quality Levels** (in `evidence[0].documentAnalysis.qualityLevel`):
+
 - `high` - Fraud check passed, both sides processed, no low-confidence fields, strong biometrics
 - `medium` - Fraud check passed but minor issues (front-only, some low-confidence fields)
 - `low` - Low-confidence OCR, fraud signals present, or no fraud check
@@ -217,18 +221,18 @@ Before the NFT can be transferred to your wallet, you must opt-in to the asset.
 **Using algosdk**:
 
 ```typescript
-import algosdk from 'algosdk';
+import algosdk from "algosdk";
 
 const algodClient = new algosdk.Algodv2(
-  '',
-  'https://testnet-api.algonode.cloud',
+  "",
+  "https://testnet-api.algonode.cloud",
   443
 );
 
 async function optInToAsset(
   walletAddress: string,
   privateKey: Uint8Array,
-  assetId: string | number  // Can be string from API or number
+  assetId: string | number // Can be string from API or number
 ): Promise<string> {
   const suggestedParams = await algodClient.getTransactionParams().do();
 
@@ -236,7 +240,7 @@ async function optInToAsset(
     from: walletAddress,
     to: walletAddress,
     amount: 0,
-    assetIndex: Number(assetId),  // Convert string to number if needed
+    assetIndex: Number(assetId), // Convert string to number if needed
     suggestedParams,
   });
 
@@ -365,9 +369,8 @@ function checkAgeRequirement(
   const monthDiff = today.getMonth() - birthDate.getMonth();
   const dayDiff = today.getDate() - birthDate.getDate();
 
-  const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)
-    ? age - 1
-    : age;
+  const actualAge =
+    monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
 
   return actualAge >= minimumAge;
 }
@@ -415,7 +418,7 @@ interface WalletCredentialStorage {
           provider: string;
           bothSidesAnalyzed: boolean;
           lowConfidenceFields: string[];
-          qualityLevel: 'high' | 'medium' | 'low';
+          qualityLevel: "high" | "medium" | "low";
         };
         biometricVerification: {
           performed: boolean;
@@ -445,7 +448,7 @@ interface WalletCredentialStorage {
 
     // Verification quality metrics (use for risk assessment)
     verificationQuality: {
-      level: 'high' | 'medium' | 'low';
+      level: "high" | "medium" | "low";
       fraudCheckPassed: boolean;
       extractionMethod: string;
       bothSidesProcessed: boolean;
@@ -480,30 +483,36 @@ interface WalletCredentialStorage {
 // Example: Risk-based decision making using W3C evidence property
 function shouldAcceptCredential(credential: any): boolean {
   const evidence = credential.credential.evidence?.[0];
-  
+
   if (!evidence) {
     return false; // No verification evidence
   }
-  
+
   // High-security scenario: Require high quality + strong biometrics
   if (isHighSecurityContext) {
-    return evidence.documentAnalysis.qualityLevel === 'high' &&
-           evidence.fraudDetection.passed &&
-           evidence.biometricVerification.faceMatch.confidence > 0.9 &&
-           evidence.biometricVerification.liveness.confidence > 0.9;
+    return (
+      evidence.documentAnalysis.qualityLevel === "high" &&
+      evidence.fraudDetection.passed &&
+      evidence.biometricVerification.faceMatch.confidence > 0.9 &&
+      evidence.biometricVerification.liveness.confidence > 0.9
+    );
   }
-  
+
   // Medium-security: Accept high or medium quality
   if (isMediumSecurityContext) {
-    return (evidence.documentAnalysis.qualityLevel === 'high' || 
-            evidence.documentAnalysis.qualityLevel === 'medium') &&
-           evidence.fraudDetection.passed;
+    return (
+      (evidence.documentAnalysis.qualityLevel === "high" ||
+        evidence.documentAnalysis.qualityLevel === "medium") &&
+      evidence.fraudDetection.passed
+    );
   }
-  
+
   // Standard: Check minimum thresholds
-  return evidence.fraudDetection.passed && 
-         evidence.biometricVerification.faceMatch.confidence > 0.7 &&
-         evidence.biometricVerification.liveness.confidence > 0.7;
+  return (
+    evidence.fraudDetection.passed &&
+    evidence.biometricVerification.faceMatch.confidence > 0.7 &&
+    evidence.biometricVerification.liveness.confidence > 0.7
+  );
 }
 
 // Example: Extract specific confidence scores
@@ -523,11 +532,11 @@ Clients can also query NFT details directly from Algorand.
 ### Using Algorand Indexer API
 
 ```typescript
-import algosdk from 'algosdk';
+import algosdk from "algosdk";
 
 const indexerClient = new algosdk.Indexer(
-  '',
-  'https://testnet-idx.algonode.cloud',
+  "",
+  "https://testnet-idx.algonode.cloud",
   443
 );
 
@@ -535,9 +544,7 @@ async function getWalletCredentials(
   walletAddress: string,
   issuerAddress: string
 ): Promise<Array<{ assetId: number; frozen: boolean }>> {
-  const accountInfo = await indexerClient
-    .lookupAccountByID(walletAddress)
-    .do();
+  const accountInfo = await indexerClient.lookupAccountByID(walletAddress).do();
 
   const credentials = [];
 
@@ -545,14 +552,14 @@ async function getWalletCredentials(
     if (asset.amount > 0) {
       // Get asset details
       const assetInfo = await indexerClient
-        .lookupAssetByID(asset['asset-id'])
+        .lookupAssetByID(asset["asset-id"])
         .do();
 
       // Check if created by our issuer
       if (assetInfo.asset.params.creator === issuerAddress) {
         credentials.push({
-          assetId: asset['asset-id'],
-          frozen: asset['is-frozen'] || false,
+          assetId: asset["asset-id"],
+          frozen: asset["is-frozen"] || false,
         });
       }
     }
@@ -579,8 +586,7 @@ When a verifier (e.g., age-restricted website) needs to verify age:
       "callbackUrl": "https://verifier.com/api/verify-response"
     }
     ```
-    
-2.  **User scans QR code** with CardlessID wallet app
+2.  **User scans QR code** with Cardless ID wallet app
 3.  **Wallet checks credentials locally**:
     - Read stored birth date
     - Calculate if user meets minimum age
@@ -598,23 +604,22 @@ When a verifier (e.g., age-restricted website) needs to verify age:
       }
     }
     ```
-    
 5.  **Verifier confirms on blockchain**:
     - Check that wallet owns the NFT asset
-    - Verify asset was issued by trusted CardlessID issuer
+    - Verify asset was issued by trusted Cardless ID issuer
     - Grant access based on result
 
 ---
 
 ## Costs Summary
 
-| Action           | Cost           | Locked Balance | Notes              |
-|------------------|----------------|----------------|--------------------|
-| NFT Creation     | 0.001 ALGO     | 0.1 ALGO       | Paid by issuer     |
-| Opt-in           | 0.001 ALGO     | 0.1 ALGO       | Paid by recipient  |
-| Transfer         | 0.001 ALGO     | \-             | Paid by issuer     |
-| Freeze           | 0.001 ALGO     | \-             | Paid by issuer     |
-| **Total (User)** | **0.001 ALGO** | **0.1 ALGO**   | ~$0.03-0.04 USD    |
+| Action           | Cost           | Locked Balance | Notes             |
+| ---------------- | -------------- | -------------- | ----------------- |
+| NFT Creation     | 0.001 ALGO     | 0.1 ALGO       | Paid by issuer    |
+| Opt-in           | 0.001 ALGO     | 0.1 ALGO       | Paid by recipient |
+| Transfer         | 0.001 ALGO     | \-             | Paid by issuer    |
+| Freeze           | 0.001 ALGO     | \-             | Paid by issuer    |
+| **Total (User)** | **0.001 ALGO** | **0.1 ALGO**   | ~$0.03-0.04 USD   |
 
 The 0.1 ALGO locked balance is returned if the user opts out of the asset (but this revokes the credential).
 
@@ -692,7 +697,7 @@ For testing, you can check these example credentials:
 ### For Verifiers
 
 1.  **Always check blockchain** - don't trust client claims without verification
-2.  **Verify issuer address** matches trusted CardlessID issuer
+2.  **Verify issuer address** matches trusted Cardless ID issuer
 3.  **Check NFT is frozen** to ensure it's non-transferable
 4.  **Rate limit verification** requests to prevent abuse
 5.  **Don't store personal data** - only store wallet address and verification result
@@ -703,13 +708,13 @@ For testing, you can check these example credentials:
 
 ### Common Errors
 
-| Error                    | Cause                         | Solution                                      |
-|--------------------------|-------------------------------|-----------------------------------------------|
-| "Asset not opted in"     | User hasn't opted in to NFT   | Complete Step 2 (opt-in)                      |
-| "Account does not exist" | Wallet has 0 ALGO             | Fund wallet with minimum 0.1 ALGO             |
-| "Asset frozen"           | Trying to transfer frozen NFT | This is expected - NFTs are non-transferable  |
-| "Invalid address format" | Malformed Algorand address    | Validate address format (58 chars, base32)    |
-| "Insufficient balance"   | Not enough ALGO for fees      | Ensure wallet has at least 0.2 ALGO           |
+| Error                    | Cause                         | Solution                                     |
+| ------------------------ | ----------------------------- | -------------------------------------------- |
+| "Asset not opted in"     | User hasn't opted in to NFT   | Complete Step 2 (opt-in)                     |
+| "Account does not exist" | Wallet has 0 ALGO             | Fund wallet with minimum 0.1 ALGO            |
+| "Asset frozen"           | Trying to transfer frozen NFT | This is expected - NFTs are non-transferable |
+| "Invalid address format" | Malformed Algorand address    | Validate address format (58 chars, base32)   |
+| "Insufficient balance"   | Not enough ALGO for fees      | Ensure wallet has at least 0.2 ALGO          |
 
 ---
 

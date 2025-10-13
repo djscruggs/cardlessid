@@ -1,6 +1,6 @@
 # Cardless ID Wallet App Developer Guide
 
-This guide is for developers building mobile wallet applications that integrate with CardlessID's age verification system.
+This guide is for developers building mobile wallet applications that integrate with Cardless ID's age verification system.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This guide is for developers building mobile wallet applications that integrate 
 
 ## Overview
 
-CardlessID provides a decentralized identity verification system built on the Algorand blockchain. Your wallet app will:
+Cardless ID provides a decentralized identity verification system built on the Algorand blockchain. Your wallet app will:
 
 1. Store users' verifiable credentials (birth date, etc.)
 2. Respond to age verification requests via QR codes
@@ -24,7 +24,7 @@ CardlessID provides a decentralized identity verification system built on the Al
 ## Architecture
 
 ```
-Verifier Site          CardlessID API        Your Wallet App
+Verifier Site          Cardless ID API        Your Wallet App
      |                      |                       |
      |-- Creates ---------> |                       |
      |   Challenge          |                       |
@@ -212,7 +212,7 @@ cardlessid://verify?session=age_1234567890_abc&minAge=21
 
 ## API Integration
 
-Your wallet app needs to integrate with two CardlessID APIs:
+Your wallet app needs to integrate with two Cardless ID APIs:
 
 ### 1. Fetch Challenge/Session Details
 

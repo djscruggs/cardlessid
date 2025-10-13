@@ -100,7 +100,7 @@ async function notifyIntegrator(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "CardlessID/1.0",
+        "User-Agent": "Cardless ID/1.0",
       },
       body: JSON.stringify(data),
     });

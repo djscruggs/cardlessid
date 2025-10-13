@@ -1,17 +1,17 @@
-# CardlessID Integrator System
+# Cardless ID Integrator System
 
-This document describes the secure age verification integration system for CardlessID.
+This document describes the secure age verification integration system for Cardless ID.
 
 ## Overview
 
-The integrator system allows external companies to integrate CardlessID's privacy-preserving age verification into their applications. It uses a secure challenge-response flow that prevents users from tampering with age requirements.
+The integrator system allows external companies to integrate Cardless ID's privacy-preserving age verification into their applications. It uses a secure challenge-response flow that prevents users from tampering with age requirements.
 
 ## Architecture
 
 ### Challenge-Response Flow
 
 ```
-Company Backend     CardlessID API      User's Wallet
+Company Backend     Cardless ID API      User's Wallet
      |                   |                    |
      |-- Create -------->|                    |
      |   Challenge       |                    |
@@ -207,9 +207,9 @@ X-API-Key: your_api_key
 ## Integration Example
 
 ```javascript
-const CardlessID = require("@cardlessid/verifier");
+const Cardless ID = require("@cardlessid/verifier");
 
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 

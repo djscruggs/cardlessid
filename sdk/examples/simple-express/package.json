@@ -1,7 +1,7 @@
 {
   "name": "cardlessid-example-express",
   "version": "1.0.0",
-  "description": "Simple Express.js example for CardlessID age verification",
+  "description": "Simple Express.js example for Cardless ID age verification",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

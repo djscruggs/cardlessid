@@ -27,7 +27,9 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const mobile =
+        /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+        window.innerWidth < 768;
       setIsMobile(mobile);
     };
     checkMobile();
@@ -51,7 +53,9 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/integrator/challenge/details/${challengeId}`);
+      const response = await fetch(
+        `/api/integrator/challenge/details/${challengeId}`
+      );
       if (response.ok) {
         const challenge = await response.json();
         setMinAge(challenge.minAge);
@@ -148,17 +152,19 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
     }
   };
 
-  const deepLinkUrl = isIntegratorMode && challengeId
-    ? `cardlessid://verify?challenge=${challengeId}`
-    : sessionId
-    ? `cardlessid://verify?session=${sessionId}&minAge=${minAge}`
-    : "";
+  const deepLinkUrl =
+    isIntegratorMode && challengeId
+      ? `cardlessid://verify?challenge=${challengeId}`
+      : sessionId
+        ? `cardlessid://verify?session=${sessionId}&minAge=${minAge}`
+        : "";
 
-  const webFallbackUrl = isIntegratorMode && challengeId
-    ? `${window.location.origin}/app/wallet-verify?challenge=${challengeId}`
-    : sessionId
-    ? `${window.location.origin}/app/wallet-verify?session=${sessionId}`
-    : "";
+  const webFallbackUrl =
+    isIntegratorMode && challengeId
+      ? `${window.location.origin}/app/wallet-verify?challenge=${challengeId}`
+      : sessionId
+        ? `${window.location.origin}/app/wallet-verify?session=${sessionId}`
+        : "";
 
   return (
     <div className="min-h-screen bg-base-200 p-8">
@@ -210,7 +216,8 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {((sessionId && !loading) || (isIntegratorMode && challengeId && !loading)) && (
+        {((sessionId && !loading) ||
+          (isIntegratorMode && challengeId && !loading)) && (
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body items-center text-center">
               <h2 className="card-title mb-4">
@@ -230,7 +237,7 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
                     Tap to Verify
                   </button>
                   <div className="mt-4 text-sm text-gray-500">
-                    <p>This will open your CardlessID wallet app</p>
+                    <p>This will open your Cardless ID wallet app</p>
                     <p className="mt-2">
                       Don't have the app?{" "}
                       <a href="/install" className="link link-primary">
@@ -243,7 +250,7 @@ export default function AgeVerify({ loaderData }: Route.ComponentProps) {
                 // Desktop: Show QR code
                 <div className="w-full">
                   <p className="mb-6 text-gray-600">
-                    Scan this QR code with your CardlessID wallet app
+                    Scan this QR code with your Cardless ID wallet app
                   </p>
                   <div className="flex justify-center mb-6 bg-white p-8 rounded-lg">
                     <QRCodeSVG value={deepLinkUrl} size={256} />

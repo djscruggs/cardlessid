@@ -1,10 +1,10 @@
 # cardlessid-algorand
 
-Smart contract development workspace for CardlessID on the Algorand blockchain.
+Smart contract development workspace for Cardless ID on the Algorand blockchain.
 
 ## Overview
 
-This AlgoKit workspace contains the smart contracts for CardlessID, a decentralized identity verification system. The contracts enable on-chain verification and credential management, providing the blockchain backend for the CardlessID web application.
+This AlgoKit workspace contains the smart contracts for Cardless ID, a decentralized identity verification system. The contracts enable on-chain verification and credential management, providing the blockchain backend for the Cardless ID web application.
 
 ## Project Structure
 
@@ -13,30 +13,34 @@ This AlgoKit workspace contains the smart contracts for CardlessID, a decentrali
   - `smart_contracts/artifacts/` - Compiled contracts and generated clients
   - `scripts/` - Utility scripts including type stub generation
 
-## Relationship to CardlessID
+## Relationship to Cardless ID
 
-This is a **subproject** of the main CardlessID application (located in the parent directory). The smart contracts handle:
+This is a **subproject** of the main Cardless ID application (located in the parent directory). The smart contracts handle:
+
 - On-chain issuer registry
 - Credential verification logic
 - Blockchain state management
 
-The parent CardlessID React application imports the generated TypeScript client from `app/utils/CardlessIssuerClient.ts`, which is automatically copied during the build process.
+The parent Cardless ID React application imports the generated TypeScript client from `app/utils/CardlessIssuerClient.ts`, which is automatically copied during the build process.
 
 ## Getting Started
 
 ### Building the Contracts
 
 From this directory:
+
 ```bash
 algokit project run build
 ```
 
-From the parent CardlessID directory:
+From the parent Cardless ID directory:
+
 ```bash
 npm run algokit:build
 ```
 
 This will:
+
 1. Compile the Algorand TypeScript smart contracts
 2. Generate TEAL approval and clear programs
 3. Generate TypeScript client code
@@ -66,4 +70,4 @@ Because this AlgoKit project is nested within a larger React project, a postinst
 
 - [AlgoKit Documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/algokit.md)
 - [Algorand TypeScript](https://github.com/algorandfoundation/puya-ts)
-- [CardlessID Documentation](../README.md)
+- [Cardless ID Documentation](../README.md)

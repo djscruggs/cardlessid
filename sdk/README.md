@@ -1,4 +1,4 @@
-# CardlessID Integrator SDK
+# Cardless ID Integrator SDK
 
 Secure, privacy-preserving age verification for your applications.
 
@@ -52,7 +52,7 @@ if (result.verified) {
 
 ## 🔒 Security Model
 
-CardlessID uses a **challenge-response flow** that prevents tampering:
+Cardless ID uses a **challenge-response flow** that prevents tampering:
 
 1. Your backend creates a challenge with required age
 2. User scans QR code with their wallet
@@ -70,7 +70,7 @@ CardlessID uses a **challenge-response flow** that prevents tampering:
 ## 🏗️ Architecture
 
 ```
-Your App         CardlessID        User's Wallet
+Your App         Cardless ID        User's Wallet
    |                 |                    |
    |-- Create ------>|                    |
    |                 |                    |
@@ -187,4 +187,4 @@ MIT License - see LICENSE file for details
 
 ---
 
-**Built with ❤️ by the CardlessID team**
+**Built with ❤️ by the Cardless ID team**

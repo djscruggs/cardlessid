@@ -28,7 +28,8 @@ export default function DelegatedVerificationGuide() {
           Delegated Verification Guide
         </h1>
         <p className="text-lg text-gray-600">
-          Issue CardlessID credentials to your verified users via trusted issuer API
+          Issue CardlessID credentials to your verified users via trusted issuer
+          API
         </p>
       </div>
 
@@ -36,21 +37,33 @@ export default function DelegatedVerificationGuide() {
       <section className="mb-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Overview</h2>
         <p className="text-gray-700 mb-4">
-          <strong>Delegated verification</strong> allows trusted issuers (banks, government
-          agencies, employers, universities, etc.) to issue CardlessID credentials to their
-          users without requiring them to go through a full identity verification flow.
+          <strong>Delegated verification</strong> allows trusted issuers (banks,
+          government agencies, employers, universities, etc.) to issue
+          CardlessID credentials to their users without requiring them to go
+          through a full identity verification flow.
         </p>
         <p className="text-gray-700 mb-4">
-          This is ideal for organizations that have already verified their users' identities
-          and want to provide them with portable, privacy-preserving digital credentials.
+          This is ideal for organizations that have already verified their
+          users' identities and want to provide them with portable,
+          privacy-preserving digital credentials.
         </p>
 
         {/* Important Note */}
         <div className="bg-orange-50 border-l-4 border-orange-400 p-6 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="h-6 w-6 text-orange-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -58,20 +71,23 @@ export default function DelegatedVerificationGuide() {
                 Issuer Registry & Security Audit Required
               </h3>
               <p className="text-orange-800 mb-3">
-                CardlessID maintains an <strong>Algorand smart contract</strong> that serves as a registry
-                of trusted issuers. Only credentials issued by addresses in this on-chain registry will be
-                recognized as valid by verifiers in the CardlessID ecosystem.
+                CardlessID maintains an <strong>Algorand smart contract</strong>{" "}
+                that serves as a registry of trusted issuers. Only credentials
+                issued by addresses in this on-chain registry will be recognized
+                as valid by verifiers in the CardlessID ecosystem.
               </p>
               <p className="text-orange-800 mb-3">
-                <strong>Before production deployment:</strong> Your organization must complete a security
-                audit and approval process. We review your verification procedures, security practices,
-                and compliance measures before adding your issuer address to the registry.
+                <strong>Before production deployment:</strong> Your organization
+                must complete a security audit and approval process. We review
+                your verification procedures, security practices, and compliance
+                measures before adding your issuer address to the registry.
               </p>
               <p className="text-orange-800 mb-2">
                 <strong>Contact:</strong> partnerships@cardlessid.com
               </p>
               <p className="text-orange-800 text-sm">
-                <strong>Subject line:</strong> "Issuer Registry Application - [Your Organization Name]"
+                <strong>Subject line:</strong> "Issuer Registry Application -
+                [Your Organization Name]"
               </p>
             </div>
           </div>
@@ -123,12 +139,12 @@ export default function DelegatedVerificationGuide() {
               1. Banks (KYC Completed)
             </h3>
             <p className="text-blue-800 mb-3">
-              Banks that have completed Know Your Customer (KYC) verification can issue
-              CardlessID credentials to their account holders.
+              Banks that have completed Know Your Customer (KYC) verification
+              can issue CardlessID credentials to their account holders.
             </p>
             <p className="text-blue-900 font-medium text-sm">
-              Example: Chase Bank issues CardlessID to verified customers, allowing them
-              to prove age without sharing banking information.
+              Example: Chase Bank issues CardlessID to verified customers,
+              allowing them to prove age without sharing banking information.
             </p>
           </div>
 
@@ -137,11 +153,12 @@ export default function DelegatedVerificationGuide() {
               2. Government Agencies (DMV, Social Security)
             </h3>
             <p className="text-purple-800 mb-3">
-              Government agencies that issue identity documents can directly issue digital
-              credentials.
+              Government agencies that issue identity documents can directly
+              issue digital credentials.
             </p>
             <p className="text-purple-900 font-medium text-sm">
-              Example: California DMV issues CardlessID when renewing driver's license.
+              Example: California DMV issues CardlessID when renewing driver's
+              license.
             </p>
           </div>
 
@@ -150,12 +167,12 @@ export default function DelegatedVerificationGuide() {
               3. Universities (Student Credentials)
             </h3>
             <p className="text-green-800 mb-3">
-              Universities can issue credentials to enrolled students for age verification
-              and student discounts.
+              Universities can issue credentials to enrolled students for age
+              verification and student discounts.
             </p>
             <p className="text-green-900 font-medium text-sm">
-              Example: Stanford issues CardlessID to all students for campus events and
-              online student discounts.
+              Example: Stanford issues CardlessID to all students for campus
+              events and online student discounts.
             </p>
           </div>
 
@@ -164,11 +181,12 @@ export default function DelegatedVerificationGuide() {
               4. Employers (Employee Verification)
             </h3>
             <p className="text-orange-800 mb-3">
-              Employers can issue credentials to employees for workplace access and benefits.
+              Employers can issue credentials to employees for workplace access
+              and benefits.
             </p>
             <p className="text-orange-900 font-medium text-sm">
-              Example: Google issues CardlessID to employees for building access and
-              corporate discounts.
+              Example: Google issues CardlessID to employees for building access
+              and corporate discounts.
             </p>
           </div>
 
@@ -177,12 +195,12 @@ export default function DelegatedVerificationGuide() {
               5. Healthcare Providers
             </h3>
             <p className="text-pink-800 mb-3">
-              Healthcare organizations can issue credentials to patients for age-gated
-              services.
+              Healthcare organizations can issue credentials to patients for
+              age-gated services.
             </p>
             <p className="text-pink-900 font-medium text-sm">
-              Example: Kaiser Permanente issues CardlessID to patients for prescription
-              refills requiring age verification.
+              Example: Kaiser Permanente issues CardlessID to patients for
+              prescription refills requiring age verification.
             </p>
           </div>
         </div>
@@ -190,7 +208,9 @@ export default function DelegatedVerificationGuide() {
 
       {/* Getting Started */}
       <section className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Getting Started</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Getting Started
+        </h2>
 
         <div className="space-y-6">
           <div>
@@ -202,11 +222,17 @@ export default function DelegatedVerificationGuide() {
             </p>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <ul className="space-y-2 text-blue-900">
-                <li><strong>Email:</strong> partnerships@cardlessid.com</li>
-                <li><strong>Subject:</strong> "Delegated Verification API Key Request"</li>
+                <li>
+                  <strong>Email:</strong> partnerships@cardlessid.com
+                </li>
+                <li>
+                  <strong>Subject:</strong> "Delegated Verification API Key
+                  Request"
+                </li>
               </ul>
               <p className="mt-4 text-blue-800 text-sm">
-                Include: Organization name, type, contact email, website, use case, expected volume
+                Include: Organization name, type, contact email, website, use
+                case, expected volume
               </p>
             </div>
           </div>
@@ -217,7 +243,12 @@ export default function DelegatedVerificationGuide() {
             </h3>
             <p className="text-gray-700 mb-4">You'll receive:</p>
             <ul className="space-y-2 text-gray-700 list-disc list-inside">
-              <li>API Key: <code className="bg-gray-100 px-2 py-1 rounded">sk_live_xxxxxxxxxxxxxxxx</code></li>
+              <li>
+                API Key:{" "}
+                <code className="bg-gray-100 px-2 py-1 rounded">
+                  sk_live_xxxxxxxxxxxxxxxx
+                </code>
+              </li>
               <li>Documentation: This guide</li>
               <li>Sandbox API Key: For testing</li>
             </ul>
@@ -239,12 +270,16 @@ export default function DelegatedVerificationGuide() {
         <h2 className="text-3xl font-bold text-gray-900 mb-4">API Reference</h2>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-3">Endpoint</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            Endpoint
+          </h3>
           <CodeBlock language="bash">{`POST https://cardlessid.com/api/delegated-verification/issue`}</CodeBlock>
         </div>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-3">Request Body</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            Request Body
+          </h3>
           <CodeBlock language="json">{`{
   "apiKey": "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
@@ -253,7 +288,7 @@ export default function DelegatedVerificationGuide() {
     "lastName": "Doe",
     "dateOfBirth": "1990-01-15",
     "documentNumber": "D1234567",
-    "documentType": "drivers_license",
+    "documentType": "government_id",
     "issuingCountry": "US",
     "issuingState": "CA"
   }
@@ -261,59 +296,125 @@ export default function DelegatedVerificationGuide() {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-3">Request Fields</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            Request Fields
+          </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full border border-gray-300">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Field</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Type</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Required</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">Description</th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                    Field
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                    Type
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                    Required
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                    Description
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white">
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>apiKey</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Yes</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Your API key from CardlessID</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>apiKey</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Your API key from CardlessID
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>walletAddress</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Yes</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">User's Algorand wallet address (58 characters)</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>walletAddress</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    User's Algorand wallet address (58 characters)
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>identity.firstName</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Yes</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">User's first name</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.firstName</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    User's first name
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>identity.lastName</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Yes</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">User's last name</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.lastName</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    User's last name
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>identity.dateOfBirth</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Yes</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">Date of birth (YYYY-MM-DD format)</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.dateOfBirth</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Date of birth (YYYY-MM-DD format)
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>identity.documentNumber</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">No</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">ID document number</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.documentNumber</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    No
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    ID document number
+                  </td>
                 </tr>
                 <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm"><code>identity.documentType</code></td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">string</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">No</td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">drivers_license, passport, or state_id</td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.documentType</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    No
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    drivers_license, passport, or government_id
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -321,7 +422,9 @@ export default function DelegatedVerificationGuide() {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-3">Response (Success)</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            Response (Success)
+          </h3>
           <CodeBlock language="json">{`{
   "success": true,
   "credentialId": "cred_1234567890_abc123",
@@ -336,16 +439,22 @@ export default function DelegatedVerificationGuide() {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-3">Error Responses</h3>
+          <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+            Error Responses
+          </h3>
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">401 Unauthorized</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">
+                401 Unauthorized
+              </h4>
               <CodeBlock language="json">{`{
   "error": "Invalid API key"
 }`}</CodeBlock>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">400 Bad Request</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">
+                400 Bad Request
+              </h4>
               <CodeBlock language="json">{`{
   "error": "Invalid Algorand wallet address. Must be 58 characters."
 }`}</CodeBlock>
@@ -356,11 +465,15 @@ export default function DelegatedVerificationGuide() {
 
       {/* Implementation Examples */}
       <section className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Implementation Examples</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Implementation Examples
+        </h2>
 
         <div className="space-y-8">
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Node.js / TypeScript</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+              Node.js / TypeScript
+            </h3>
             <CodeBlock language="typescript">{`import fetch from 'node-fetch';
 
 async function issueCardlessId(
@@ -406,7 +519,9 @@ await issueCardlessId(
           </div>
 
           <div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Python</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+              Python
+            </h3>
             <CodeBlock language="python">{`import requests
 import os
 
@@ -449,7 +564,7 @@ issue_cardless_id(
       "lastName": "Doe",
       "dateOfBirth": "1990-01-15",
       "documentNumber": "D1234567",
-      "documentType": "drivers_license",
+      "documentType": "government_id",
       "issuingCountry": "US",
       "issuingState": "CA"
     }
@@ -460,11 +575,15 @@ issue_cardless_id(
 
       {/* Best Practices */}
       <section className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Best Practices</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          Best Practices
+        </h2>
 
         <div className="space-y-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-900 mb-2">Security</h3>
+            <h3 className="text-lg font-semibold text-red-900 mb-2">
+              Security
+            </h3>
             <ul className="space-y-1 text-red-800 text-sm">
               <li>• Store API keys in environment variables</li>
               <li>• Never commit API keys to version control</li>
@@ -474,7 +593,9 @@ issue_cardless_id(
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">Error Handling</h3>
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              Error Handling
+            </h3>
             <ul className="space-y-1 text-blue-800 text-sm">
               <li>• Retry failed requests with exponential backoff</li>
               <li>• Log all errors for debugging</li>
@@ -484,7 +605,9 @@ issue_cardless_id(
           </div>
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-green-900 mb-2">User Experience</h3>
+            <h3 className="text-lg font-semibold text-green-900 mb-2">
+              User Experience
+            </h3>
             <ul className="space-y-1 text-green-800 text-sm">
               <li>• Explain what CardlessID is</li>
               <li>• Show benefits to users</li>
@@ -501,7 +624,9 @@ issue_cardless_id(
 
         <div className="space-y-4">
           <div className="border border-gray-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">GDPR (European Union)</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              GDPR (European Union)
+            </h3>
             <ul className="space-y-2 text-gray-700 list-disc list-inside">
               <li>Right to access: Users can request credential data</li>
               <li>Right to erasure: Users can request credential revocation</li>
@@ -511,18 +636,29 @@ issue_cardless_id(
           </div>
 
           <div className="border border-gray-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">CCPA (California)</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              CCPA (California)
+            </h3>
             <ul className="space-y-2 text-gray-700 list-disc list-inside">
-              <li>Data disclosure: Users can request information about data collection</li>
+              <li>
+                Data disclosure: Users can request information about data
+                collection
+              </li>
               <li>Right to delete: Users can request credential deletion</li>
-              <li>No sale of data: Credentials are not sold to third parties</li>
+              <li>
+                No sale of data: Credentials are not sold to third parties
+              </li>
             </ul>
           </div>
 
           <div className="border border-gray-200 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">HIPAA (Healthcare)</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              HIPAA (Healthcare)
+            </h3>
             <ul className="space-y-2 text-gray-700 list-disc list-inside">
-              <li>Protected Health Information (PHI) is not stored in credentials</li>
+              <li>
+                Protected Health Information (PHI) is not stored in credentials
+              </li>
               <li>Only age/identity information is included</li>
               <li>Credentials are encrypted on blockchain</li>
               <li>Audit logs track all issuance</li>
@@ -538,33 +674,61 @@ issue_cardless_id(
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
           <ul className="space-y-2 text-gray-700">
-            <li><strong>Email:</strong> support@cardlessid.com</li>
-            <li><strong>Partnerships:</strong> partnerships@cardlessid.com</li>
-            <li><strong>Technical Support:</strong> dev@cardlessid.com</li>
-            <li><strong>Emergency:</strong> security@cardlessid.com (security issues only)</li>
+            <li>
+              <strong>Email:</strong> support@cardlessid.com
+            </li>
+            <li>
+              <strong>Partnerships:</strong> partnerships@cardlessid.com
+            </li>
+            <li>
+              <strong>Technical Support:</strong> dev@cardlessid.com
+            </li>
+            <li>
+              <strong>Emergency:</strong> security@cardlessid.com (security
+              issues only)
+            </li>
           </ul>
 
           <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">SLA</h3>
           <ul className="space-y-2 text-gray-700">
-            <li><strong>Uptime:</strong> 99.9% guaranteed</li>
-            <li><strong>Response Time:</strong> &lt; 200ms (p95)</li>
-            <li><strong>Support Response:</strong> &lt; 24 hours</li>
-            <li><strong>Critical Issues:</strong> &lt; 2 hours</li>
+            <li>
+              <strong>Uptime:</strong> 99.9% guaranteed
+            </li>
+            <li>
+              <strong>Response Time:</strong> &lt; 200ms (p95)
+            </li>
+            <li>
+              <strong>Support Response:</strong> &lt; 24 hours
+            </li>
+            <li>
+              <strong>Critical Issues:</strong> &lt; 2 hours
+            </li>
           </ul>
         </div>
       </section>
 
       {/* Related Docs */}
       <section className="mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Related Documentation</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+          Related Documentation
+        </h2>
         <div className="space-y-2">
-          <Link to="/docs/custom-verification-guide" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/custom-verification-guide"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Custom Verification Provider Guide
           </Link>
-          <Link to="/docs/integration-guide" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/integration-guide"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Integration Guide
           </Link>
-          <Link to="/docs/credential-schema" className="block text-blue-600 hover:text-blue-800 hover:underline">
+          <Link
+            to="/docs/credential-schema"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
             → Credential Schema Documentation
           </Link>
         </div>
@@ -574,7 +738,7 @@ issue_cardless_id(
       <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
         <p className="text-lg mb-6">
-          Contact partnerships@cardlessid.com to request your API key
+          <Link to="/contact">Contact us</Link> to request your API key
         </p>
         <a
           href="mailto:partnerships@cardlessid.com?subject=Delegated%20Verification%20API%20Key%20Request"

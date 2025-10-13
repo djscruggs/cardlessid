@@ -39,6 +39,10 @@ button:focus-visible {
   color: #213547;
   background-color: #ffffff;
 }
+a {
+  text-decoration: underline;
+  color: var(--color-logoblue);
+}
 a:hover {
   color: #747bff;
   text-decoration: underline;

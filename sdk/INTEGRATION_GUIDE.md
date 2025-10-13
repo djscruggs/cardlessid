@@ -1,6 +1,6 @@
-# CardlessID Age Verification - Integration Guide
+# Cardless ID Age Verification - Integration Guide
 
-This guide explains how to integrate CardlessID age verification into your application using the backend-required secure flow.
+This guide explains how to integrate Cardless ID age verification into your application using the backend-required secure flow.
 
 ## Table of Contents
 
@@ -13,7 +13,7 @@ This guide explains how to integrate CardlessID age verification into your appli
 
 ## Overview
 
-CardlessID provides zero-knowledge age verification using decentralized identity credentials on the Algorand blockchain. Users prove they meet an age requirement without revealing their actual birthdate.
+Cardless ID provides zero-knowledge age verification using decentralized identity credentials on the Algorand blockchain. Users prove they meet an age requirement without revealing their actual birthdate.
 
 **Key Features:**
 
@@ -28,9 +28,9 @@ CardlessID provides zero-knowledge age verification using decentralized identity
 The verification flow uses a **challenge-response pattern** to prevent tampering:
 
 1. **Your backend** creates a challenge with your required age
-2. CardlessID generates a unique, single-use challenge ID
+2. Cardless ID generates a unique, single-use challenge ID
 3. User scans QR code with their wallet
-4. Wallet verifies age requirement and responds to CardlessID
+4. Wallet verifies age requirement and responds to Cardless ID
 5. **Your backend** polls or receives webhook to confirm verification
 6. Challenge cannot be reused or modified
 
@@ -63,9 +63,9 @@ npm install @cardlessid/verifier
 ### 3. Basic Usage
 
 ```javascript
-const CardlessID = require("@cardlessid/verifier");
+const Cardless ID = require("@cardlessid/verifier");
 
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 
@@ -96,7 +96,7 @@ npm install @cardlessid/verifier
 #### Constructor
 
 ```javascript
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: "your_api_key",
   baseUrl: "https://cardlessid.com", // optional
 });
@@ -238,10 +238,10 @@ X-API-Key: your_api_key
 
 ```javascript
 const express = require("express");
-const CardlessID = require("@cardlessid/verifier");
+const Cardless ID = require("@cardlessid/verifier");
 
 const app = express();
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 
@@ -312,9 +312,9 @@ app.listen(3000);
 ```typescript
 // pages/api/verify-age.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import CardlessID from "@cardlessid/verifier";
+import Cardless ID from "@cardlessid/verifier";
 
-const verifier = new CardlessID({
+const verifier = new Cardless ID({
   apiKey: process.env.CARDLESSID_API_KEY!,
 });
 

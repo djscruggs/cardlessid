@@ -2,7 +2,7 @@
 
 ## Overview
 
-CardlessID uses a **verification provider architecture** that allows you to implement custom identity verification flows. This guide explains how to build your own verification provider to issue CardlessID credentials using your preferred verification method.
+Cardless ID uses a **verification provider architecture** that allows you to implement custom identity verification flows. This guide explains how to build your own verification provider to issue Cardless ID credentials using your preferred verification method.
 
 ## Table of Contents
 
@@ -18,9 +18,10 @@ CardlessID uses a **verification provider architecture** that allows you to impl
 
 ## What is a Verification Provider?
 
-A verification provider is a module that handles the identity verification process and returns verified identity data. CardlessID then uses this data to issue a W3C Verifiable Credential on the Algorand blockchain.
+A verification provider is a module that handles the identity verification process and returns verified identity data. Cardless ID then uses this data to issue a W3C Verifiable Credential on the Algorand blockchain.
 
 **Key responsibilities:**
+
 - Verify user identity through your chosen method
 - Return standardized identity data
 - Provide verification quality metrics
@@ -41,6 +42,7 @@ A **full verification provider** implements a complete identity verification flo
 - **Liveness detection** - Ensure real person, not a photo
 
 **Use cases:**
+
 - Cloud-based verification (e.g., Stripe Identity, Persona, Onfido)
 - Custom ML-based verification
 - Hardware-based verification (NFC passport readers)
@@ -51,6 +53,7 @@ A **full verification provider** implements a complete identity verification flo
 A **delegated verification provider** issues credentials based on existing verification from a trusted authority. The provider trusts that verification has already occurred and simply signs the credential.
 
 **Use cases:**
+
 - Banks issuing credentials for their customers
 - Government agencies (DMV, Social Security Administration)
 - Universities issuing student credentials
@@ -58,6 +61,7 @@ A **delegated verification provider** issues credentials based on existing verif
 - Healthcare providers issuing patient credentials
 
 **Authentication:**
+
 - API key-based authentication
 - OAuth/OIDC integration
 - Mutual TLS
@@ -96,7 +100,7 @@ interface VerifiedIdentity {
   lastName: string;
   dateOfBirth: string; // YYYY-MM-DD
   documentNumber?: string;
-  documentType?: 'drivers_license' | 'passport' | 'state_id';
+  documentType?: "drivers_license" | "passport" | "government_id";
   issuingCountry?: string;
   issuingState?: string;
   compositeHash: string; // Unique identifier for this person
@@ -111,7 +115,7 @@ interface VerifiedIdentity {
     documentAnalysis?: {
       bothSidesAnalyzed: boolean;
       lowConfidenceFields: string[];
-      qualityLevel: 'high' | 'medium' | 'low';
+      qualityLevel: "high" | "medium" | "low";
     };
     biometricVerification?: {
       performed: boolean;
@@ -156,17 +160,20 @@ app/
 Create a new file in `app/utils/verification-providers/your-provider.ts`:
 
 ```typescript
-import type { VerificationProvider, VerifiedIdentity } from '~/types/verification';
-import { generateCompositeHash } from '~/utils/composite-hash.server';
+import type {
+  VerificationProvider,
+  VerifiedIdentity,
+} from "~/types/verification";
+import { generateCompositeHash } from "~/utils/composite-hash.server";
 
 export class YourVerificationProvider implements VerificationProvider {
-  name = 'your-provider';
+  name = "your-provider";
   private apiKey: string;
 
   constructor() {
-    this.apiKey = process.env.YOUR_PROVIDER_API_KEY || '';
+    this.apiKey = process.env.YOUR_PROVIDER_API_KEY || "";
     if (!this.apiKey) {
-      console.warn('[YourProvider] API key not configured');
+      console.warn("[YourProvider] API key not configured");
     }
   }
 
@@ -175,24 +182,24 @@ export class YourVerificationProvider implements VerificationProvider {
     providerSessionId: string;
   }> {
     // Call your provider's API to create a verification session
-    const response = await fetch('https://api.yourprovider.com/verifications', {
-      method: 'POST',
+    const response = await fetch("https://api.yourprovider.com/verifications", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         // Your provider's required fields
         callback_url: `${process.env.BASE_URL}/api/verification/webhook`,
-        metadata: { cardless_session_id: sessionId }
-      })
+        metadata: { cardless_session_id: sessionId },
+      }),
     });
 
     const data = await response.json();
 
     return {
-      authToken: data.client_secret,  // Token for mobile SDK
-      providerSessionId: data.id
+      authToken: data.client_secret, // Token for mobile SDK
+      providerSessionId: data.id,
     };
   }
 
@@ -204,13 +211,13 @@ export class YourVerificationProvider implements VerificationProvider {
     const response = await fetch(
       `https://api.yourprovider.com/verifications/${providerData.verification_id}`,
       {
-        headers: { 'Authorization': `Bearer ${this.apiKey}` }
+        headers: { Authorization: `Bearer ${this.apiKey}` },
       }
     );
 
     const verification = await response.json();
 
-    // Map provider data to CardlessID format
+    // Map provider data to Cardless ID format
     const identity: VerifiedIdentity = {
       firstName: verification.user.first_name,
       lastName: verification.user.last_name,
@@ -227,21 +234,21 @@ export class YourVerificationProvider implements VerificationProvider {
         fraudDetection: {
           performed: true,
           passed: verification.fraud_check.passed,
-          signals: verification.fraud_check.signals || []
+          signals: verification.fraud_check.signals || [],
         },
         documentAnalysis: {
           bothSidesAnalyzed: verification.document.sides_captured === 2,
           lowConfidenceFields: [],
-          qualityLevel: verification.document.quality
+          qualityLevel: verification.document.quality,
         },
         biometricVerification: {
           performed: true,
           faceMatch: verification.biometric.match,
           faceMatchConfidence: verification.biometric.confidence,
           liveness: verification.biometric.liveness_passed,
-          livenessConfidence: verification.biometric.liveness_confidence
-        }
-      }
+          livenessConfidence: verification.biometric.liveness_confidence,
+        },
+      },
     };
 
     return identity;
@@ -249,29 +256,31 @@ export class YourVerificationProvider implements VerificationProvider {
 
   async handleWebhook(payload: any): Promise<void> {
     // Handle webhook from your provider
-    console.log('[YourProvider] Webhook received:', payload.type);
+    console.log("[YourProvider] Webhook received:", payload.type);
 
-    if (payload.type === 'verification.completed') {
+    if (payload.type === "verification.completed") {
       // Update verification session in database
       const sessionId = payload.metadata.cardless_session_id;
       const identity = await this.processVerification(sessionId, payload);
 
       // Store in database
       await updateVerificationSession(sessionId, {
-        status: 'completed',
-        verifiedData: identity
+        status: "completed",
+        verifiedData: identity,
       });
     }
   }
 
-  private mapDocumentType(providerType: string): 'drivers_license' | 'passport' | 'state_id' {
-    // Map your provider's document types to CardlessID types
+  private mapDocumentType(
+    providerType: string
+  ): "drivers_license" | "passport" | "government_id" {
+    // Map your provider's document types to Cardless ID types
     const mapping: Record<string, any> = {
-      'driving_license': 'drivers_license',
-      'passport': 'passport',
-      'id_card': 'state_id'
+      driving_license: "drivers_license",
+      passport: "passport",
+      id_card: "government_id",
     };
-    return mapping[providerType] || 'state_id';
+    return mapping[providerType] || "government_id";
   }
 }
 ```
@@ -281,16 +290,16 @@ export class YourVerificationProvider implements VerificationProvider {
 Add your provider to `app/utils/verification-providers/index.ts`:
 
 ```typescript
-import { YourVerificationProvider } from './your-provider';
+import { YourVerificationProvider } from "./your-provider";
 
 const providers = {
   mock: new MockProvider(),
   custom: new CustomProvider(),
-  'your-provider': new YourVerificationProvider(),
+  "your-provider": new YourVerificationProvider(),
 };
 
 export function getProvider(name?: string): VerificationProvider {
-  const providerName = name || 'mock';
+  const providerName = name || "mock";
   const provider = providers[providerName];
 
   if (!provider) {
@@ -316,10 +325,10 @@ Update your frontend to specify the provider:
 
 ```typescript
 // Start verification with your provider
-const response = await fetch('/api/verification/start', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ provider: 'your-provider' })
+const response = await fetch("/api/verification/start", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ provider: "your-provider" }),
 });
 
 const { authToken, sessionId } = await response.json();
@@ -336,12 +345,15 @@ Delegated providers trust that identity verification has already occurred throug
 ### Step 1: Create Delegated Provider
 
 ```typescript
-import type { VerificationProvider, VerifiedIdentity } from '~/types/verification';
-import { generateCompositeHash } from '~/utils/composite-hash.server';
-import { verifyApiKey } from '~/utils/auth.server';
+import type {
+  VerificationProvider,
+  VerifiedIdentity,
+} from "~/types/verification";
+import { generateCompositeHash } from "~/utils/composite-hash.server";
+import { verifyApiKey } from "~/utils/auth.server";
 
 export class DelegatedVerificationProvider implements VerificationProvider {
-  name = 'delegated';
+  name = "delegated";
 
   // No session needed - verification is instant
   async createSession(sessionId: string): Promise<{
@@ -349,8 +361,8 @@ export class DelegatedVerificationProvider implements VerificationProvider {
     providerSessionId: string;
   }> {
     return {
-      authToken: '', // Not used
-      providerSessionId: sessionId
+      authToken: "", // Not used
+      providerSessionId: sessionId,
     };
   }
 
@@ -363,7 +375,7 @@ export class DelegatedVerificationProvider implements VerificationProvider {
     const issuer = await verifyApiKey(apiKey);
 
     if (!issuer) {
-      throw new Error('Invalid API key');
+      throw new Error("Invalid API key");
     }
 
     // Trust the provided identity data
@@ -371,11 +383,15 @@ export class DelegatedVerificationProvider implements VerificationProvider {
 
     // Validate required fields
     if (!firstName || !lastName || !dateOfBirth) {
-      throw new Error('Missing required identity fields');
+      throw new Error("Missing required identity fields");
     }
 
     // Generate composite hash
-    const compositeHash = generateCompositeHash(firstName, lastName, dateOfBirth);
+    const compositeHash = generateCompositeHash(
+      firstName,
+      lastName,
+      dateOfBirth
+    );
 
     // Return verified identity
     const identity: VerifiedIdentity = {
@@ -383,27 +399,27 @@ export class DelegatedVerificationProvider implements VerificationProvider {
       lastName,
       dateOfBirth,
       documentNumber,
-      documentType: providerData.documentType || 'state_id',
-      issuingCountry: providerData.issuingCountry || 'US',
+      documentType: providerData.documentType || "government_id",
+      issuingCountry: providerData.issuingCountry || "US",
       compositeHash,
       evidence: {
         // Delegated verification - trust the issuer
         fraudDetection: {
           performed: false,
           passed: true,
-          signals: []
+          signals: [],
         },
         documentAnalysis: {
           bothSidesAnalyzed: false,
           lowConfidenceFields: [],
-          qualityLevel: 'high' // Assume high quality from trusted issuer
+          qualityLevel: "high", // Assume high quality from trusted issuer
         },
         biometricVerification: {
           performed: false,
           faceMatch: false,
-          liveness: false
-        }
-      }
+          liveness: false,
+        },
+      },
     };
 
     return identity;
@@ -416,14 +432,17 @@ export class DelegatedVerificationProvider implements VerificationProvider {
 Create `app/routes/api/delegated-verification/issue.ts`:
 
 ```typescript
-import type { ActionFunctionArgs } from 'react-router';
-import { getProvider } from '~/utils/verification-providers';
-import { createVerificationSession, updateVerificationSession } from '~/utils/verification.server';
-import { issueCredential } from '~/utils/credential-issuance.server';
+import type { ActionFunctionArgs } from "react-router";
+import { getProvider } from "~/utils/verification-providers";
+import {
+  createVerificationSession,
+  updateVerificationSession,
+} from "~/utils/verification.server";
+import { issueCredential } from "~/utils/credential-issuance.server";
 
 export async function action({ request }: ActionFunctionArgs) {
-  if (request.method !== 'POST') {
-    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  if (request.method !== "POST") {
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
   try {
@@ -432,28 +451,34 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Validate API key
     if (!apiKey) {
-      return Response.json({ error: 'API key required' }, { status: 401 });
+      return Response.json({ error: "API key required" }, { status: 401 });
     }
 
     // Validate wallet address
     if (!walletAddress || !/^[A-Z2-7]{58}$/.test(walletAddress)) {
-      return Response.json({ error: 'Invalid Algorand wallet address' }, { status: 400 });
+      return Response.json(
+        { error: "Invalid Algorand wallet address" },
+        { status: 400 }
+      );
     }
 
     // Create session
-    const session = await createVerificationSession('delegated', `delegated_${Date.now()}`);
+    const session = await createVerificationSession(
+      "delegated",
+      `delegated_${Date.now()}`
+    );
 
     // Process verification
-    const provider = getProvider('delegated');
+    const provider = getProvider("delegated");
     const verifiedIdentity = await provider.processVerification(session.id, {
       apiKey,
-      ...identity
+      ...identity,
     });
 
     // Update session
     await updateVerificationSession(session.id, {
-      status: 'completed',
-      verifiedData: verifiedIdentity
+      status: "completed",
+      verifiedData: verifiedIdentity,
     });
 
     // Issue credential to wallet
@@ -467,13 +492,16 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       credentialId: credential.id,
       walletAddress,
-      compositeHash: verifiedIdentity.compositeHash
+      compositeHash: verifiedIdentity.compositeHash,
     });
   } catch (error) {
-    console.error('[Delegated Verification] Error:', error);
-    return Response.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    console.error("[Delegated Verification] Error:", error);
+    return Response.json(
+      {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      { status: 500 }
+    );
   }
 }
 ```
@@ -484,13 +512,13 @@ Create a utility to manage API keys for trusted issuers:
 
 ```typescript
 // app/utils/auth.server.ts
-import { getDatabase, ref, get } from 'firebase/database';
-import { firebaseApp } from '~/firebase.config';
+import { getDatabase, ref, get } from "firebase/database";
+import { firebaseApp } from "~/firebase.config";
 
 interface Issuer {
   id: string;
   name: string;
-  type: 'bank' | 'government' | 'employer' | 'university' | 'healthcare';
+  type: "bank" | "government" | "employer" | "university" | "healthcare";
   apiKey: string;
   active: boolean;
   createdAt: number;
@@ -498,7 +526,7 @@ interface Issuer {
 
 export async function verifyApiKey(apiKey: string): Promise<Issuer | null> {
   const db = getDatabase(firebaseApp);
-  const issuersRef = ref(db, 'issuers');
+  const issuersRef = ref(db, "issuers");
   const snapshot = await get(issuersRef);
 
   if (!snapshot.exists()) {
@@ -506,7 +534,9 @@ export async function verifyApiKey(apiKey: string): Promise<Issuer | null> {
   }
 
   const issuers: Record<string, Issuer> = snapshot.val();
-  const issuer = Object.values(issuers).find(i => i.apiKey === apiKey && i.active);
+  const issuer = Object.values(issuers).find(
+    (i) => i.apiKey === apiKey && i.active
+  );
 
   return issuer || null;
 }
@@ -516,28 +546,32 @@ export async function verifyApiKey(apiKey: string): Promise<Issuer | null> {
 
 ```typescript
 // Bank or DMV issues credential
-const response = await fetch('https://cardlessid.com/api/delegated-verification/issue', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    apiKey: 'sk_live_bank_xxxxxxxxxxxxxx',
-    walletAddress: 'MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM',
-    identity: {
-      firstName: 'Jane',
-      lastName: 'Doe',
-      dateOfBirth: '1990-01-15',
-      documentNumber: 'D1234567',
-      documentType: 'drivers_license',
-      issuingCountry: 'US',
-      issuingState: 'CA'
-    }
-  })
-});
+const response = await fetch(
+  "https://cardlessid.com/api/delegated-verification/issue",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      apiKey: "sk_live_bank_xxxxxxxxxxxxxx",
+      walletAddress:
+        "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
+      identity: {
+        firstName: "Jane",
+        lastName: "Doe",
+        dateOfBirth: "1990-01-15",
+        documentNumber: "D1234567",
+        documentType: "drivers_license",
+        issuingCountry: "US",
+        issuingState: "CA",
+      },
+    }),
+  }
+);
 
 const result = await response.json();
-console.log('Credential issued:', result.credentialId);
+console.log("Credential issued:", result.credentialId);
 ```
 
 ---
@@ -549,6 +583,7 @@ console.log('Credential issued:', result.credentialId);
 Create a new verification session.
 
 **Request:**
+
 ```json
 {
   "provider": "your-provider" // optional, defaults to "mock"
@@ -556,6 +591,7 @@ Create a new verification session.
 ```
 
 **Response:**
+
 ```json
 {
   "sessionId": "session_1234567890_abc123",
@@ -570,6 +606,7 @@ Create a new verification session.
 Check verification session status.
 
 **Response:**
+
 ```json
 {
   "sessionId": "session_1234567890_abc123",
@@ -584,6 +621,7 @@ Check verification session status.
 Issue credential via delegated verification.
 
 **Request:**
+
 ```json
 {
   "apiKey": "sk_live_xxxxxxxxxxxxx",
@@ -598,6 +636,7 @@ Issue credential via delegated verification.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -689,6 +728,7 @@ curl -X POST http://localhost:5173/api/delegated-verification/issue \
 ## Support
 
 For questions or issues:
+
 - GitHub Issues: https://github.com/your-repo/cardlessid/issues
 - Email: support@cardlessid.com
 - Docs: https://cardlessid.com/docs
