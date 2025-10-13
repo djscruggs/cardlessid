@@ -7,10 +7,10 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import type { VerifiedIdentity } from '~/types/verification';
 
-const HMAC_SECRET = process.env.DATA_INTEGRITY_SECRET || process.env.SESSION_SECRET;
+const HMAC_SECRET = process.env.DATA_INTEGRITY_SECRET || process.env.HMAC_SECRET || process.env.SESSION_SECRET;
 
 if (!HMAC_SECRET) {
-  console.warn('⚠️  DATA_INTEGRITY_SECRET not set - using SESSION_SECRET fallback');
+  console.warn('⚠️  DATA_INTEGRITY_SECRET not set - using HMAC_SECRET or SESSION_SECRET fallback');
 }
 
 /**
@@ -20,7 +20,7 @@ if (!HMAC_SECRET) {
  */
 export function generateDataHMAC(data: Partial<VerifiedIdentity>): string {
   if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET or SESSION_SECRET environment variable required');
+    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
   }
 
   // Create deterministic string from data (order matters)
@@ -52,7 +52,7 @@ export function verifyDataHMAC(
   providedHmac: string
 ): boolean {
   if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET or SESSION_SECRET environment variable required');
+    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
   }
 
   try {
@@ -103,7 +103,7 @@ export function verifyVerificationToken(
   token: string
 ): { sessionId: string; dataHmac: string } | null {
   if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET or SESSION_SECRET environment variable required');
+    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
   }
 
   try {

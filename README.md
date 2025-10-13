@@ -93,12 +93,19 @@ This project is built with the following technologies:
     ```bash
     cp env.example .env
     ```
-2.  Configure the following variables in `.env`:**Algorand Configuration:**
+2.  Configure the following variables in `.env`:
+
+    **Security Configuration:**
+    - `HMAC_SECRET` - Secret key for data integrity verification (see generation instructions below)
+
+    **Algorand Configuration:**
     - `VITE_APP_WALLET_ADDRESS` - Your Algorand wallet address (issuer address)
     - `VITE_ALGORAND_NETWORK` - Network to use (`testnet` or `mainnet`)
     - `ISSUER_PRIVATE_KEY` - Your Algorand wallet private key
 
-    **⚠️ SECURITY WARNING:** The `ISSUER_PRIVATE_KEY` is sensitive and should NEVER be shared or committed to version control. Keep this secure and never expose it publicly.**Firebase Configuration:**
+    **⚠️ SECURITY WARNING:** The `ISSUER_PRIVATE_KEY` and `HMAC_SECRET` are sensitive and should NEVER be shared or committed to version control. Keep these secure and never expose them publicly.
+
+    **Firebase Configuration:**
     - `VITE_FIREBASE_API_KEY`
     - `VITE_FIREBASE_AUTH_DOMAIN`
     - `VITE_FIREBASE_PROJECT_ID`
@@ -108,6 +115,37 @@ This project is built with the following technologies:
     - `VITE_FIREBASE_MEASUREMENT_ID`
 
     Get these values from your Firebase project settings (Project Settings → General → Your apps → SDK setup and configuration).
+
+### Generating HMAC_SECRET
+
+The `HMAC_SECRET` is used for cryptographic data integrity verification. It must be a long, random, cryptographically secure string.
+
+**Generate using Node.js:**
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+**Generate using OpenSSL:**
+```bash
+openssl rand -hex 32
+```
+
+**Generate using Python:**
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Any of these commands will generate a secure 64-character hexadecimal string. Copy the output and add it to your `.env` file:
+
+```bash
+HMAC_SECRET=your_generated_secret_here
+```
+
+**Important:**
+- Use at least 32 bytes (64 hex characters)
+- Generate a truly random value - don't use passwords or predictable patterns
+- Keep it secret - never commit to version control
+- Use different secrets for development and production environments
 
 3.  Install dependencies:
     ```bash
