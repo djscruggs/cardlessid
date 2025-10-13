@@ -78,7 +78,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
       formData.append('image', previewUrl);
       formData.append('mimeType', 'image/jpeg');
 
-      const response = await fetch('/api/custom-verification/upload-id', {
+      const response = await fetch('/api/verification/upload-id', {
         method: 'POST',
         body: formData,
       });

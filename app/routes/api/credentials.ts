@@ -3,8 +3,8 @@ import type { ActionFunctionArgs } from "react-router";
 /**
  * Determine verification quality level based on provider metadata
  */
-function determineVerificationLevel(metadata: any): 'high' | 'medium' | 'low' {
-  if (!metadata) return 'low';
+function determineVerificationLevel(metadata: any): "high" | "medium" | "low" {
+  if (!metadata) return "low";
 
   const hasLowConfidence = (metadata.lowConfidenceFields?.length || 0) > 0;
   const hasFraudCheck = metadata.fraudCheckPassed === true;
@@ -13,16 +13,16 @@ function determineVerificationLevel(metadata: any): 'high' | 'medium' | 'low' {
 
   // High: Fraud check passed + both sides + no low confidence fields + no fraud signals
   if (hasFraudCheck && hasBothSides && !hasLowConfidence && !hasFraudSignals) {
-    return 'high';
+    return "high";
   }
 
   // Low: Has low confidence fields OR has fraud signals OR no fraud check
   if (hasLowConfidence || hasFraudSignals || !hasFraudCheck) {
-    return 'low';
+    return "low";
   }
 
   // Medium: Everything else
-  return 'medium';
+  return "medium";
 }
 
 /**
@@ -62,9 +62,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const body = await request.json();
-    const { 
-      verificationToken, 
-      verificationSessionId, 
+    const {
+      verificationToken,
+      verificationSessionId,
       walletAddress,
       // Identity data submitted by client (for verification)
       firstName,
@@ -74,7 +74,7 @@ export async function action({ request }: ActionFunctionArgs) {
       governmentId,
       idType,
       state,
-      expirationDate
+      expirationDate,
     } = body;
 
     // Validate required inputs
@@ -90,7 +90,9 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Import data integrity utilities
-    const { verifyVerificationToken, verifyDataHMAC, generateDataHMAC } = await import('~/utils/data-integrity.server');
+    const { verifyVerificationToken, generateDataHMAC } = await import(
+      "~/utils/data-integrity.server"
+    );
 
     let sessionId: string;
     let expectedDataHmac: string | null = null;
@@ -98,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
     // Verify token if provided (secure method with HMAC)
     if (verificationToken) {
       const tokenData = verifyVerificationToken(verificationToken);
-      
+
       if (!tokenData) {
         return Response.json(
           { error: "Invalid or tampered verification token" },
@@ -108,12 +110,15 @@ export async function action({ request }: ActionFunctionArgs) {
 
       sessionId = tokenData.sessionId;
       expectedDataHmac = tokenData.dataHmac;
-      console.log('[Credentials] Verified token signature');
+      console.log("[Credentials] Verified token signature");
 
       // Validate that client submitted identity data
       if (!firstName || !lastName || !birthDate || !governmentId) {
         return Response.json(
-          { error: "Missing identity data - firstName, lastName, birthDate, and governmentId are required" },
+          {
+            error:
+              "Missing identity data - firstName, lastName, birthDate, and governmentId are required",
+          },
           { status: 400 }
         );
       }
@@ -121,30 +126,38 @@ export async function action({ request }: ActionFunctionArgs) {
       // Verify submitted data matches stored hash
       const submittedData = {
         firstName,
-        middleName: middleName || '',
+        middleName: middleName || "",
         lastName,
         birthDate,
         governmentId,
-        idType: idType || '',
-        state: state || '',
-        expirationDate: expirationDate || ''
+        idType: idType || "",
+        state: state || "",
+        expirationDate: expirationDate || "",
       };
-
       const submittedDataHmac = generateDataHMAC(submittedData);
 
       if (submittedDataHmac !== expectedDataHmac) {
-        console.error('[Credentials] Data tampering detected - submitted data does not match verified hash');
+        console.error(
+          "[Credentials] Data tampering detected - submitted data does not match verified hash"
+        );
         return Response.json(
-          { error: "Data tampering detected - the identity information you submitted does not match what was verified" },
+          {
+            error:
+              "Data tampering detected - the identity information you submitted does not match what was verified",
+          },
           { status: 400 }
         );
       }
 
-      console.log('[Credentials] Submitted identity data verified - hash matches');
+      console.log(
+        "[Credentials] Submitted identity data verified - hash matches"
+      );
     } else {
       // Fallback to plain sessionId (backwards compatibility - for manual credential creation)
       sessionId = verificationSessionId;
-      console.warn('[Credentials] Using legacy sessionId without token verification');
+      console.warn(
+        "[Credentials] Using legacy sessionId without token verification"
+      );
     }
 
     // Get verification session
@@ -171,6 +184,7 @@ export async function action({ request }: ActionFunctionArgs) {
       lastName: string;
       birthDate: string;
       governmentId: string;
+      expirationDate: string;
       idType: string;
       state: string;
     };
@@ -184,6 +198,7 @@ export async function action({ request }: ActionFunctionArgs) {
         birthDate,
         governmentId,
         idType: idType || "government_id",
+        expirationDate,
         state: state || "",
       };
     } else {
@@ -297,21 +312,22 @@ export async function action({ request }: ActionFunctionArgs) {
     const verificationQuality = {
       fraudCheckPassed: session.providerMetadata?.fraudCheckPassed || false,
       fraudSignals: session.providerMetadata?.fraudSignals || [],
-      extractionMethod: session.providerMetadata?.extractionMethod || 'unknown',
+      extractionMethod: session.providerMetadata?.extractionMethod || "unknown",
       lowConfidenceFields: session.providerMetadata?.lowConfidenceFields || [],
       bothSidesProcessed: session.providerMetadata?.bothSidesProcessed || false,
-      faceMatchConfidence: session.providerMetadata?.faceMatchConfidence || null,
+      faceMatchConfidence:
+        session.providerMetadata?.faceMatchConfidence || null,
       livenessConfidence: session.providerMetadata?.livenessConfidence || null,
       verificationLevel: determineVerificationLevel(session.providerMetadata),
     };
 
-    console.log('[Credentials] Verification quality metrics:', {
+    console.log("[Credentials] Verification quality metrics:", {
       level: verificationQuality.verificationLevel,
       fraudCheckPassed: verificationQuality.fraudCheckPassed,
       lowConfidenceFieldCount: verificationQuality.lowConfidenceFields.length,
       fraudSignalCount: verificationQuality.fraudSignals.length,
       faceMatchConfidence: verificationQuality.faceMatchConfidence,
-      livenessConfidence: verificationQuality.livenessConfidence
+      livenessConfidence: verificationQuality.livenessConfidence,
     });
 
     // Create credential without proof (this is what gets signed)
@@ -337,9 +353,12 @@ export async function action({ request }: ActionFunctionArgs) {
         {
           type: ["DocumentVerification"],
           verifier: issuerId,
-          evidenceDocument: credentialData.idType === 'drivers_license' ? 'DriversLicense' : 
-                           credentialData.idType === 'passport' ? 'Passport' : 
-                           'GovernmentIssuedID',
+          evidenceDocument:
+            credentialData.idType === "drivers_license"
+              ? "DriversLicense"
+              : credentialData.idType === "passport"
+                ? "Passport"
+                : "GovernmentIssuedID",
           subjectPresence: "Digital",
           documentPresence: "Digital",
           // Verification quality and confidence metrics
@@ -349,26 +368,26 @@ export async function action({ request }: ActionFunctionArgs) {
             passed: verificationQuality.fraudCheckPassed,
             method: "google-document-ai",
             provider: "Google Document AI",
-            signals: verificationQuality.fraudSignals
+            signals: verificationQuality.fraudSignals,
           },
           documentAnalysis: {
             provider: verificationQuality.extractionMethod,
             bothSidesAnalyzed: verificationQuality.bothSidesProcessed,
             lowConfidenceFields: verificationQuality.lowConfidenceFields,
-            qualityLevel: verificationQuality.verificationLevel
+            qualityLevel: verificationQuality.verificationLevel,
           },
           biometricVerification: {
             performed: verificationQuality.faceMatchConfidence !== null,
             faceMatch: {
               confidence: verificationQuality.faceMatchConfidence,
-              provider: "AWS Rekognition"
+              provider: "AWS Rekognition",
             },
             liveness: {
               confidence: verificationQuality.livenessConfidence,
-              provider: "AWS Rekognition"
-            }
-          }
-        }
+              provider: "AWS Rekognition",
+            },
+          },
+        },
       ],
     };
 
@@ -403,23 +422,33 @@ export async function action({ request }: ActionFunctionArgs) {
         | "mainnet";
 
       // Import funding utilities
-      const { walletNeedsFunding, fundNewWallet } = await import("~/utils/algorand");
+      const { walletNeedsFunding, fundNewWallet } = await import(
+        "~/utils/algorand"
+      );
 
       // Step 0: Check if issuer wallet needs funding
       const issuerNeedsFunds = await walletNeedsFunding(appWalletAddress);
       if (issuerNeedsFunds) {
-        console.log(`💰 Issuer wallet ${appWalletAddress} needs funding for NFT operations`);
+        console.log(
+          `💰 Issuer wallet ${appWalletAddress} needs funding for NFT operations`
+        );
         // We need to fund the issuer wallet first - this requires a different approach
         // For now, throw an error with instructions
-        throw new Error(`Issuer wallet ${appWalletAddress} has insufficient ALGO balance. Please fund it with at least 0.1 ALGO from the testnet faucet or another wallet.`);
+        throw new Error(
+          `Issuer wallet ${appWalletAddress} has insufficient ALGO balance. Please fund it with at least 0.1 ALGO from the testnet faucet or another wallet.`
+        );
       } else {
-        console.log(`✓ Issuer wallet ${appWalletAddress} has sufficient balance`);
+        console.log(
+          `✓ Issuer wallet ${appWalletAddress} has sufficient balance`
+        );
       }
 
       // Step 1: Check if recipient wallet needs funding and fund it
       const needsFunding = await walletNeedsFunding(walletAddress);
       if (needsFunding) {
-        console.log(`💰 Wallet ${walletAddress} needs funding for asset opt-in`);
+        console.log(
+          `💰 Wallet ${walletAddress} needs funding for asset opt-in`
+        );
         fundingTxId = await fundNewWallet(
           appWalletAddress,
           issuerAccount.sk,
@@ -511,11 +540,13 @@ export async function action({ request }: ActionFunctionArgs) {
           explorerUrl: credentialExplorerUrl,
           note: "NFT credential minted",
         },
-        funding: fundingTxId ? {
-          id: fundingTxId,
-          amount: "0.2 ALGO",
-          note: "Wallet funded for asset opt-in"
-        } : undefined,
+        funding: fundingTxId
+          ? {
+              id: fundingTxId,
+              amount: "0.2 ALGO",
+              note: "Wallet funded for asset opt-in",
+            }
+          : undefined,
         network: process.env.VITE_ALGORAND_NETWORK || "testnet",
       },
       duplicateDetection: {

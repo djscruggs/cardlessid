@@ -35,6 +35,9 @@ export default [
       route("start", "routes/api/verification/start.ts"),
       route("webhook", "routes/api/verification/webhook.ts"),
       route("status/:id", "routes/api/verification/status.$id.ts"),
+      route("upload-id", "routes/api/verification/upload-id.ts"),
+      route("upload-selfie", "routes/api/verification/upload-selfie.ts"),
+      route("session/:sessionId", "routes/api/verification/session.$sessionId.ts"),
     ]),
     ...prefix("age-verify", [
       route("create", "routes/api/age-verify/create.ts"),
@@ -59,11 +62,6 @@ export default [
     ...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),
     ]),
-    ...prefix("custom-verification", [
-      route("upload-id", "routes/api/custom-verification/upload-id.ts"),
-      route("upload-selfie", "routes/api/custom-verification/upload-selfie.ts"),
-      route("session/:sessionId", "routes/api/custom-verification/session.$sessionId.ts"),
-    ]),
     ...prefix("delegated-verification", [
       route("issue", "routes/api/delegated-verification/issue.ts"),
     ]),
@@ -71,7 +69,7 @@ export default [
   ...prefix("app", [
     route("worldcoin", "routes/app/worldcoin.tsx"),
     route("create-credential", "routes/app/create-credential.tsx"),
-    route("custom-verify", "routes/app/custom-verify.tsx"),
+    route("verify", "routes/app/verify.tsx"),
     route("verify/:txId", "routes/app/verify.$txId.tsx"),
     route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
     route("mock-verification", "routes/app/mock-verification.tsx"),

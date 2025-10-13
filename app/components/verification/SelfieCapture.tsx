@@ -84,7 +84,7 @@ export function SelfieCapture({ sessionId, idPhotoBase64, onSuccess, onError, on
       formData.append('selfie', capturedImage); // Selfie from current capture
       formData.append('idPhoto', idPhotoBase64); // ID photo from client memory
 
-      const response = await fetch('/api/custom-verification/upload-selfie', {
+      const response = await fetch('/api/verification/upload-selfie', {
         method: 'POST',
         body: formData,
       });

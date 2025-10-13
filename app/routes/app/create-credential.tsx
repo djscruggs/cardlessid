@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CredentialQR from "~/components/CredentialQR";
 
 export function meta() {
-  return [{ title: "Create Minimal Credential" }];
+  return [{ title: "Create Credential" }];
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -32,6 +32,7 @@ const CreateCredential = () => {
     firstName: "",
     middleName: "",
     lastName: "",
+    expirationDate: "",
   });
 
   const [showQR, setShowQR] = useState(false);
@@ -40,24 +41,27 @@ const CreateCredential = () => {
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState(false);
-  const [verificationToken, setVerificationToken] = useState<string | null>(null);
+  const [verificationToken, setVerificationToken] = useState<string | null>(
+    null
+  );
 
   // Check for verification token and load extracted data on mount
   useEffect(() => {
-    const token = sessionStorage.getItem('verificationToken');
-    const extractedDataJson = sessionStorage.getItem('extractedData');
-    
+    const token = sessionStorage.getItem("verificationToken");
+    const extractedDataJson = sessionStorage.getItem("extractedData");
     if (token) {
       // User has completed verification
       setVerificationToken(token);
       setIsVerified(true);
-      console.log('[Credential Creation] Verification token found - user is verified');
+      console.log(
+        "[Credential Creation] Verification token found - user is verified"
+      );
 
       // Pre-fill form with extracted data
       if (extractedDataJson) {
         try {
           const extractedData = JSON.parse(extractedDataJson);
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             firstName: extractedData.firstName || prev.firstName,
             middleName: extractedData.middleName || prev.middleName,
@@ -66,14 +70,22 @@ const CreateCredential = () => {
             governmentId: extractedData.governmentId || prev.governmentId,
             idType: extractedData.idType || prev.idType,
             state: extractedData.state || prev.state,
+            expirationDate: extractedData.expirationDate || prev.expirationDate,
           }));
-          console.log('[Credential Creation] Pre-filled form with verified identity data');
+          console.log(
+            "[Credential Creation] Pre-filled form with verified identity data"
+          );
         } catch (err) {
-          console.error('[Credential Creation] Failed to parse extracted data:', err);
+          console.error(
+            "[Credential Creation] Failed to parse extracted data:",
+            err
+          );
         }
       }
     } else {
-      console.warn('[Credential Creation] No verification token - user must complete verification first');
+      console.warn(
+        "[Credential Creation] No verification token - user must complete verification first"
+      );
     }
   }, []);
 
@@ -81,17 +93,18 @@ const CreateCredential = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    if ("walletAddress" == name) {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-
     // Validate birth date is at least 13 years ago
     const birthDateObj = new Date(formData.birthDate);
     const today = new Date();
@@ -133,25 +146,22 @@ const CreateCredential = () => {
     try {
       // Prepare payload for credential creation
       // Always send identity data for verification
-      const payload: any = {
-        walletAddress: formData.walletAddress,
-        firstName: formData.firstName,
-        middleName: formData.middleName,
-        lastName: formData.lastName,
-        birthDate: formData.birthDate,
-        governmentId: formData.governmentId,
-        idType: formData.idType,
-        state: formData.state,
-      };
+      const payload: any = formData;
 
       // Add verification token if available (secure verified flow)
       if (verificationToken) {
         payload.verificationToken = verificationToken;
-        console.log('[Credential Creation] Submitting verified identity data with signed token');
-        console.log('[Credential Creation] Server will verify data hash before creating credential');
+        console.log(
+          "[Credential Creation] Submitting verified identity data with signed token"
+        );
+        console.log(
+          "[Credential Creation] Server will verify data hash before creating credential"
+        );
       } else {
         // Manual credential creation (for testing/admin only)
-        console.warn('[Credential Creation] Manual mode - no verification token');
+        console.warn(
+          "[Credential Creation] Manual mode - no verification token"
+        );
       }
 
       const response = await fetch("/api/credentials", {
@@ -171,8 +181,8 @@ const CreateCredential = () => {
       }
 
       // Clear verification tokens after successful credential creation
-      sessionStorage.removeItem('verificationToken');
-      sessionStorage.removeItem('verificationSessionId');
+      sessionStorage.removeItem("verificationToken");
+      sessionStorage.removeItem("verificationSessionId");
 
       setApiResponse(data);
     } catch (err) {
@@ -186,13 +196,15 @@ const CreateCredential = () => {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Create Minimal Credential
+          Create Credential
         </h1>
 
         {isVerified && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-800">
-              <strong>✓ Identity Verified:</strong> Your information has been pre-filled from your verified identity. Just add your wallet address.
+              <strong>✓ Identity Verified:</strong> Your information has been
+              pre-filled from your verified identity. Just add your wallet
+              address.
             </p>
           </div>
         )}
@@ -208,7 +220,9 @@ const CreateCredential = () => {
                 className="text-blue-600 hover:text-blue-800 underline"
               >
                 {loaderData.appWalletAddress.substring(0, 4)}...
-                {loaderData.appWalletAddress.substring(loaderData.appWalletAddress.length - 4)}
+                {loaderData.appWalletAddress.substring(
+                  loaderData.appWalletAddress.length - 4
+                )}
               </a>
             ) : (
               "Wallet address not configured"
@@ -216,7 +230,7 @@ const CreateCredential = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 ">
           <div className="form-control">
             <label className="label" htmlFor="walletAddress">
               <span className="label-text">Wallet Address (Algorand)</span>
@@ -233,7 +247,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="firstName">
               <span className="label-text">First Name</span>
             </label>
@@ -249,7 +263,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="middleName">
               <span className="label-text">Middle Name (Optional)</span>
             </label>
@@ -264,7 +278,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="lastName">
               <span className="label-text">Last Name</span>
             </label>
@@ -280,7 +294,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="birthDate">
               <span className="label-text">
                 Birth Date - Must be at least 13 years ago
@@ -306,7 +320,7 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="idType">
               <span className="label-text">Government ID Type</span>
             </label>
@@ -323,7 +337,7 @@ const CreateCredential = () => {
             </select>
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="state">
               <span className="label-text">State or Territory</span>
             </label>
@@ -394,7 +408,7 @@ const CreateCredential = () => {
             </select>
           </div>
 
-          <div className="form-control">
+          <div className="form-control hidden">
             <label className="label" htmlFor="governmentId">
               <span className="label-text">Government ID Number</span>
             </label>
@@ -410,7 +424,11 @@ const CreateCredential = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
+          <button
+            type="submit"
+            className="btn btn-primary w-full"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Creating Credential..." : "Create Credential"}
           </button>
         </form>
@@ -441,7 +459,9 @@ const CreateCredential = () => {
                 <pre className="text-sm text-gray-800 whitespace-pre-wrap mb-4">
                   {JSON.stringify(apiResponse.credential, null, 2)}
                 </pre>
-                <h3 className="text-sm font-semibold mb-2">Personal Data (stored locally in wallet):</h3>
+                <h3 className="text-sm font-semibold mb-2">
+                  Personal Data (stored locally in wallet):
+                </h3>
                 <pre className="text-sm text-gray-800 whitespace-pre-wrap">
                   {JSON.stringify(apiResponse.personalData, null, 2)}
                 </pre>
@@ -459,7 +479,7 @@ const CreateCredential = () => {
                 onClick={() => {
                   const dataToClip = {
                     credential: apiResponse.credential,
-                    personalData: apiResponse.personalData
+                    personalData: apiResponse.personalData,
                   };
                   navigator.clipboard.writeText(
                     JSON.stringify(dataToClip, null, 2)

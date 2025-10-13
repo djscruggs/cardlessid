@@ -295,7 +295,7 @@ async function runTests() {
       "1. Set FACE_COMPARISON_PROVIDER=aws-rekognition in .env.local"
     );
     console.log("2. Run: npm run dev");
-    console.log("3. Navigate to /app/custom-verify");
+    console.log("3. Navigate to /app/verify");
     console.log("4. Test the verification flow with real photos");
   } else {
     console.log("❌ Some tests failed");

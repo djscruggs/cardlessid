@@ -229,7 +229,7 @@ npm run dev
 
 ### 2. Test ID Upload
 
-1. Navigate to http://localhost:5173/app/custom-verify
+1. Navigate to http://localhost:5173/app/verify
 2. Upload a test ID photo (driver's license, passport, etc.)
 3. Check browser console and server logs for:
    ```
