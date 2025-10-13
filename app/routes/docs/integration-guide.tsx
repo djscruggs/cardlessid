@@ -1,5 +1,6 @@
 import type { MetaFunction } from "react-router";
 import { Link } from "react-router";
+import CodeBlock from "~/components/CodeBlock";
 
 export const meta: MetaFunction = () => {
   return [
@@ -172,15 +173,17 @@ export default function IntegrationGuide() {
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           2. Install the SDK
         </h3>
-        <div className="bg-gray-900 text-green-400 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          npm install @cardlessid/verifier
+        <div className="mb-6">
+          <CodeBlock language="bash">
+            npm install @cardlessid/verifier
+          </CodeBlock>
         </div>
 
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           3. Basic Usage
         </h3>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          <pre>{`const CardlessID = require('@cardlessid/verifier');
+        <div className="mb-6">
+          <CodeBlock language="javascript">{`const CardlessID = require('@cardlessid/verifier');
 
 const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY
@@ -197,7 +200,7 @@ const result = await verifier.pollChallenge(challenge.challengeId);
 
 if (result.verified) {
   console.log('User is 21+');
-}`}</pre>
+}`}</CodeBlock>
         </div>
       </section>
 
@@ -208,11 +211,11 @@ if (result.verified) {
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           Constructor
         </h3>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          <pre>{`const verifier = new CardlessID({
+        <div className="mb-6">
+          <CodeBlock language="javascript">{`const verifier = new CardlessID({
   apiKey: 'your_api_key',
   baseUrl: 'https://cardlessid.com' // optional
-});`}</pre>
+});`}</CodeBlock>
         </div>
 
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
@@ -221,11 +224,11 @@ if (result.verified) {
         <p className="text-gray-700 mb-4">
           Creates a new age verification challenge.
         </p>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-4 font-mono text-sm overflow-x-auto">
-          <pre>{`const challenge = await verifier.createChallenge({
+        <div className="mb-4">
+          <CodeBlock language="javascript">{`const challenge = await verifier.createChallenge({
   minAge: 21,
   callbackUrl: 'https://yourapp.com/webhook' // optional
-});`}</pre>
+});`}</CodeBlock>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <strong className="text-blue-900">Returns:</strong>
@@ -244,8 +247,8 @@ if (result.verified) {
         <p className="text-gray-700 mb-4">
           Checks the current status of a challenge.
         </p>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-4 font-mono text-sm overflow-x-auto">
-          <pre>{`const result = await verifier.verifyChallenge(challengeId);`}</pre>
+        <div className="mb-4">
+          <CodeBlock language="javascript">{`const result = await verifier.verifyChallenge(challengeId);`}</CodeBlock>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <strong className="text-blue-900">Returns:</strong>
@@ -267,11 +270,11 @@ if (result.verified) {
         <p className="text-gray-700 mb-4">
           Polls a challenge until completed or expired.
         </p>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          <pre>{`const result = await verifier.pollChallenge(challengeId, {
+        <div className="mb-6">
+          <CodeBlock language="javascript">{`const result = await verifier.pollChallenge(challengeId, {
   interval: 2000,  // Poll every 2 seconds
   timeout: 600000  // 10 minute timeout
-});`}</pre>
+});`}</CodeBlock>
         </div>
       </section>
 
@@ -294,15 +297,15 @@ if (result.verified) {
         <p className="text-gray-700 mb-4">
           Create a new verification challenge.
         </p>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-4 font-mono text-sm overflow-x-auto">
-          <pre>{`POST /api/integrator/challenge/create
+        <div className="mb-4">
+          <CodeBlock language="http">{`POST /api/integrator/challenge/create
 Content-Type: application/json
 
 {
   "apiKey": "your_api_key",
   "minAge": 21,
   "callbackUrl": "https://yourapp.com/verify-callback"
-}`}</pre>
+}`}</CodeBlock>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <strong className="text-blue-900">Response:</strong>
@@ -319,9 +322,9 @@ Content-Type: application/json
           GET /api/integrator/challenge/verify/:challengeId
         </h3>
         <p className="text-gray-700 mb-4">Verify a challenge status.</p>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-4 font-mono text-sm overflow-x-auto">
-          <pre>{`GET /api/integrator/challenge/verify/:challengeId
-X-API-Key: your_api_key`}</pre>
+        <div className="mb-4">
+          <CodeBlock language="http">{`GET /api/integrator/challenge/verify/:challengeId
+X-API-Key: your_api_key`}</CodeBlock>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <strong className="text-blue-900">Response:</strong>
@@ -347,8 +350,8 @@ X-API-Key: your_api_key`}</pre>
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           Express.js Example
         </h3>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          <pre>{`const express = require('express');
+        <div className="mb-6">
+          <CodeBlock language="javascript">{`const express = require('express');
 const CardlessID = require('@cardlessid/verifier');
 
 const app = express();
@@ -378,14 +381,14 @@ app.get('/verify-status/:challengeId', async (req, res) => {
   });
 });
 
-app.listen(3000);`}</pre>
+app.listen(3000);`}</CodeBlock>
         </div>
 
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           Frontend Integration (React)
         </h3>
-        <div className="bg-gray-900 text-gray-100 rounded-lg p-4 mb-6 font-mono text-sm overflow-x-auto">
-          <pre>{`async function startAgeVerification() {
+        <div className="mb-6">
+          <CodeBlock language="javascript">{`async function startAgeVerification() {
   // Create challenge via your backend
   const response = await fetch('/verify-age', {
     method: 'POST'
@@ -409,7 +412,7 @@ app.listen(3000);`}</pre>
       onVerificationFailed();
     }
   }, 2000);
-}`}</pre>
+}`}</CodeBlock>
         </div>
       </section>
 

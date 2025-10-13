@@ -6,6 +6,7 @@ import {
   SCHEMA_DESCRIPTION,
   USAGE_NOTES,
 } from "~/utils/credential-schema";
+import CodeBlock from "~/components/CodeBlock";
 
 export const meta: MetaFunction = () => {
   return [
@@ -40,9 +41,9 @@ export default function CredentialSchemaDocs() {
               <h3 className="text-lg font-medium text-gray-900 mb-3">
                 W3C Verifiable Credential Structure
               </h3>
-              <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{JSON.stringify(CardlessCredential, null, 2)}</code>
-              </pre>
+              <CodeBlock language="json">
+                {JSON.stringify(CardlessCredential, null, 2)}
+              </CodeBlock>
             </div>
           </section>
 
@@ -255,35 +256,33 @@ export default function CredentialSchemaDocs() {
               <h3 className="text-lg font-medium text-gray-900 mb-3">
                 JavaScript Verification Example
               </h3>
-              <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
-                <code>{`// Example verification function
+              <CodeBlock language="javascript">{`// Example verification function
 async function verifyCardlessCredential(credential) {
   // 1. Extract issuer public key from DID
   const issuerAddress = credential.issuer.id.replace('did:algo:', '');
   const publicKey = algosdk.decodeAddress(issuerAddress).publicKey;
-  
+
   // 2. Remove proof field for signature verification
   const { proof, ...credentialWithoutProof } = credential;
-  
+
   // 3. Create canonical JSON
   const credentialBytes = new TextEncoder().encode(
     JSON.stringify(credentialWithoutProof)
   );
-  
+
   // 4. Verify signature
   const signature = new Uint8Array(
     Buffer.from(proof.proofValue, 'base64')
   );
-  
+
   const isValid = algosdk.verifyBytes(
-    credentialBytes, 
-    signature, 
+    credentialBytes,
+    signature,
     publicKey
   );
-  
+
   return isValid;
-}`}</code>
-              </pre>
+}`}</CodeBlock>
             </div>
           </section>
 
