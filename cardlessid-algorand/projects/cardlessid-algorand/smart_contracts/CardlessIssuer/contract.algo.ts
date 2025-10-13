@@ -15,6 +15,9 @@ class IssuerInfo extends arc4.Struct<{
  * CardlessIssuer - On-chain registry of authorized issuers for Cardless ID credentials
  */
 export class CardlessIssuer extends Contract {
+  // Application name (will be visible in blockchain explorers)
+  name = GlobalState<arc4.Str>()
+
   // Admin who can manage issuers
   admin = GlobalState<Account>()
 
@@ -25,6 +28,7 @@ export class CardlessIssuer extends Contract {
    * Initialize the contract with the admin address
    */
   createApplication(): void {
+    this.name.value = new arc4.Str('Cardless ID Issuer Registry')
     this.admin.value = Txn.sender
   }
 
