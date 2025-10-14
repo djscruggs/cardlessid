@@ -571,9 +571,6 @@ const { authToken, sessionId } = await response.json();
               <li>
                 • Valid production values:{" "}
                 <code className="bg-red-100 px-1 rounded">cardlessid</code>,{" "}
-                <code className="bg-red-100 px-1 rounded">idenfy</code>,{" "}
-                <code className="bg-red-100 px-1 rounded">stripe_identity</code>
-                , <code className="bg-red-100 px-1 rounded">persona</code>,{" "}
                 <code className="bg-red-100 px-1 rounded">custom</code>
               </li>
               <li>
