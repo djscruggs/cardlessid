@@ -10,7 +10,7 @@ const Home: React.FC = () => {
       <div className="flex-col w-full">
         <div className="px-10 text-gray-800  text-2xl  flex flex-col items-center space-y-2">
           <div className="max-w-3xl text-left mt-4 space-y-4">
-            <h2 className="text-4xl text-logoblue">
+            <h2 className="text-4xl text-logoblue text-center">
               Free, Private, Portable Age Verification
             </h2>
             <p>
