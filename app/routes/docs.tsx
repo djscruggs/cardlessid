@@ -87,7 +87,7 @@ export default function DocsIndex() {
           <div className="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               <a
-                href="https://github.com/djscruggs/cardlessid/blob/main/WALLET_APP_GUIDE.md"
+                href="https://github.com/djscruggs/cardlessid/blob/main/docs/WALLET_APP_GUIDE.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800"
