@@ -17,7 +17,7 @@ const Home: React.FC = () => {
               24 US states and several European countries require adult sites to
               verify age. Children should never have access to sexually explicit
               material. However, the verification process should be{" "}
-              <strong>free, private and portable accross all web sites</strong>.
+              <strong>free, private and portable across all web sites</strong>.
             </p>
             {/* <div className="ml-10 text-md">
               <ol className="list-decimal">
