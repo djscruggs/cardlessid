@@ -18,7 +18,6 @@
 ## Documentation
 
 - [Deep Linking Guide](docs/DEEP_LINKING.md "Deep Linking Guide")
-- [DID Comparison](docs/DID_COMPARISON.md "DID Comparison")
 - [Firebase Admin Setup](docs/FIREBASE-ADMIN-SETUP.md "Firebase Admin Setup")
 - [Integrator README](docs/INTEGRATOR_README.md "Integrator README")
 - [Mobile Client Testing](docs/MOBILE_CLIENT_TESTING.md "Mobile Client Testing")
@@ -58,6 +57,7 @@ This project is in active development. We're collaborating with partners to inte
 - **Zero Knowledge**: Only the credential holder has access to full identity data through their mobile client
 
 **Security Features:**
+
 - HMAC-SHA256 hash verification prevents data tampering
 - Signed verification tokens prevent session hijacking
 - Timing-safe hash comparison prevents timing attacks
@@ -121,16 +121,19 @@ This project is built with the following technologies:
 The `HMAC_SECRET` is used for cryptographic data integrity verification. It must be a long, random, cryptographically secure string.
 
 **Generate using Node.js:**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 **Generate using OpenSSL:**
+
 ```bash
 openssl rand -hex 32
 ```
 
 **Generate using Python:**
+
 ```bash
 python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
@@ -142,6 +145,7 @@ HMAC_SECRET=your_generated_secret_here
 ```
 
 **Important:**
+
 - Use at least 32 bytes (64 hex characters)
 - Generate a truly random value - don't use passwords or predictable patterns
 - Keep it secret - never commit to version control
@@ -233,6 +237,7 @@ cat google-credentials.json | jq -c .
 ```
 
 This outputs a single-line JSON string like:
+
 ```
 {"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n..."}
 ```
@@ -240,6 +245,7 @@ This outputs a single-line JSON string like:
 #### Step 2: Add to Vercel
 
 **Via Vercel Dashboard:**
+
 1. Go to your project's **Settings** → **Environment Variables**
 2. Add a new variable:
    - Name: `GOOGLE_CREDENTIALS_JSON`
@@ -248,18 +254,22 @@ This outputs a single-line JSON string like:
 3. Click **Save**
 
 **Via Vercel CLI:**
+
 ```bash
 vercel env add GOOGLE_CREDENTIALS_JSON
 ```
+
 When prompted, paste the minified JSON string.
 
 #### Step 3: Redeploy
 
 After adding the environment variable, redeploy your application:
+
 - Push a new commit to trigger automatic deployment, or
 - Go to **Deployments** tab and click **Redeploy** on the latest deployment
 
 **Important Notes:**
+
 - The minified JSON format prevents warnings about return characters in Vercel
 - Your code already supports both `GOOGLE_CREDENTIALS_JSON` (JSON string) and `GOOGLE_APPLICATION_CREDENTIALS` (file path)
 - Use `GOOGLE_CREDENTIALS_JSON` for serverless deployments (Vercel, AWS Lambda, etc.)
