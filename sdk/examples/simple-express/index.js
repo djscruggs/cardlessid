@@ -21,7 +21,7 @@ const app = express();
 app.use(express.json());
 
 // Initialize verifier
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY || 'demo_key',
   baseUrl: process.env.CARDLESSID_URL || 'http://localhost:5173'
 });

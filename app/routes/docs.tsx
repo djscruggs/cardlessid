@@ -52,12 +52,15 @@ export default function DocsIndex() {
               >
                 Custom Verification Provider Guide
               </Link>
-              <span className="ml-2 text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded">NEW</span>
+              <span className="ml-2 text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded">
+                NEW
+              </span>
             </h3>
             <p className="text-gray-600">
-              Build custom identity verification flows for CardlessID. Learn how to
-              implement full verification providers (document + biometric) or integrate
-              with cloud verification services like Stripe Identity, Persona, or Onfido.
+              Build custom identity verification flows for Cardless ID. Learn
+              how to implement full verification providers (document +
+              biometric) or integrate with cloud verification services like
+              Stripe Identity, Persona, or Onfido.
             </p>
           </div>
 
@@ -69,12 +72,15 @@ export default function DocsIndex() {
               >
                 Delegated Verification Guide
               </Link>
-              <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-1 rounded">NEW</span>
+              <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                NEW
+              </span>
             </h3>
             <p className="text-gray-600">
-              For trusted issuers (banks, DMVs, universities, employers, healthcare providers):
-              Issue CardlessID credentials to your verified users via API. Includes API reference,
-              code examples, and integration patterns.
+              For trusted issuers (banks, DMVs, universities, employers,
+              healthcare providers): Issue Cardless ID credentials to your
+              verified users via API. Includes API reference, code examples, and
+              integration patterns.
             </p>
           </div>
 

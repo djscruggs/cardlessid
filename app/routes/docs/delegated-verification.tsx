@@ -4,11 +4,11 @@ import CodeBlock from "~/components/CodeBlock";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Delegated Verification Guide - CardlessID" },
+    { title: "Delegated Verification Guide - Cardless ID" },
     {
       name: "description",
       content:
-        "Guide for trusted issuers (banks, DMVs, etc.) to issue CardlessID credentials via delegated verification",
+        "Guide for trusted issuers (banks, DMVs, etc.) to issue Cardless ID credentials via delegated verification",
     },
   ];
 };
@@ -28,8 +28,8 @@ export default function DelegatedVerificationGuide() {
           Delegated Verification Guide
         </h1>
         <p className="text-lg text-gray-600">
-          Issue CardlessID credentials to your verified users via trusted issuer
-          API
+          Issue Cardless ID credentials to your verified users via trusted
+          issuer API
         </p>
       </div>
 
@@ -38,9 +38,9 @@ export default function DelegatedVerificationGuide() {
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Overview</h2>
         <p className="text-gray-700 mb-4">
           <strong>Delegated verification</strong> allows trusted issuers (banks,
-          government agencies, employers, universities, etc.) to issue
-          CardlessID credentials to their users without requiring them to go
-          through a full identity verification flow.
+          government agencies, employers, universities, etc.) to issue Cardless
+          ID credentials to their users without requiring them to go through a
+          full identity verification flow.
         </p>
         <p className="text-gray-700 mb-4">
           This is ideal for organizations that have already verified their
@@ -71,10 +71,11 @@ export default function DelegatedVerificationGuide() {
                 Issuer Registry & Security Audit Required
               </h3>
               <p className="text-orange-800 mb-3">
-                CardlessID maintains an <strong>Algorand smart contract</strong>{" "}
-                that serves as a registry of trusted issuers. Only credentials
-                issued by addresses in this on-chain registry will be recognized
-                as valid by verifiers in the CardlessID ecosystem.
+                Cardless ID maintains an{" "}
+                <strong>Algorand smart contract</strong> that serves as a
+                registry of trusted issuers. Only credentials issued by
+                addresses in this on-chain registry will be recognized as valid
+                by verifiers in the Cardless ID ecosystem.
               </p>
               <p className="text-orange-800 mb-3">
                 <strong>Before production deployment:</strong> Your organization
@@ -83,11 +84,7 @@ export default function DelegatedVerificationGuide() {
                 measures before adding your issuer address to the registry.
               </p>
               <p className="text-orange-800 mb-2">
-                <strong>Contact:</strong> partnerships@cardlessid.com
-              </p>
-              <p className="text-orange-800 text-sm">
-                <strong>Subject line:</strong> "Issuer Registry Application -
-                [Your Organization Name]"
+                <Link to="/contact">Contact Us</Link>
               </p>
             </div>
           </div>
@@ -100,7 +97,7 @@ export default function DelegatedVerificationGuide() {
           </h3>
           <div className="bg-white p-6 rounded border border-gray-300 font-mono text-sm overflow-x-auto">
             <pre>{`┌─────────────┐                           ┌──────────────┐
-│   Bank/DMV  │                           │  CardlessID  │
+│   Bank/DMV  │                           │  Cardless ID  │
 │   (Issuer)  │                           │   Platform   │
 └─────────────┘                           └──────────────┘
        │                                          │
@@ -124,7 +121,7 @@ export default function DelegatedVerificationGuide() {
        │<─────────────────────────────────────────│
        │                                          │
        │  8. Notify user                          │
-       │     "Your CardlessID is ready!"          │`}</pre>
+       │     "Your Cardless ID is ready!"          │`}</pre>
           </div>
         </div>
       </section>
@@ -140,10 +137,10 @@ export default function DelegatedVerificationGuide() {
             </h3>
             <p className="text-blue-800 mb-3">
               Banks that have completed Know Your Customer (KYC) verification
-              can issue CardlessID credentials to their account holders.
+              can issue Cardless ID credentials to their account holders.
             </p>
             <p className="text-blue-900 font-medium text-sm">
-              Example: Chase Bank issues CardlessID to verified customers,
+              Example: Chase Bank issues Cardless ID to verified customers,
               allowing them to prove age without sharing banking information.
             </p>
           </div>
@@ -157,7 +154,7 @@ export default function DelegatedVerificationGuide() {
               issue digital credentials.
             </p>
             <p className="text-purple-900 font-medium text-sm">
-              Example: California DMV issues CardlessID when renewing driver's
+              Example: California DMV issues Cardless ID when renewing driver's
               license.
             </p>
           </div>
@@ -171,7 +168,7 @@ export default function DelegatedVerificationGuide() {
               verification and student discounts.
             </p>
             <p className="text-green-900 font-medium text-sm">
-              Example: Stanford issues CardlessID to all students for campus
+              Example: Stanford issues Cardless ID to all students for campus
               events and online student discounts.
             </p>
           </div>
@@ -185,8 +182,8 @@ export default function DelegatedVerificationGuide() {
               and benefits.
             </p>
             <p className="text-orange-900 font-medium text-sm">
-              Example: Google issues CardlessID to employees for building access
-              and corporate discounts.
+              Example: Google issues Cardless ID to employees for building
+              access and corporate discounts.
             </p>
           </div>
 
@@ -199,7 +196,7 @@ export default function DelegatedVerificationGuide() {
               age-gated services.
             </p>
             <p className="text-pink-900 font-medium text-sm">
-              Example: Kaiser Permanente issues CardlessID to patients for
+              Example: Kaiser Permanente issues Cardless ID to patients for
               prescription refills requiring age verification.
             </p>
           </div>
@@ -217,20 +214,13 @@ export default function DelegatedVerificationGuide() {
             <h3 className="text-2xl font-semibold text-gray-900 mb-3">
               Step 1: Request API Key
             </h3>
-            <p className="text-gray-700 mb-4">
-              Contact CardlessID to request an API key for your organization:
-            </p>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <ul className="space-y-2 text-blue-900">
-                <li>
-                  <strong>Email:</strong> partnerships@cardlessid.com
-                </li>
-                <li>
-                  <strong>Subject:</strong> "Delegated Verification API Key
-                  Request"
-                </li>
-              </ul>
-              <p className="mt-4 text-blue-800 text-sm">
+              <p className="text-gray-700 mb-4">
+                <Link to="/contact">Contact Cardless ID</Link> to request an API
+                key for your organization:
+              </p>
+              <p className="mt-2 text-blue-800 text-sm">
                 Include: Organization name, type, contact email, website, use
                 case, expected volume
               </p>
@@ -246,7 +236,7 @@ export default function DelegatedVerificationGuide() {
               <li>
                 API Key:{" "}
                 <code className="bg-gray-100 px-2 py-1 rounded">
-                  sk_live_xxxxxxxxxxxxxxxx
+                  api_key_example_not_real_xxxxxxxxxxxxxxxx
                 </code>
               </li>
               <li>Documentation: This guide</li>
@@ -281,7 +271,7 @@ export default function DelegatedVerificationGuide() {
             Request Body
           </h3>
           <CodeBlock language="json">{`{
-  "apiKey": "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "apiKey": "your_api_key_here_not_a_real_key_example",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
   "identity": {
     "firstName": "Jane",
@@ -329,7 +319,7 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    Your API key from CardlessID
+                    Your API key from Cardless ID
                   </td>
                 </tr>
                 <tr>
@@ -557,7 +547,7 @@ issue_cardless_id(
             <CodeBlock language="bash">{`curl -X POST https://cardlessid.com/api/delegated-verification/issue \\
   -H "Content-Type: application/json" \\
   -d '{
-    "apiKey": "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "apiKey": "your_api_key_here_not_a_real_key_example",
     "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
     "identity": {
       "firstName": "Jane",
@@ -609,7 +599,7 @@ issue_cardless_id(
               User Experience
             </h3>
             <ul className="space-y-1 text-green-800 text-sm">
-              <li>• Explain what CardlessID is</li>
+              <li>• Explain what Cardless ID is</li>
               <li>• Show benefits to users</li>
               <li>• Help users download wallet app</li>
               <li>• Confirm successful issuance</li>
@@ -672,37 +662,8 @@ issue_cardless_id(
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Support</h2>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact</h3>
           <ul className="space-y-2 text-gray-700">
-            <li>
-              <strong>Email:</strong> support@cardlessid.com
-            </li>
-            <li>
-              <strong>Partnerships:</strong> partnerships@cardlessid.com
-            </li>
-            <li>
-              <strong>Technical Support:</strong> dev@cardlessid.com
-            </li>
-            <li>
-              <strong>Emergency:</strong> security@cardlessid.com (security
-              issues only)
-            </li>
-          </ul>
-
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">SLA</h3>
-          <ul className="space-y-2 text-gray-700">
-            <li>
-              <strong>Uptime:</strong> 99.9% guaranteed
-            </li>
-            <li>
-              <strong>Response Time:</strong> &lt; 200ms (p95)
-            </li>
-            <li>
-              <strong>Support Response:</strong> &lt; 24 hours
-            </li>
-            <li>
-              <strong>Critical Issues:</strong> &lt; 2 hours
-            </li>
+            <Link to="/contact">Contact Us</Link>
           </ul>
         </div>
       </section>

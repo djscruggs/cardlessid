@@ -11,8 +11,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 const Verify: React.FC = () => {
-  const lData = useRouteLoaderData("root");
-  const isDev = !lData?.hostname.includes("cardlessid.org");
   const params = useParams();
   const [modal, setModal] = useState(true);
   const [wallet, setWallet] = useState("");

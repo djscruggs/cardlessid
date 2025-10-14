@@ -106,48 +106,52 @@ export default function CustomVerify() {
 
           {/* Progress indicator */}
           <div className="mb-8">
-            <div className="flex justify-between items-center">
-              {[
-                { key: 'id-photo', label: 'ID Photo' },
-                { key: 'confirm-data', label: 'Confirm Data' },
-                { key: 'selfie', label: 'Selfie' },
-                { key: 'result', label: 'Complete' },
-              ].map((item, index) => (
-                <div key={item.key} className="flex items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      state.step === item.key
-                        ? 'bg-blue-600 text-white'
-                        : index < ['id-photo', 'confirm-data', 'selfie', 'result'].indexOf(state.step)
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-300 text-gray-600'
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  {index < 3 && (
-                    <div
-                      className={`w-16 h-1 ${
-                        index < ['id-photo', 'confirm-data', 'selfie', 'result'].indexOf(state.step)
-                          ? 'bg-green-600'
-                          : 'bg-gray-300'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-2">
+            <div className="flex items-center relative">
               {[
                 { key: 'id-photo', label: 'ID Photo' },
                 { key: 'confirm-data', label: 'Confirm' },
                 { key: 'selfie', label: 'Selfie' },
                 { key: 'result', label: 'Complete' },
-              ].map((item) => (
-                <div key={item.key} className="text-xs text-center w-20">
-                  {item.label}
-                </div>
-              ))}
+              ].map((item, index) => {
+                const steps = ['id-photo', 'confirm-data', 'selfie', 'result'];
+                const currentIndex = steps.indexOf(state.step);
+                const isCompleted = index < currentIndex;
+                const isCurrent = state.step === item.key;
+
+                return (
+                  <div key={item.key} className="flex-1 flex flex-col items-center relative">
+                    {/* Circle */}
+                    <div className="relative z-10">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                          isCurrent
+                            ? 'bg-blue-600 text-white'
+                            : isCompleted
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-300 text-gray-600'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                    </div>
+
+                    {/* Label */}
+                    <div className="text-xs text-center text-gray-700 mt-2 font-medium">
+                      {item.label}
+                    </div>
+
+                    {/* Connecting line (not for last item) */}
+                    {index < 3 && (
+                      <div
+                        className={`absolute top-5 left-1/2 w-full h-1 -z-0 ${
+                          isCompleted ? 'bg-green-600' : 'bg-gray-300'
+                        }`}
+                        style={{ transform: 'translateY(-50%)' }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

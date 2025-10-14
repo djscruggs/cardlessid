@@ -11,34 +11,34 @@ This is ideal for organizations that have already verified their users' identiti
 ## How It Works
 
 ```
-┌─────────────┐                           ┌──────────────┐
-│   Bank/DMV  │                           │  Cardless ID  │
-│   (Issuer)  │                           │   Platform   │
-└─────────────┘                           └──────────────┘
-       │                                          │
-       │  1. Request API Key                     │
-       │─────────────────────────────────────────>│
-       │                                          │
-       │  2. Receive API Key                     │
-       │<─────────────────────────────────────────│
-       │                                          │
-       │                                          │
-       │  3. POST /api/delegated-verification/issue
-       │     - API Key                            │
-       │     - User's wallet address              │
-       │     - Identity data                      │
-       │─────────────────────────────────────────>│
-       │                                          │
-       │                              4. Verify API key
-       │                              5. Generate credential
-       │                              6. Store on Algorand
-       │                                          │
-       │  7. Return credential ID                 │
-       │<─────────────────────────────────────────│
-       │                                          │
-       │  8. Notify user                          │
-       │     "Your Cardless ID is ready!"          │
-       │                                          │
+┌─────────────┐                             ┌──────────────┐
+│   Bank/DMV  │                             │  Cardless ID │
+│   (Issuer)  │                             │   Platform   │
+└─────────────┘                             └──────────────┘
+       │                                            │
+       │  1. Request API Key                        │
+       │───────────────────────────────────────────>│
+       │                                            │
+       │  2. Receive API Key                        │
+       │<───────────────────────────────────────────│
+       │                                            │
+       │                                            │
+       │  3. POST /api/delegated-verification/issue │
+       │     - API Key                              │
+       │     - User's wallet address                │
+       │     - Identity data                        │
+       │───────────────────────────────────────────>│
+       │                                            │
+       │                                4. Verify API key
+       │                                5. Generate credential
+       │                                6. Store on Algorand
+       │                                            │
+       │  7. Return credential ID                   │
+       │<───────────────────────────────────────────│
+       │                                            │
+       │  8. Notify user                            │
+       │     "Your Cardless ID is ready!"           │
+       │                                            │
 ```
 
 ---
@@ -116,10 +116,7 @@ Healthcare organizations can issue credentials to patients for age-gated service
 
 ### Step 1: Request API Key
 
-Contact Cardless ID to request an API key for your organization:
-
-- **Email:** partnerships@cardlessid.com
-- **Subject:** "Delegated Verification API Key Request"
+[Contact Cardless](https://cardlessid.org/contact) ID to request an API key for your organization:
 
 Include:
 
@@ -134,7 +131,7 @@ Include:
 
 You'll receive:
 
-- **API Key:** `sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+- **API Key:** `your_api_key_here_not_a_real_key_example`
 - **Documentation:** This guide
 - **Sandbox API Key:** For testing
 
@@ -160,7 +157,7 @@ Include your API key in the request body.
 
 ```json
 {
-  "apiKey": "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "apiKey": "your_api_key_here_not_real_example",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
   "identity": {
     "firstName": "Jane",
@@ -348,7 +345,7 @@ issue_cardless_id(
 curl -X POST https://cardlessid.com/api/delegated-verification/issue \
   -H "Content-Type: application/json" \
   -d '{
-    "apiKey": "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "apiKey": "your_api_key_here_not_real_example",
     "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
     "identity": {
       "firstName": "Jane",
@@ -464,7 +461,7 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 Use test API key for development:
 
 ```
-sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+test_api_key_here_not_real_example
 ```
 
 **Sandbox URL:**
@@ -487,7 +484,7 @@ TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 ```json
 {
-  "apiKey": "sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "apiKey": "test_api_key_here_not_real_example",
   "walletAddress": "TESTADDRESS1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456",
   "identity": {
     "firstName": "Test",
@@ -533,10 +530,7 @@ TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 ### Contact
 
-- **Email:** support@cardlessid.com
-- **Partnerships:** partnerships@cardlessid.com
-- **Technical Support:** dev@cardlessid.com
-- **Emergency:** security@cardlessid.com (security issues only)
+- [Contact Us](https://cardlessid.org/contact)
 
 ### SLA
 

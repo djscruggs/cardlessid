@@ -24,7 +24,7 @@ Contact Cardless ID to receive your API key.
 ### 3. Start Verifying
 
 ```javascript
-const CardlessID = require("@cardlessid/verifier");
+const Cardless ID = require("@cardlessid/verifier");
 
 const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY,

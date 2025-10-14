@@ -16,12 +16,36 @@ export async function action({ request }: ActionFunctionArgs) {
     // Dynamic imports to prevent client bundling
     const { getProvider } = await import("~/utils/verification-providers");
     const { createVerificationSession } = await import("~/utils/verification.server");
+    const { authenticateRequestWithFallback, checkRateLimit } = await import("~/utils/api-auth.server");
+
+    // Authenticate request
+    // - Mobile clients MUST provide X-API-Key header
+    // - Web app server-side routes can use environment variables
+    const authResult = await authenticateRequestWithFallback(request);
+    if (!authResult.success) {
+      return Response.json({ error: authResult.error }, { status: 401 });
+    }
+
+    const { issuer, source } = authResult;
+    console.log(`\n🔐 [VERIFICATION] Session start requested`);
+    console.log(`   Authenticated via ${source}: ${issuer.name}`);
+
+    // Check rate limit (only for API key users)
+    if (source === "api-key" && issuer.rateLimit) {
+      if (checkRateLimit(issuer.apiKey, issuer.rateLimit)) {
+        return Response.json(
+          {
+            error: `Rate limit exceeded. Maximum ${issuer.rateLimit} requests per hour.`,
+          },
+          { status: 429 }
+        );
+      }
+    }
 
     // Parse request body
     const body = await request.json().catch(() => ({}));
     const { provider: requestedProvider } = body;
 
-    console.log(`\n🔐 [VERIFICATION] Session start requested`);
     console.log(`   Provider: ${requestedProvider || 'default (mock)'}`);
 
     // Get provider instance

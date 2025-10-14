@@ -65,7 +65,7 @@ npm install @cardlessid/verifier
 ```javascript
 const Cardless ID = require("@cardlessid/verifier");
 
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 
@@ -96,7 +96,7 @@ npm install @cardlessid/verifier
 #### Constructor
 
 ```javascript
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: "your_api_key",
   baseUrl: "https://cardlessid.com", // optional
 });
@@ -241,7 +241,7 @@ const express = require("express");
 const Cardless ID = require("@cardlessid/verifier");
 
 const app = express();
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 
@@ -314,7 +314,7 @@ app.listen(3000);
 import type { NextApiRequest, NextApiResponse } from "next";
 import Cardless ID from "@cardlessid/verifier";
 
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY!,
 });
 

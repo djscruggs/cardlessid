@@ -7,7 +7,7 @@
  * ```javascript
  * const Cardless ID = require('./cardlessid-verifier');
  *
- * const verifier = new Cardless ID({
+ * const verifier = new CardlessID({
  *   apiKey: 'your_api_key_here',
  *   baseUrl: 'https://cardlessid.com' // optional, defaults to production
  * });

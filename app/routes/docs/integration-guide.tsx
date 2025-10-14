@@ -159,8 +159,18 @@ export default function IntegrationGuide() {
         <div className="bg-orange-50 border-l-4 border-orange-400 p-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-6 w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="h-6 w-6 text-orange-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -168,17 +178,23 @@ export default function IntegrationGuide() {
                 Credential Verification & Issuer Registry
               </h3>
               <p className="text-orange-800 mb-3">
-                When verifying a user's credential, the CardlessID system checks that the credential
-                was issued by a trusted source. An <strong>Algorand smart contract</strong> maintains
-                a registry of approved issuer addresses. Only credentials from registered issuers are
-                considered valid.
+                When verifying a user's credential, the Cardless ID system
+                checks that the credential was issued by a trusted source. An{" "}
+                <strong>Algorand smart contract</strong> maintains a registry of
+                approved issuer addresses. Only credentials from registered
+                issuers are considered valid.
               </p>
               <p className="text-orange-800">
-                This ensures that all credentials in the ecosystem meet CardlessID's security and
-                verification standards. If you're building your own verification system, see the{" "}
-                <Link to="/docs/custom-verification-guide" className="underline font-medium">
+                This ensures that all credentials in the ecosystem meet Cardless
+                ID's security and verification standards. If you're building
+                your own verification system, see the{" "}
+                <Link
+                  to="/docs/custom-verification-guide"
+                  className="underline font-medium"
+                >
                   Custom Verification Provider Guide
-                </Link> for information about the registry approval process.
+                </Link>{" "}
+                for information about the registry approval process.
               </p>
             </div>
           </div>
@@ -214,7 +230,7 @@ export default function IntegrationGuide() {
         <div className="mb-6">
           <CodeBlock language="javascript">{`const Cardless ID = require('@cardlessid/verifier');
 
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY
 });
 
@@ -384,7 +400,7 @@ X-API-Key: your_api_key`}</CodeBlock>
 const Cardless ID = require('@cardlessid/verifier');
 
 const app = express();
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY
 });
 

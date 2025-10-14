@@ -194,17 +194,30 @@ const CreateCredential = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Create Credential
+          Create Credential (Demo)
         </h1>
+
+        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-md">
+          <p className="text-sm text-yellow-900 font-semibold mb-1">
+            ⚠️ Demonstration Mode
+          </p>
+          <p className="text-xs text-yellow-800">
+            This page demonstrates the credential format. No real NFTs will be
+            created on the blockchain. Mobile apps must register for an API key
+            to issue real credentials.{" "}
+            <a href="/contact" className="underline font-medium">
+              Contact us
+            </a>
+          </p>
+        </div>
 
         {isVerified && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
             <p className="text-sm text-green-800">
-              <strong>✓ Identity Verified:</strong> Your information has been
-              pre-filled from your verified identity. Just add your wallet
-              address.
+              <strong>✓ Identity Verified:</strong> Enter a wallet address to
+              see the credential format.
             </p>
           </div>
         )}
@@ -247,189 +260,12 @@ const CreateCredential = () => {
             />
           </div>
 
-          <div className="form-control hidden">
-            <label className="label" htmlFor="firstName">
-              <span className="label-text">First Name</span>
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              placeholder="John"
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="middleName">
-              <span className="label-text">Middle Name (Optional)</span>
-            </label>
-            <input
-              type="text"
-              id="middleName"
-              name="middleName"
-              value={formData.middleName}
-              onChange={handleInputChange}
-              placeholder="Michael"
-              className="input input-bordered w-full"
-            />
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="lastName">
-              <span className="label-text">Last Name</span>
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              placeholder="Doe"
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="birthDate">
-              <span className="label-text">
-                Birth Date - Must be at least 13 years ago
-              </span>
-            </label>
-            <input
-              type="date"
-              id="birthDate"
-              name="birthDate"
-              required
-              value={formData.birthDate}
-              onChange={handleInputChange}
-              max={
-                new Date(
-                  new Date().getFullYear() - 13,
-                  new Date().getMonth(),
-                  new Date().getDate()
-                )
-                  .toISOString()
-                  .split("T")[0]
-              }
-              className="input input-bordered w-full"
-            />
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="idType">
-              <span className="label-text">Government ID Type</span>
-            </label>
-            <select
-              id="idType"
-              name="idType"
-              value={formData.idType}
-              onChange={handleInputChange}
-              className="select select-bordered w-full"
-              required
-            >
-              <option value="government_id">Government ID</option>
-              <option value="passport">US Passport</option>
-            </select>
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="state">
-              <span className="label-text">State or Territory</span>
-            </label>
-            <select
-              id="state"
-              name="state"
-              value={formData.state}
-              onChange={handleInputChange}
-              className="select select-bordered w-full"
-              required
-            >
-              <option value="AL">Alabama</option>
-              <option value="AK">Alaska</option>
-              <option value="AZ">Arizona</option>
-              <option value="AR">Arkansas</option>
-              <option value="CA">California</option>
-              <option value="CO">Colorado</option>
-              <option value="CT">Connecticut</option>
-              <option value="DE">Delaware</option>
-              <option value="FL">Florida</option>
-              <option value="GA">Georgia</option>
-              <option value="HI">Hawaii</option>
-              <option value="ID">Idaho</option>
-              <option value="IL">Illinois</option>
-              <option value="IN">Indiana</option>
-              <option value="IA">Iowa</option>
-              <option value="KS">Kansas</option>
-              <option value="KY">Kentucky</option>
-              <option value="LA">Louisiana</option>
-              <option value="ME">Maine</option>
-              <option value="MD">Maryland</option>
-              <option value="MA">Massachusetts</option>
-              <option value="MI">Michigan</option>
-              <option value="MN">Minnesota</option>
-              <option value="MS">Mississippi</option>
-              <option value="MO">Missouri</option>
-              <option value="MT">Montana</option>
-              <option value="NE">Nebraska</option>
-              <option value="NV">Nevada</option>
-              <option value="NH">New Hampshire</option>
-              <option value="NJ">New Jersey</option>
-              <option value="NM">New Mexico</option>
-              <option value="NY">New York</option>
-              <option value="NC">North Carolina</option>
-              <option value="ND">North Dakota</option>
-              <option value="OH">Ohio</option>
-              <option value="OK">Oklahoma</option>
-              <option value="OR">Oregon</option>
-              <option value="PA">Pennsylvania</option>
-              <option value="RI">Rhode Island</option>
-              <option value="SC">South Carolina</option>
-              <option value="SD">South Dakota</option>
-              <option value="TN">Tennessee</option>
-              <option value="TX">Texas</option>
-              <option value="UT">Utah</option>
-              <option value="VT">Vermont</option>
-              <option value="VA">Virginia</option>
-              <option value="WA">Washington</option>
-              <option value="WV">West Virginia</option>
-              <option value="WI">Wisconsin</option>
-              <option value="WY">Wyoming</option>
-              <option value="DC">District of Columbia</option>
-              <option value="AS">American Samoa</option>
-              <option value="GU">Guam</option>
-              <option value="MP">Northern Mariana Islands</option>
-              <option value="PR">Puerto Rico</option>
-              <option value="VI">U.S. Virgin Islands</option>
-            </select>
-          </div>
-
-          <div className="form-control hidden">
-            <label className="label" htmlFor="governmentId">
-              <span className="label-text">Government ID Number</span>
-            </label>
-            <input
-              type="text"
-              id="governmentId"
-              name="governmentId"
-              value={formData.governmentId}
-              onChange={handleInputChange}
-              placeholder="Enter ID number"
-              className="input input-bordered w-full"
-              required
-            />
-          </div>
-
           <button
             type="submit"
             className="btn btn-primary w-full"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Creating Credential..." : "Create Credential"}
+            {isSubmitting ? "Generating Demo..." : "Generate Demo Credential"}
           </button>
         </form>
 
@@ -441,9 +277,21 @@ const CreateCredential = () => {
 
         {apiResponse?.success && apiResponse.credential && (
           <div className="mt-8">
+            {apiResponse.demoMode && (
+              <div className="mb-4 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-md">
+                <p className="text-sm text-yellow-900 font-semibold mb-1">
+                  🎭 Demo Credential Generated
+                </p>
+                <p className="text-xs text-yellow-800">
+                  {apiResponse.demoNotice}
+                </p>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
-                Generated Credential:
+                {apiResponse.demoMode
+                  ? "Demo Credential Format:"
+                  : "Generated Credential:"}
               </h2>
               <button
                 onClick={() => setShowDetails(!showDetails)}

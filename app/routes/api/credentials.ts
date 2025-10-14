@@ -55,9 +55,41 @@ export async function action({ request }: ActionFunctionArgs) {
     markSessionCredentialIssued,
   } = await import("~/utils/verification.server");
   const algosdk = (await import("algosdk")).default;
+  const { authenticateRequestWithFallback, checkRateLimit } = await import("~/utils/api-auth.server");
 
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
+  }
+
+  // Authenticate request
+  // - Mobile clients MUST provide X-API-Key header
+  // - Web app server-side routes can use environment variables
+  const authResult = await authenticateRequestWithFallback(request);
+  if (!authResult.success) {
+    return Response.json({ error: authResult.error }, { status: 401 });
+  }
+
+  const { issuer, source } = authResult;
+
+  // Determine if this is a demo request (web UI without API key)
+  const isDemoMode = source === "env";
+
+  if (isDemoMode) {
+    console.log(`[Credentials] DEMO MODE: Web UI demonstration (no real credentials issued)`);
+  } else {
+    console.log(`[Credentials] PRODUCTION MODE: ${issuer.name} (API key)`);
+  }
+
+  // Check rate limit (only for API key users)
+  if (source === "api-key" && issuer.rateLimit) {
+    if (checkRateLimit(issuer.apiKey, issuer.rateLimit)) {
+      return Response.json(
+        {
+          error: `Rate limit exceeded. Maximum ${issuer.rateLimit} requests per hour.`,
+        },
+        { status: 429 }
+      );
+    }
   }
 
   try {
@@ -243,12 +275,10 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Get app wallet address from environment - needed for duplicate check
-    const appWalletAddress = process.env.VITE_APP_WALLET_ADDRESS;
+    // Use authenticated issuer's wallet address
+    const appWalletAddress = issuer.address;
     if (!appWalletAddress) {
-      throw new Error(
-        "VITE_APP_WALLET_ADDRESS environment variable is required"
-      );
+      throw new Error("Issuer wallet address is missing from configuration");
     }
 
     // Create composite hash for duplicate detection
@@ -278,13 +308,11 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Get issuer's private key for signing
-    const issuerPrivateKey = process.env.ISSUER_PRIVATE_KEY;
+    // Use authenticated issuer's private key for signing
+    const issuerPrivateKey = issuer.privateKeyBase64;
 
     if (!issuerPrivateKey) {
-      throw new Error(
-        "ISSUER_PRIVATE_KEY environment variable is required for credential signing"
-      );
+      throw new Error("Issuer private key is missing from configuration");
     }
 
     // Restore account from private key (base64 encoded)
@@ -297,9 +325,13 @@ export async function action({ request }: ActionFunctionArgs) {
     // Verify the key matches the configured wallet address
     if (issuerAccount.addr !== appWalletAddress) {
       throw new Error(
-        "ISSUER_PRIVATE_KEY does not match VITE_APP_WALLET_ADDRESS"
+        `Issuer private key does not match issuer address for ${issuer.name}`
       );
     }
+
+    console.log(
+      `[Credentials] Using issuer: ${issuer.name} (${appWalletAddress.substring(0, 8)}...)`
+    );
 
     const issuerId = `did:algo:${appWalletAddress}`;
     const subjectId = `did:algo:${walletAddress}`;
@@ -409,25 +441,33 @@ export async function action({ request }: ActionFunctionArgs) {
       },
     };
 
-    // Mint credential NFT on blockchain
+    // Mint credential NFT on blockchain (SKIP FOR DEMO MODE)
     let assetId: string | undefined;
     let mintTxId: string | undefined;
     let fundingTxId: string | undefined;
     let credentialExplorerUrl: string | undefined;
 
-    try {
-      // Get network from env
-      const network = (process.env.VITE_ALGORAND_NETWORK || "testnet") as
-        | "testnet"
-        | "mainnet";
+    if (isDemoMode) {
+      // DEMO MODE: Skip blockchain operations, use dummy values
+      console.log(`[Credentials] Demo mode - skipping NFT creation`);
+      assetId = "DEMO_ASSET_ID";
+      mintTxId = "DEMO_TX_ID";
+      credentialExplorerUrl = "https://testnet.explorer.perawallet.app/tx/DEMO_TX_ID";
+    } else {
+      // PRODUCTION MODE: Actually mint NFT on blockchain
+      try {
+        // Get network from env
+        const network = (process.env.VITE_ALGORAND_NETWORK || "testnet") as
+          | "testnet"
+          | "mainnet";
 
-      // Import funding utilities
-      const { walletNeedsFunding, fundNewWallet } = await import(
-        "~/utils/algorand"
-      );
+        // Import funding utilities
+        const { walletNeedsFunding, fundNewWallet } = await import(
+          "~/utils/algorand"
+        );
 
-      // Step 0: Check if issuer wallet needs funding
-      const issuerNeedsFunds = await walletNeedsFunding(appWalletAddress);
+        // Step 0: Check if issuer wallet needs funding
+        const issuerNeedsFunds = await walletNeedsFunding(appWalletAddress);
       if (issuerNeedsFunds) {
         console.log(
           `💰 Issuer wallet ${appWalletAddress} needs funding for NFT operations`
@@ -488,21 +528,30 @@ export async function action({ request }: ActionFunctionArgs) {
       // 2. Opt-in to the asset (0 ALGO transfer to self)
       // 3. We'll transfer and freeze in a separate endpoint or the client handles this
 
-      credentialExplorerUrl = getPeraExplorerUrl(mintTxId, network);
-    } catch (error) {
-      console.error("Error minting credential NFT:", error);
-      throw error; // NFT minting is critical, so we throw
+        credentialExplorerUrl = getPeraExplorerUrl(mintTxId, network);
+      } catch (error) {
+        console.error("Error minting credential NFT:", error);
+        throw error; // NFT minting is critical, so we throw
+      }
     }
 
-    // Save verification record with composite hash for duplicate detection
-    await saveVerification(walletAddress, true);
-    await updateCredentialIssued(walletAddress, compositeHash);
+    // Save verification record with composite hash for duplicate detection (SKIP FOR DEMO)
+    if (!isDemoMode) {
+      await saveVerification(walletAddress, true);
+      await updateCredentialIssued(walletAddress, compositeHash);
 
-    // Mark verification session as consumed
-    await markSessionCredentialIssued(verificationSessionId, walletAddress);
+      // Mark verification session as consumed
+      await markSessionCredentialIssued(verificationSessionId, walletAddress);
+    } else {
+      console.log(`[Credentials] Demo mode - skipping database writes`);
+    }
 
     return Response.json({
       success: true,
+      ...(isDemoMode && {
+        demoMode: true,
+        demoNotice: "This is a DEMONSTRATION only. No real credentials were created on the blockchain. To issue real credentials, mobile apps must register for an API key at https://cardlessid.org/contact",
+      }),
       credential,
       personalData: {
         firstName: credentialData.firstName,
@@ -525,14 +574,20 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       issuedAt: issuanceDate,
       nft: {
-        assetId: assetId.toString(), // Ensure it's a string for JSON serialization
-        requiresOptIn: true,
-        instructions: {
-          step1: "Client must opt-in to the asset",
-          step2:
-            "Call POST /api/credentials/transfer with assetId and walletAddress",
-          step3: "Asset will be transferred and frozen (non-transferable)",
-        },
+        assetId: assetId?.toString() || "DEMO_ASSET_ID",
+        requiresOptIn: !isDemoMode,
+        ...(isDemoMode
+          ? {
+              demoNotice: "No NFT was created - this is a demonstration",
+            }
+          : {
+              instructions: {
+                step1: "Client must opt-in to the asset",
+                step2:
+                  "Call POST /api/credentials/transfer with assetId and walletAddress",
+                step3: "Asset will be transferred and frozen (non-transferable)",
+              },
+            }),
       },
       blockchain: {
         transaction: {

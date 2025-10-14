@@ -3,7 +3,7 @@
  * Allows user to upload or capture a photo of their government ID
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 
 interface IdPhotoCaptureProps {
   onSuccess: (data: any) => void;
@@ -32,7 +32,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: "environment" },
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -40,18 +40,18 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
       }
       setUseCamera(true);
     } catch (err) {
-      onError('Unable to access camera. Please upload a photo instead.');
+      onError("Unable to access camera. Please upload a photo instead.");
     }
   };
 
   const capturePhoto = () => {
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx?.drawImage(videoRef.current, 0, 0);
-      const dataUrl = canvas.toDataURL('image/jpeg');
+      const dataUrl = canvas.toDataURL("image/jpeg");
       setPreviewUrl(dataUrl);
       stopCamera();
     }
@@ -59,7 +59,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
 
   const stopCamera = () => {
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
     setUseCamera(false);
@@ -67,7 +67,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
 
   const handleSubmit = async () => {
     if (!previewUrl) {
-      onError('Please capture or select a photo');
+      onError("Please capture or select a photo");
       return;
     }
 
@@ -75,11 +75,11 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
 
     try {
       const formData = new FormData();
-      formData.append('image', previewUrl);
-      formData.append('mimeType', 'image/jpeg');
+      formData.append("image", previewUrl);
+      formData.append("mimeType", "image/jpeg");
 
-      const response = await fetch('/api/verification/upload-id', {
-        method: 'POST',
+      const response = await fetch("/api/verification/upload-id", {
+        method: "POST",
         body: formData,
       });
 
@@ -87,17 +87,17 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
 
       if (result.success) {
         // Add the ID photo base64 to the result for client-side storage
-        const base64Data = previewUrl.replace(/^data:image\/\w+;base64,/, '');
+        const base64Data = previewUrl.replace(/^data:image\/\w+;base64,/, "");
         onSuccess({
           ...result,
           idPhotoBase64: base64Data, // Pass to parent component for storage
         });
       } else {
-        onError(result.error || 'Failed to process ID');
+        onError(result.error || "Failed to process ID");
         setPreviewUrl(null);
       }
     } catch (err) {
-      onError(err instanceof Error ? err.message : 'Unknown error');
+      onError(err instanceof Error ? err.message : "Unknown error");
       setPreviewUrl(null);
     } finally {
       setIsProcessing(false);
@@ -107,7 +107,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
   const handleRetake = () => {
     setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -116,8 +116,8 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
       <div>
         <h2 className="text-xl font-semibold mb-2">Take a Photo of Your ID</h2>
         <p className="text-gray-600">
-          Please photograph your government-issued ID (driver's license, passport, or state ID).
-          Make sure all information is clearly visible.
+          Please photograph your government-issued ID (driver's license,
+          passport, or state ID). Make sure all information is clearly visible.
         </p>
       </div>
 
@@ -155,16 +155,6 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
                 Upload a photo
               </span>
             </label>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={startCamera}
-              className="btn btn-primary"
-            >
-              Use Camera
-            </button>
           </div>
         </div>
       )}
@@ -210,7 +200,7 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
               disabled={isProcessing}
               className="btn btn-primary flex-1"
             >
-              {isProcessing ? 'Processing...' : 'Process ID'}
+              {isProcessing ? "Processing..." : "Process ID"}
             </button>
             <button
               type="button"
@@ -227,13 +217,9 @@ export function IdPhotoCapture({ onSuccess, onError }: IdPhotoCaptureProps) {
       {isProcessing && (
         <div className="text-center py-4">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">
-            Verifying...
-          </p>
+          <p className="mt-2 text-gray-600">Verifying...</p>
         </div>
       )}
     </div>
   );
 }
-
-

@@ -209,7 +209,7 @@ X-API-Key: your_api_key
 ```javascript
 const Cardless ID = require("@cardlessid/verifier");
 
-const verifier = new Cardless ID({
+const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 

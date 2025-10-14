@@ -4,11 +4,11 @@ import CodeBlock from "~/components/CodeBlock";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Custom Verification Provider Guide - CardlessID" },
+    { title: "Custom Verification Provider Guide - Cardless ID" },
     {
       name: "description",
       content:
-        "Complete guide to building custom identity verification providers for CardlessID",
+        "Complete guide to building custom identity verification providers for Cardless ID",
     },
   ];
 };
@@ -28,7 +28,7 @@ export default function CustomVerificationGuide() {
           Custom Verification Provider Guide
         </h1>
         <p className="text-lg text-gray-600">
-          Build custom identity verification flows for CardlessID credentials
+          Build custom identity verification flows for Cardless ID credentials
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default function CustomVerificationGuide() {
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Overview</h2>
         <p className="text-gray-700 mb-4">
           A verification provider is a module that handles the identity
-          verification process and returns verified identity data. CardlessID
+          verification process and returns verified identity data. Cardless ID
           then uses this data to issue a W3C Verifiable Credential on the
           Algorand blockchain.
         </p>
@@ -109,7 +109,7 @@ export default function CustomVerificationGuide() {
                 Production Deployment & Issuer Registry
               </h3>
               <p className="text-orange-800 mb-3">
-                CardlessID uses a <strong>smart contract</strong> as a&nbsp;
+                Cardless ID uses a <strong>smart contract</strong> as a&nbsp;
                 <Link to="/app/issuers">registry of allowed issuers</Link>. Only
                 credentials issued by addresses in this registry will be
                 recognized as valid by verifiers.
@@ -117,7 +117,7 @@ export default function CustomVerificationGuide() {
               <p className="text-orange-800 mb-3">
                 <strong>For production deployment:</strong> You must complete a
                 security audit before we add your issuer address to the on-chain
-                registry. This ensures the integrity of the CardlessID
+                registry. This ensures the integrity of the Cardless ID
                 ecosystem.
               </p>
               <p className="text-orange-800">
@@ -388,7 +388,7 @@ export class YourVerificationProvider implements VerificationProvider {
 
     const verification = await response.json();
 
-    // Map provider data to CardlessID format
+    // Map provider data to Cardless ID format
     const identity: VerifiedIdentity = {
       firstName: verification.user.first_name,
       lastName: verification.user.last_name,
@@ -544,14 +544,45 @@ const { authToken, sessionId } = await response.json();
               🚨 Mock Provider Production Protection
             </h3>
             <p className="text-red-800 text-sm mb-2">
-              <strong>The mock verification provider is automatically blocked in production environments.</strong>
+              <strong>
+                The mock verification provider is automatically blocked in
+                production environments.
+              </strong>
             </p>
             <ul className="space-y-1 text-red-800 text-sm">
-              <li>• Mock provider throws an error if <code className="bg-red-100 px-1 rounded">NODE_ENV=production</code></li>
-              <li>• In production, the default provider is <code className="bg-red-100 px-1 rounded">cardlessid</code> (Google Document AI + AWS)</li>
-              <li>• Set <code className="bg-red-100 px-1 rounded">VERIFICATION_PROVIDER</code> environment variable to override the default</li>
-              <li>• Valid production values: <code className="bg-red-100 px-1 rounded">cardlessid</code>, <code className="bg-red-100 px-1 rounded">idenfy</code>, <code className="bg-red-100 px-1 rounded">stripe_identity</code>, <code className="bg-red-100 px-1 rounded">persona</code>, <code className="bg-red-100 px-1 rounded">custom</code></li>
-              <li>• To temporarily allow mock in production for testing (NOT RECOMMENDED), set <code className="bg-red-100 px-1 rounded">ALLOW_MOCK_VERIFICATION=true</code></li>
+              <li>
+                • Mock provider throws an error if{" "}
+                <code className="bg-red-100 px-1 rounded">
+                  NODE_ENV=production
+                </code>
+              </li>
+              <li>
+                • In production, the default provider is{" "}
+                <code className="bg-red-100 px-1 rounded">cardlessid</code>{" "}
+                (Google Document AI + AWS)
+              </li>
+              <li>
+                • Set{" "}
+                <code className="bg-red-100 px-1 rounded">
+                  VERIFICATION_PROVIDER
+                </code>{" "}
+                environment variable to override the default
+              </li>
+              <li>
+                • Valid production values:{" "}
+                <code className="bg-red-100 px-1 rounded">cardlessid</code>,{" "}
+                <code className="bg-red-100 px-1 rounded">idenfy</code>,{" "}
+                <code className="bg-red-100 px-1 rounded">stripe_identity</code>
+                , <code className="bg-red-100 px-1 rounded">persona</code>,{" "}
+                <code className="bg-red-100 px-1 rounded">custom</code>
+              </li>
+              <li>
+                • To temporarily allow mock in production for testing (NOT
+                RECOMMENDED), set{" "}
+                <code className="bg-red-100 px-1 rounded">
+                  ALLOW_MOCK_VERIFICATION=true
+                </code>
+              </li>
             </ul>
           </div>
 
