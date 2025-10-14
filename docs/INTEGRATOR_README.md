@@ -239,7 +239,7 @@ if (result.verified) {
    export CARDLESSID_URL=http://localhost:5173
    ```
 
-2. Create a test integrator (via admin function):
+2. Request a test API key (via contact form at [cardlessid.org/contact](https://cardlessid.org/contact)):
 
    ```javascript
    const { createIntegrator } = require("./app/utils/api-keys.server");
@@ -261,7 +261,7 @@ if (result.verified) {
 
 ### Production Deployment
 
-1. Generate production API keys via admin panel
+1. Request a production API key (via contact form at [cardlessid.org/contact](https://cardlessid.org/contact)):
 2. Store keys securely (environment variables, secrets manager)
 3. Configure HTTPS endpoints
 4. Set up webhook URLs
