@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import CardlessCredential from "~/components/credentials/w3c-minimal";
 
 /**
  * Component Tests
@@ -30,23 +31,11 @@ describe("Component Props Validation", () => {
 
 describe("Credential Structure", () => {
   it("should validate credential offer structure", () => {
-    const mockCredential = {
-      "@context": ["https://www.w3.org/2018/credentials/v1"],
-      type: ["VerifiableCredential"],
-      issuer: {
-        id: "did:algorand:testnet:ISSUER_ADDRESS",
-      },
-      issuanceDate: new Date().toISOString(),
-      credentialSubject: {
-        id: "did:algorand:testnet:USER_ADDRESS",
-      },
-    };
-
     const credentialOffer = {
       type: "credential-offer",
       version: "1.0",
-      issuer: mockCredential.issuer.id,
-      credential: mockCredential,
+      issuer: CardlessCredential.issuer.id,
+      credential: CardlessCredential,
       timestamp: new Date().toISOString(),
       metadata: {
         title: "Age Verification Credential",
@@ -60,7 +49,7 @@ describe("Credential Structure", () => {
     expect(credentialOffer.version).toBe("1.0");
     expect(credentialOffer.credential).toBeDefined();
     expect(credentialOffer.metadata.title).toBe("Age Verification Credential");
-    expect(credentialOffer.issuer).toContain("did:algorand");
+    expect(credentialOffer.issuer).toContain("did:algo");
   });
 
   it("should create valid QR code data structure", () => {
@@ -146,16 +135,9 @@ describe("Form Validation", () => {
 
 describe("Data Transformation", () => {
   it("should transform credential for mobile app", () => {
-    const rawCredential = {
-      "@context": ["https://www.w3.org/2018/credentials/v1"],
-      type: ["VerifiableCredential"],
-      issuer: { id: "did:algorand:testnet:ISSUER" },
-      credentialSubject: { id: "did:algorand:testnet:USER" },
-    };
-
     const mobileFormat = {
       type: "credential-offer",
-      credential: rawCredential,
+      credential: CardlessCredential,
       metadata: {
         issuerName: "Cardless ID",
         category: "identity",
@@ -163,7 +145,7 @@ describe("Data Transformation", () => {
     };
 
     expect(mobileFormat.type).toBe("credential-offer");
-    expect(mobileFormat.credential).toEqual(rawCredential);
+    expect(mobileFormat.credential).toEqual(CardlessCredential);
     expect(mobileFormat.metadata.issuerName).toBe("Cardless ID");
   });
 
