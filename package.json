@@ -7,6 +7,9 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
     "test:aws": "node scripts/test-aws-setup.js",
     "test:algorand": "node scripts/test-algorand.js",
     "test:algorand:testnet": "node scripts/test-algorand.js testnet",
@@ -47,16 +50,21 @@
     "@algorandfoundation/algokit-utils": "^9.1.2",
     "@react-router/dev": "^7.7.1",
     "@tailwindcss/vite": "^4.1.4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/firebase": "^2.4.32",
     "@types/node": "^20",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
+    "@vitest/ui": "^3.2.4",
     "daisyui": "^5.1.14",
+    "happy-dom": "^20.0.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3",
     "vite-plugin-devtools-json": "^1.0.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }
