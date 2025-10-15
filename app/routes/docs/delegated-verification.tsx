@@ -671,17 +671,6 @@ issue_cardless_id(
         </div>
       </section>
 
-      {/* Support */}
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Support</h2>
-
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <ul className="space-y-2 text-gray-700">
-            <Link to="/contact">Contact Us</Link>
-          </ul>
-        </div>
-      </section>
-
       {/* Related Docs */}
       <section className="mb-8">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -710,11 +699,11 @@ issue_cardless_id(
       </section>
 
       {/* CTA */}
-      <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
+      <div className="bg-logoblue text-white rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
         <Link
           to="/contact"
-          className="bg-white no-underline! text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 inline-block"
+          className="bg-white no-underline!  px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 inline-block"
         >
           Request API Key
         </Link>
