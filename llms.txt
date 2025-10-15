@@ -24,18 +24,18 @@ Cardless ID is a privacy-focused, decentralized identity verification platform t
 
 ```
 .
-├── app/
-│   ├── components/          # React components
-│   │   ├── credentials/     # W3C credential templates
-│   │   └── verification/    # Identity verification UI
-│   ├── routes/             # React Router v7 routes
-│   │   ├── api/            # API endpoints
-│   │   └── app/            # Application pages
-│   ├── utils/              # Utility functions
-│   ├── layouts/            # Layout components
-│   └── hooks/              # Custom React hooks
-├── docs/                   # Documentation
-└── scripts/                # Build and test scripts
+|-- app/
+    |-- components/          # React components
+    |   |-- credentials/     # W3C credential templates
+    |   +-- verification/    # Identity verification UI
+    |-- routes/             # React Router v7 routes
+    |   |-- api/            # API endpoints
+    |   +-- app/            # Application pages
+    |-- utils/              # Utility functions
+    |-- layouts/            # Layout components
+    +-- hooks/              # Custom React hooks
+|-- docs/                   # Documentation
++-- scripts/                # Build and test scripts
 ```
 
 ### Technology Stack
