@@ -13,6 +13,7 @@ export default [
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
   route("credentials/v1", "routes/credentials/v1.ts"),
+  route("llms.txt", "routes/llms[.]txt.ts"),
   route("w/:address", "routes/w.$address.tsx"),
   layout("layouts/docs.tsx", [
     ...prefix("docs", [
