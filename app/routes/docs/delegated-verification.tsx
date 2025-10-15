@@ -347,7 +347,21 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    User's first name
+                    User's middle name
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.middleName</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    Yes
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    User's middle name
                   </td>
                 </tr>
                 <tr>
@@ -698,15 +712,12 @@ issue_cardless_id(
       {/* CTA */}
       <div className="bg-blue-600 text-white rounded-lg p-8 text-center">
         <h2 className="text-2xl font-bold mb-4">Ready to Get Started?</h2>
-        <p className="text-lg mb-6">
-          <Link to="/contact">Contact us</Link> to request your API key
-        </p>
-        <a
-          href="mailto:partnerships@cardlessid.com?subject=Delegated%20Verification%20API%20Key%20Request"
-          className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 inline-block"
+        <Link
+          to="/contact"
+          className="bg-white no-underline! text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 inline-block"
         >
           Request API Key
-        </a>
+        </Link>
       </div>
     </>
   );
