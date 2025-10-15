@@ -1,0 +1,803 @@
+# Cardless ID
+
+> Decentralized identity credential system built on Algorand blockchain with W3C Verifiable Credentials
+
+**Latest Version:** This documentation is also available at `https://cardlessid.org/llms.txt` for remote access with tools like `blz`.
+
+## Project Overview
+
+Cardless ID is a privacy-focused, decentralized identity verification platform that issues W3C-compliant verifiable credentials on the Algorand blockchain. The system enables one-time identity verification with cryptographic proofs, designed primarily for age verification across websites while maintaining user privacy.
+
+**Key Features:**
+- W3C Verifiable Credential standard compliance
+- Algorand blockchain integration for credential storage
+- Sybil-resistant duplicate detection via composite hashing
+- Privacy-first architecture with no persistence of PII data
+- Mobile wallet support for credential management
+- QR code-based verification flow
+
+**Primary Use Case:** Age verification for adult content sites (24 US states + UK, France, Germany require age verification by law)
+
+## Architecture
+
+### Application Structure
+
+```
+.
+├── app/
+│   ├── components/          # React components
+│   │   ├── credentials/     # W3C credential templates
+│   │   └── verification/    # Identity verification UI
+│   ├── routes/             # React Router v7 routes
+│   │   ├── api/            # API endpoints
+│   │   └── app/            # Application pages
+│   ├── utils/              # Utility functions
+│   ├── layouts/            # Layout components
+│   └── hooks/              # Custom React hooks
+├── docs/                   # Documentation
+└── scripts/                # Build and test scripts
+```
+
+### Technology Stack
+
+- **Framework:** React Router v7 (framework mode)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + DaisyUI
+- **Database:** Firebase Realtime Database
+- **Blockchain:** Algorand (testnet/mainnet)
+- **Identity Verification:** AWS Textract, Google Document AI, AWS Rekognition
+- **Credential Standard:** W3C Verifiable Credentials v2
+
+### Import Path Alias
+
+Use `~` as an alias for `/app` in all imports:
+```typescript
+import { something } from '~/utils/helper';
+```
+
+## Core Concepts
+
+### W3C Verifiable Credentials
+
+Cardless ID issues W3C-compliant verifiable credentials with the following structure:
+
+**Credential Schema:**
+- `@context`: W3C contexts + custom Cardless context
+- `id`: Unique credential identifier (UUID)
+- `type`: ["VerifiableCredential", "BirthDateCredential"]
+- `issuer`: DID (Decentralized Identifier) - `did:algo:WALLET_ADDRESS`
+- `credentialSubject`: Contains composite hash of identity
+- `evidence`: W3C standard verification metadata (fraud detection, OCR confidence, biometrics)
+- `credentialStatus`: References Algorand issuer registry smart contract
+- `proof`: Ed25519 signature for cryptographic verification
+
+**Example Credential:** See [app/components/credentials/w3c-minimal.ts:30-92](app/components/credentials/w3c-minimal.ts)
+
+### Composite Hash (Sybil Resistance)
+
+The `compositeHash` field prevents duplicate credentials from being issued to the same person:
+
+```typescript
+// Format: SHA-256 hash of "firstName|middleName|lastName|birthDate"
+compositeHash: "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+```
+
+This enables duplicate detection without storing personal data. See [app/utils/composite-hash.server.ts](app/utils/composite-hash.server.ts)
+
+### Cryptographic Proof
+
+Each credential includes an Ed25519 signature:
+1. Credential is canonicalized (proof field removed)
+2. Issuer signs with private key
+3. Verifiers validate using issuer's public key (derived from Algorand address)
+
+This ensures credentials cannot be forged. See [app/utils/data-integrity.server.ts](app/utils/data-integrity.server.ts)
+
+### Evidence Property (Verification Quality)
+
+The W3C-standard `evidence` property includes:
+- **fraudDetection**: Google Document AI fraud signals
+- **documentAnalysis**: AWS Textract OCR confidence, quality level (high/medium/low)
+- **biometricVerification**: AWS Rekognition face match and liveness scores
+
+This allows relying parties to make risk-based trust decisions. See [app/utils/credential-schema.ts:16-42](app/utils/credential-schema.ts)
+
+### Privacy Model (Transient Data)
+
+**Zero Permanent Storage:**
+- Government ID and selfie photos are processed and immediately deleted
+- Identity data (name, birth date) is never stored in database
+- Only HMAC hashes are kept for data integrity verification
+- Full identity data is only available to credential holder in mobile wallet
+
+**What's Stored:**
+- Firebase: Session metadata (status, timestamps), HMAC hashes, composite hashes
+- Algorand: 0-value transactions with credential metadata in note field
+- No PII (Personally Identifiable Information) is permanently stored
+
+### Algorand Integration
+
+**Network Configuration:**
+- Testnet: `https://testnet-api.algonode.cloud`
+- Mainnet: `https://mainnet-api.algonode.cloud`
+
+**Key Functions:**
+- Wallet creation and funding
+- Credential transaction creation (0 ALGO payment with note)
+- Duplicate credential detection
+- Balance checking and validation
+
+See [app/utils/algorand.ts](app/utils/algorand.ts)
+
+## API Endpoints
+
+### Verification Flow
+
+**Start Verification**
+```
+POST /api/verification/start
+Body: { walletAddress: string }
+Returns: { sessionId: string, expiresAt: string }
+```
+
+**Upload ID Document**
+```
+POST /api/verification/upload-id
+Body: { sessionId: string, frontImage: base64, backImage?: base64 }
+Returns: { success: boolean, extractedData?: object }
+```
+
+**Upload Selfie**
+```
+POST /api/verification/upload-selfie
+Body: { sessionId: string, selfieImage: base64 }
+Returns: { success: boolean, faceMatch?: { confidence: number } }
+```
+
+**Check Verification Status**
+```
+GET /api/verification/status/{sessionId}
+Returns: { status: 'pending' | 'approved' | 'rejected', data?: object }
+```
+
+### Credential Issuance
+
+**Create Credential**
+```
+POST /api/credentials
+Body: {
+  walletAddress: string,
+  firstName: string,
+  lastName: string,
+  birthDate: string,
+  sessionId: string
+}
+Returns: { credential: object, txId: string }
+```
+
+**Get Credential Schema**
+```
+GET /api/credentials/schema
+Returns: W3C credential schema definition
+```
+
+**Transfer Credential**
+```
+POST /api/credentials/transfer
+Body: { credential: object, recipientAddress: string }
+Returns: { txId: string }
+```
+
+### Age Verification (QR Code Flow)
+
+**Create Age Verification Challenge**
+```
+POST /api/age-verify/create
+Body: { minimumAge: number, verifierName?: string }
+Returns: { sessionId: string, qrCode: string, expiresAt: string }
+```
+
+**Respond to Challenge**
+```
+POST /api/age-verify/respond
+Body: { sessionId: string, walletAddress: string, meetsAge: boolean }
+Returns: { success: boolean }
+```
+
+**Check Challenge Status**
+```
+GET /api/age-verify/session/{sessionId}
+Returns: { status: 'pending' | 'approved' | 'rejected', meetsAge?: boolean }
+```
+
+### Wallet Status
+
+**Check Wallet Status**
+```
+GET /api/wallet/status/{address}
+Returns: { hasCredential: boolean, isVerified: boolean }
+```
+
+### Integrator API (Website Integration)
+
+**Create Challenge**
+```
+POST /api/integrator/challenge/create
+Headers: { Authorization: 'Bearer API_KEY' }
+Body: { minimumAge: number, metadata?: object }
+Returns: { challengeId: string, qrCodeUrl: string }
+```
+
+**Verify Challenge**
+```
+GET /api/integrator/challenge/verify/{challengeId}
+Headers: { Authorization: 'Bearer API_KEY' }
+Returns: { verified: boolean, walletAddress?: string, timestamp?: string }
+```
+
+**Challenge Details**
+```
+GET /api/integrator/challenge/details/{challengeId}
+Headers: { Authorization: 'Bearer API_KEY' }
+Returns: { challenge: object, responses: array }
+```
+
+See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for full integration guide.
+
+## Components
+
+### Verification Components
+
+**IdentityForm** - [app/components/verification/IdentityForm.tsx](app/components/verification/IdentityForm.tsx)
+- Collects user identity information
+- Props: `onSubmit(data: IdentityData): void`, `loading?: boolean`
+
+**IdPhotoCapture** - [app/components/verification/IdPhotoCapture.tsx](app/components/verification/IdPhotoCapture.tsx)
+- Camera interface for capturing government ID
+- Props: `onCapture(image: string): void`, `requireBothSides?: boolean`
+
+**SelfieCapture** - [app/components/verification/SelfieCapture.tsx](app/components/verification/SelfieCapture.tsx)
+- Camera interface for selfie capture with liveness detection
+- Props: `onCapture(image: string): void`, `showGuidance?: boolean`
+
+**VerificationResult** - [app/components/verification/VerificationResult.tsx](app/components/verification/VerificationResult.tsx)
+- Displays verification status and results
+- Props: `status: 'pending' | 'approved' | 'rejected'`, `credential?: object`
+
+### UI Components
+
+**Header** - [app/components/Header.tsx](app/components/Header.tsx)
+- Main navigation header with logo and menu
+
+**Footer** - [app/components/Footer.tsx](app/components/Footer.tsx)
+- Site footer with links and copyright
+
+**CredentialQR** - [app/components/CredentialQR.tsx](app/components/CredentialQR.tsx)
+- Generates QR code for credential sharing
+- Props: `credential: object`, `size?: number`
+
+**CodeBlock** - [app/components/CodeBlock.tsx](app/components/CodeBlock.tsx)
+- Syntax-highlighted code display for documentation
+- Props: `code: string`, `language: string`
+
+## Utility Functions
+
+### Verification Utils
+
+**verification.server.ts** - [app/utils/verification.server.ts](app/utils/verification.server.ts)
+- Core verification flow orchestration
+- Functions: `startVerification()`, `processIdDocument()`, `processSelfie()`, `getVerificationStatus()`
+
+**document-ai.server.ts** - [app/utils/document-ai.server.ts](app/utils/document-ai.server.ts)
+- Google Document AI integration for fraud detection
+- Functions: `detectFraud(imageBase64: string)`, `analyzeDocument()`
+
+**textract.server.ts** - [app/utils/textract.server.ts](app/utils/textract.server.ts)
+- AWS Textract integration for OCR
+- Functions: `extractTextFromId()`, `analyzeIdDocument()`
+
+**face-comparison.server.ts** - [app/utils/face-comparison.server.ts](app/utils/face-comparison.server.ts)
+- AWS Rekognition for biometric matching
+- Functions: `compareFaces()`, `detectLiveness()`
+
+### Credential Utils
+
+**credential-issuance.server.ts** - [app/utils/credential-issuance.server.ts](app/utils/credential-issuance.server.ts)
+- Credential creation and issuance logic
+- Functions: `issueCredential()`, `validateCredential()`, `revokeCredential()`
+
+**credential-schema.ts** - [app/utils/credential-schema.ts](app/utils/credential-schema.ts)
+- W3C credential schema definitions
+- Exports: `CARDLESS_NAMESPACE`, `CARDLESS_FIELDS`, `SCHEMA_VERSION`, `USAGE_NOTES`
+
+**data-integrity.server.ts** - [app/utils/data-integrity.server.ts](app/utils/data-integrity.server.ts)
+- Cryptographic signing and verification
+- Functions: `signCredential()`, `verifyProof()`, `createProof()`
+
+**composite-hash.server.ts** - [app/utils/composite-hash.server.ts](app/utils/composite-hash.server.ts)
+- Composite hash generation for sybil resistance
+- Functions: `generateCompositeHash()`, `verifyCompositeHash()`
+
+**nft-credentials.ts** - [app/utils/nft-credentials.ts](app/utils/nft-credentials.ts)
+- NFT-based credential management on Algorand
+- Functions: `createCredentialNFT()`, `transferCredentialNFT()`
+
+### Algorand Utils
+
+**algorand.ts** - [app/utils/algorand.ts](app/utils/algorand.ts)
+- Algorand blockchain integration
+- Key functions:
+  - `isValidAlgorandAddress(address: string): Promise<boolean>`
+  - `getAccountBalance(address: string): Promise<number>`
+  - `fundNewWallet(issuer, recipient, amount): Promise<string>`
+  - `createCredentialTransaction(...): Promise<string>`
+  - `checkCredentialExists(issuer, user, hash): Promise<{exists, duplicateCount}>`
+
+### Authentication & API
+
+**auth.server.ts** - [app/utils/auth.server.ts](app/utils/auth.server.ts)
+- Session management and authentication
+- Functions: `createSession()`, `getSession()`, `destroySession()`
+
+**api-auth.server.ts** - [app/utils/api-auth.server.ts](app/utils/api-auth.server.ts)
+- API key validation for integrator endpoints
+- Functions: `validateApiKey()`, `createApiKey()`, `revokeApiKey()`
+
+**api-keys.server.ts** - [app/utils/api-keys.server.ts](app/utils/api-keys.server.ts)
+- API key CRUD operations
+- Functions: `generateApiKey()`, `storeApiKey()`, `lookupApiKey()`
+
+### Firebase Utils
+
+**firebase.server.ts** - [app/utils/firebase.server.ts](app/utils/firebase.server.ts)
+- Firebase Admin SDK initialization and helpers
+- Functions: `getDatabase()`, `getRef()`, `saveToDatabase()`, `queryDatabase()`
+
+**firebase.config.ts** - [app/firebase.config.ts](app/firebase.config.ts)
+- Firebase client SDK configuration (environment variables)
+
+### Issuer Registry
+
+**issuer-registry.ts** - [app/utils/issuer-registry.ts](app/utils/issuer-registry.ts)
+- On-chain issuer registry management
+- Functions: `registerIssuer()`, `checkIssuerStatus()`, `vouchForIssuer()`, `revokeIssuer()`
+
+### Other Utils
+
+**age-verification.server.ts** - [app/utils/age-verification.server.ts](app/utils/age-verification.server.ts)
+- Age verification challenge management
+- Functions: `createChallenge()`, `verifyAge()`, `recordResponse()`
+
+**integrator-challenges.server.ts** - [app/utils/integrator-challenges.server.ts](app/utils/integrator-challenges.server.ts)
+- Integrator API challenge handling
+- Functions: `createIntegratorChallenge()`, `verifyIntegratorChallenge()`
+
+**temp-photo-storage.server.ts** - [app/utils/temp-photo-storage.server.ts](app/utils/temp-photo-storage.server.ts)
+- Temporary photo storage for verification (automatically deleted)
+- Functions: `storePhoto()`, `retrievePhoto()`, `deletePhoto()`
+
+**CardlessIssuerClient.ts** - [app/utils/CardlessIssuerClient.ts](app/utils/CardlessIssuerClient.ts)
+- Client library for integrators to interact with Cardless ID
+- Class: `CardlessIssuerClient` with methods for challenge creation and verification
+
+## Routes
+
+### Public Pages
+
+- `/` - [app/routes/home.tsx](app/routes/home.tsx) - Homepage
+- `/about` - [app/routes/about.tsx](app/routes/about.tsx) - About page
+- `/what` - [app/routes/what.tsx](app/routes/what.tsx) - What is Cardless ID
+- `/contact` - [app/routes/contact.tsx](app/routes/contact.tsx) - Contact form
+- `/demo` - [app/routes/demo.tsx](app/routes/demo.tsx) - Interactive demo
+- `/verify` - [app/routes/verify.tsx](app/routes/verify.tsx) - Public verification page
+- `/w/:address` - [app/routes/w.$address.tsx](app/routes/w.$address.tsx) - Public wallet status
+
+### Documentation Pages
+
+- `/docs` - [app/routes/docs.tsx](app/routes/docs.tsx) - Documentation index
+- `/docs/integration-guide` - [app/routes/docs/integration-guide.tsx](app/routes/docs/integration-guide.tsx) - Integration guide
+- `/docs/credential-schema` - [app/routes/docs/credential-schema.tsx](app/routes/docs/credential-schema.tsx) - Credential schema docs
+- `/docs/custom-verification-guide` - [app/routes/docs/custom-verification-guide.tsx](app/routes/docs/custom-verification-guide.tsx) - Custom verification
+- `/docs/delegated-verification` - [app/routes/docs/delegated-verification.tsx](app/routes/docs/delegated-verification.tsx) - Delegated verification
+
+### App Pages
+
+- `/app/create-credential` - [app/routes/app/create-credential.tsx](app/routes/app/create-credential.tsx) - Credential creation flow
+- `/app/verify` - [app/routes/app/verify.tsx](app/routes/app/verify.tsx) - Verify credential
+- `/app/verify/:txId` - [app/routes/app/verify.$txId.tsx](app/routes/app/verify.$txId.tsx) - Verify specific transaction
+- `/app/wallet-status` - [app/routes/app/wallet-status.tsx](app/routes/app/wallet-status.tsx) - Check wallet status
+- `/app/wallet-verify` - [app/routes/app/wallet-verify.tsx](app/routes/app/wallet-verify.tsx) - Wallet verification
+- `/app/wallet-verify-success` - [app/routes/app/wallet-verify-success.tsx](app/routes/app/wallet-verify-success.tsx) - Success page
+- `/app/age-verify` - [app/routes/app/age-verify.tsx](app/routes/app/age-verify.tsx) - Age verification
+- `/app/age-verify-success` - [app/routes/app/age-verify-success.tsx](app/routes/app/age-verify-success.tsx) - Age verify success
+- `/app/age-verify-rejected` - [app/routes/app/age-verify-rejected.tsx](app/routes/app/age-verify-rejected.tsx) - Age verify rejected
+- `/app/worldcoin` - [app/routes/app/worldcoin.tsx](app/routes/app/worldcoin.tsx) - Worldcoin integration
+- `/app/mock-verification` - [app/routes/app/mock-verification.tsx](app/routes/app/mock-verification.tsx) - Mock verification for testing
+- `/app/testnet-explorer` - [app/routes/app/testnet-explorer.tsx](app/routes/app/testnet-explorer.tsx) - Testnet explorer
+- `/app/issuers` - [app/routes/app/issuers.tsx](app/routes/app/issuers.tsx) - Issuer registry management
+
+### API Routes
+
+All API routes return JSON responses. See [API Endpoints](#api-endpoints) section for details.
+
+**Verification:**
+- `POST /api/verification/start` - [app/routes/api/verification/start.ts](app/routes/api/verification/start.ts)
+- `POST /api/verification/upload-id` - [app/routes/api/verification/upload-id.ts](app/routes/api/verification/upload-id.ts)
+- `POST /api/verification/upload-selfie` - [app/routes/api/verification/upload-selfie.ts](app/routes/api/verification/upload-selfie.ts)
+- `GET /api/verification/status/:id` - [app/routes/api/verification/status.$id.ts](app/routes/api/verification/status.$id.ts)
+- `GET /api/verification/session/:sessionId` - [app/routes/api/verification/session.$sessionId.ts](app/routes/api/verification/session.$sessionId.ts)
+- `POST /api/verification/webhook` - [app/routes/api/verification/webhook.ts](app/routes/api/verification/webhook.ts)
+
+**Credentials:**
+- `POST /api/credentials` - [app/routes/api/credentials.ts](app/routes/api/credentials.ts)
+- `GET /api/credentials/schema` - [app/routes/api/credentials/schema.ts](app/routes/api/credentials/schema.ts)
+- `POST /api/credentials/transfer` - [app/routes/api/credentials/transfer.ts](app/routes/api/credentials/transfer.ts)
+
+**Age Verification:**
+- `POST /api/age-verify/create` - [app/routes/api/age-verify/create.ts](app/routes/api/age-verify/create.ts)
+- `POST /api/age-verify/respond` - [app/routes/api/age-verify/respond.ts](app/routes/api/age-verify/respond.ts)
+- `GET /api/age-verify/session/:sessionId` - [app/routes/api/age-verify/session.$sessionId.ts](app/routes/api/age-verify/session.$sessionId.ts)
+
+**Integrator API:**
+- `POST /api/integrator/challenge/create` - [app/routes/api/integrator/challenge/create.ts](app/routes/api/integrator/challenge/create.ts)
+- `GET /api/integrator/challenge/verify/:challengeId` - [app/routes/api/integrator/challenge/verify.$challengeId.ts](app/routes/api/integrator/challenge/verify.$challengeId.ts)
+- `GET /api/integrator/challenge/details/:challengeId` - [app/routes/api/integrator/challenge/details.$challengeId.ts](app/routes/api/integrator/challenge/details.$challengeId.ts)
+- `POST /api/integrator/challenge/respond` - [app/routes/api/integrator/challenge/respond.ts](app/routes/api/integrator/challenge/respond.ts)
+
+**Wallet:**
+- `GET /api/wallet/status/:address` - [app/routes/api/wallet/status.$address.ts](app/routes/api/wallet/status.$address.ts)
+
+**Other:**
+- `GET /api/hello` - [app/routes/api/hello.ts](app/routes/api/hello.ts) - Health check
+- `GET /api/announcements` - [app/routes/api/announcements.ts](app/routes/api/announcements.ts) - System announcements
+- `POST /api/verify-worldcoin` - [app/routes/api/verify-worldcoin.ts](app/routes/api/verify-worldcoin.ts) - Worldcoin verification
+- `POST /api/verify-webhook` - [app/routes/api/verify-webhook.ts](app/routes/api/verify-webhook.ts) - Verification webhook
+- `POST /api/delegated-verification/issue` - [app/routes/api/delegated-verification/issue.ts](app/routes/api/delegated-verification/issue.ts)
+
+**Credential V1 (legacy):**
+- `GET /credentials/v1` - [app/routes/credentials/v1.ts](app/routes/credentials/v1.ts)
+
+## Coding Conventions
+
+### File Naming
+
+- **Route files:** lowercase (e.g., `home.tsx`, `about.tsx`)
+- **Route components:** PascalCase (e.g., `Home`, `About`)
+- **Standalone components:** PascalCase (e.g., `Header.tsx`, `Footer.tsx`)
+- **Utility files:** lowercase with hyphens (e.g., `algorand.ts`, `credential-schema.ts`)
+- **Server-only files:** suffix with `.server.ts` (e.g., `verification.server.ts`)
+
+### Import Conventions
+
+```typescript
+// Use ~ alias for app imports
+import { Header } from '~/components/Header';
+import { algorand } from '~/utils/algorand';
+
+// External libraries first
+import React from 'react';
+import { useLoaderData } from 'react-router';
+
+// Then internal imports
+import { MyComponent } from '~/components/MyComponent';
+import { myUtil } from '~/utils/myUtil';
+```
+
+### Component Structure
+
+```typescript
+// Props interface first
+interface MyComponentProps {
+  data: string;
+  onAction?: () => void;
+}
+
+// Component definition
+export function MyComponent({ data, onAction }: MyComponentProps) {
+  // Hooks at top
+  const [state, setState] = useState();
+
+  // Event handlers
+  const handleClick = () => {
+    // ...
+  };
+
+  // Render
+  return (
+    <div>
+      {/* JSX */}
+    </div>
+  );
+}
+```
+
+### Server Functions
+
+All server-side functions that interact with Firebase, AWS, or Algorand should be in `.server.ts` files:
+
+```typescript
+// app/utils/my-feature.server.ts
+export async function serverFunction() {
+  // Server-only code
+}
+```
+
+### Error Handling
+
+```typescript
+try {
+  const result = await riskyOperation();
+  return { success: true, data: result };
+} catch (error) {
+  console.error('Operation failed:', error);
+  return { success: false, error: error.message };
+}
+```
+
+## Environment Variables
+
+### Required Variables
+
+**Security:**
+- `HMAC_SECRET` - 64-character hex string for data integrity (generate with: `openssl rand -hex 32`)
+- `SESSION_SECRET` - Secret for session encryption
+
+**Algorand:**
+- `VITE_APP_WALLET_ADDRESS` - Issuer wallet address
+- `VITE_ALGORAND_NETWORK` - `testnet` or `mainnet`
+- `ISSUER_PRIVATE_KEY` - Issuer private key (NEVER commit to version control)
+
+**Firebase:**
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+- `VITE_FIREBASE_MEASUREMENT_ID`
+
+**Firebase Admin (Server-side):**
+- `GOOGLE_CREDENTIALS_JSON` - Minified JSON string (for Vercel/serverless)
+- `GOOGLE_APPLICATION_CREDENTIALS` - Path to credentials file (for local dev)
+
+**AWS (Optional - for ID verification):**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+
+**Google Document AI (Optional - for fraud detection):**
+- `GOOGLE_PROJECT_ID`
+- `GOOGLE_DOCUMENT_AI_PROCESSOR_ID`
+
+### Security Best Practices
+
+1. **Never commit secrets** - Add `.env` to `.gitignore`
+2. **Use different secrets** for development and production
+3. **Rotate keys regularly** - Especially API keys and HMAC secrets
+4. **Minimum permissions** - AWS/Google credentials should have least privilege
+5. **Monitor access logs** - Track API key usage
+
+## Common Development Tasks
+
+### Running the Development Server
+
+```bash
+npm run dev
+```
+
+Runs on `http://localhost:5173`
+
+### Running Tests
+
+```bash
+npm test                  # Run all tests
+npm run test:watch       # Watch mode
+npm run test:ui          # UI mode with browser
+```
+
+### Type Checking
+
+```bash
+npm run typecheck
+```
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+### Starting Production Server
+
+```bash
+npm start
+```
+
+### Algorand Testing
+
+```bash
+npm run test:algorand           # General Algorand tests
+npm run test:algorand:testnet   # Testnet tests
+npm run test:algorand:localnet  # Local network tests
+npm run test:algorand:wallet    # Wallet tests
+npm run test:algorand:credential # Credential tests
+```
+
+### AWS Testing
+
+```bash
+npm run test:aws
+```
+
+### Setting up Local Algorand Network
+
+```bash
+npm run setup:localnet
+npm run docker:localnet         # Start Docker container
+npm run docker:localnet:stop    # Stop Docker container
+```
+
+### AlgoKit (Smart Contract Development)
+
+```bash
+npm run algokit:build           # Build contracts
+npm run algokit:generate        # Generate TypeScript clients
+```
+
+## Testing
+
+### Test Files
+
+Tests use Vitest and are located alongside source files with `.test.ts` or `.test.tsx` extensions.
+
+### Testing Verification Flow
+
+See [docs/TESTING_VERIFICATION.md](docs/TESTING_VERIFICATION.md) for complete guide on testing the identity verification flow with mock providers.
+
+**Mock Provider Server:**
+```bash
+node scripts/mock-provider-server.cjs
+```
+
+Runs on `http://localhost:3001` and simulates third-party identity verification.
+
+### Mobile Client Testing
+
+See [docs/MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md) for integration testing with the React Native mobile wallet.
+
+## Integration Guides
+
+### Website Integration (Age Verification)
+
+For websites wanting to verify user age using Cardless ID:
+
+1. **Get API Key** - Contact team for integrator API key
+2. **Create Challenge** - POST to `/api/integrator/challenge/create`
+3. **Display QR Code** - Show returned QR code to user
+4. **Poll for Response** - Check `/api/integrator/challenge/verify/:challengeId`
+5. **Handle Result** - Allow/deny access based on response
+
+See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for complete guide.
+
+### Custom Identity Verification
+
+For organizations wanting to issue their own credentials:
+
+1. **Register as Issuer** - Register Algorand wallet address in issuer registry
+2. **Implement Verification** - Build custom verification flow
+3. **Issue Credentials** - Use Cardless ID credential schema
+4. **Sign Credentials** - Create Ed25519 signature with issuer private key
+
+See [docs/CUSTOM_VERIFICATION.md](docs/CUSTOM_VERIFICATION.md) for complete guide.
+
+### Mobile Wallet Integration
+
+For mobile app developers:
+
+- **Wallet SDK:** See [Cardless Mobile](https://github.com/djscruggs/cardless-mobile) repository
+- **Deep Linking:** See [docs/DEEP_LINKING.md](docs/DEEP_LINKING.md)
+- **Credential Storage:** See [docs/WALLET_APP_GUIDE.md](docs/WALLET_APP_GUIDE.md)
+
+## Security Considerations
+
+### Data Privacy
+
+1. **Transient Storage** - Identity data is never permanently stored
+2. **HMAC Verification** - Data integrity without storing sensitive data
+3. **Timing-Safe Comparisons** - Prevents timing attacks
+4. **Automatic Deletion** - Photos deleted immediately after processing
+
+### Cryptographic Security
+
+1. **Ed25519 Signatures** - Industry-standard elliptic curve cryptography
+2. **SHA-256 Hashing** - Composite hash for sybil resistance
+3. **Secure Random Generation** - Cryptographically secure API keys
+
+### API Security
+
+1. **API Key Authentication** - Bearer token authentication for integrators
+2. **Rate Limiting** - Prevent abuse (implementation varies by deployment)
+3. **HTTPS Required** - All production traffic must use TLS
+4. **CORS Configuration** - Restrict origins in production
+
+### Blockchain Security
+
+1. **Issuer Registry** - On-chain registry for issuer authorization
+2. **Revocation Support** - Credentials can be revoked on-chain
+3. **Proof Verification** - Cryptographic verification prevents forgery
+
+## Documentation
+
+### Available Docs
+
+- **Integration:** [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md)
+- **Custom Verification:** [docs/CUSTOM_VERIFICATION.md](docs/CUSTOM_VERIFICATION.md)
+- **Delegated Verification:** [docs/DELEGATED_VERIFICATION.md](docs/DELEGATED_VERIFICATION.md)
+- **Deep Linking:** [docs/DEEP_LINKING.md](docs/DEEP_LINKING.md)
+- **Firebase Setup:** [docs/FIREBASE-ADMIN-SETUP.md](docs/FIREBASE-ADMIN-SETUP.md)
+- **Mobile Testing:** [docs/MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md)
+- **NFT Credentials:** [docs/NFT-CREDENTIAL-CLIENT-GUIDE.md](docs/NFT-CREDENTIAL-CLIENT-GUIDE.md)
+- **Algorand:** [docs/README-ALGORAND.md](docs/README-ALGORAND.md)
+- **Testing Verification:** [docs/TESTING_VERIFICATION.md](docs/TESTING_VERIFICATION.md)
+- **Verification API:** [docs/VERIFICATION_API.md](docs/VERIFICATION_API.md)
+- **VPN Risks:** [docs/VPN-AGE-VERIFICATION-RISKS.md](docs/VPN-AGE-VERIFICATION-RISKS.md)
+- **Wallet Guide:** [docs/WALLET_APP_GUIDE.md](docs/WALLET_APP_GUIDE.md)
+
+## Common Issues & Solutions
+
+### Firebase Permission Denied
+
+**Issue:** "Permission denied" when accessing Firebase
+**Solution:** Check Firebase rules and ensure API keys are correct in `.env`
+
+### Algorand Transaction Failed
+
+**Issue:** Transaction fails with "insufficient balance"
+**Solution:** Fund wallet with at least 0.2 ALGO for transaction fees
+
+### ID Verification Fails
+
+**Issue:** Document verification returns low confidence
+**Solution:**
+- Ensure good lighting and high-quality images
+- Both sides of ID should be captured if required
+- Check AWS Textract and Document AI credentials
+
+### Face Match Low Confidence
+
+**Issue:** Biometric verification fails
+**Solution:**
+- Ensure good lighting for selfie
+- Face should be clearly visible, no sunglasses/masks
+- Match ID photo as closely as possible
+
+### HMAC Verification Error
+
+**Issue:** "Invalid HMAC" error during credential creation
+**Solution:** Verify `HMAC_SECRET` in `.env` matches between verification and credential creation
+
+## Contributing
+
+This is an open-source project welcoming contributions:
+
+- **Documentation:** Improve guides and examples
+- **Frontend:** Enhance UI/UX and accessibility
+- **Backend:** Optimize verification providers
+- **Testing:** Add test coverage
+- **Mobile:** Contribute to React Native wallet
+
+Contact: me@djscruggs.com or Telegram @djscruggs
+
+## License
+
+See [LICENSE.md](LICENSE.md) for details.
+
+---
+
+**Project Links:**
+- **Main Repository:** https://github.com/djscruggs/cardless-id (assumed - update if different)
+- **Mobile Wallet:** https://github.com/djscruggs/cardless-mobile
+- **Website:** https://cardlessid.org (assumed - update if different)
+
+**Last Updated:** 2025-10-15
+**Version:** 1.0.0
