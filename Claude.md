@@ -73,14 +73,28 @@ blz add cardlessid https://cardlessid.org/llms.txt
 # React Router v7 (community-maintained)
 blz add react-router https://gist.githubusercontent.com/luiisca/14eb031a892163502e66adb687ba6728/raw/27437452506bec6764d3bf9391a80eed94a53826/ReactRouter_LLMs.txt
 
-# Other useful sources for the tech stack
-blz add typescript https://www.typescriptlang.org/llms.txt
+# JavaScript/TypeScript ecosystem
+blz add bun https://bun.sh/llms.txt
+blz add turborepo https://turborepo.com/llms.txt
+
+# UI Libraries and Design Systems
+blz add ant-design https://ant.design/llms.txt
+blz add ark-ui https://ark-ui.com/llms.txt
+
+# Frameworks
+blz add astro https://docs.astro.build/llms.txt
+
+# Vercel and AI
 blz add vercel https://vercel.com/llms.txt
+blz add ai-sdk https://ai-sdk.dev/llms.txt
+
+# Developer Tools
+blz add gradio https://www.gradio.app/llms.txt
 
 # Check https://llmstxthub.com for more documentation sources
 ```
 
-Note: Tailwind, and DaisyUI do not currently provide llms.txt files. Use their official documentation directly when needed.
+Note: TypeScript, Firebase, Algorand, Tailwind CSS, and DaisyUI do not currently provide llms.txt files. Use their official documentation directly when needed.
 
 Common blz commands:
 
