@@ -97,31 +97,26 @@ export default function DelegatedVerificationGuide() {
           </h3>
           <div className="bg-white p-6 rounded border border-gray-300 font-mono text-sm overflow-x-auto">
             <pre>{`┌─────────────┐                           ┌──────────────┐
-│   Bank/DMV  │                           │  Cardless ID  │
+│   Bank/DMV  │                           │  Cardless ID │
 │   (Issuer)  │                           │   Platform   │
 └─────────────┘                           └──────────────┘
        │                                          │
-       │  1. Request API Key                     │
-       │─────────────────────────────────────────>│
        │                                          │
-       │  2. Receive API Key                     │
-       │<─────────────────────────────────────────│
-       │                                          │
-       │  3. POST /api/delegated-verification/issue
+       │  1. POST /api/delegated-verification/issue
        │     - API Key                            │
        │     - User's wallet address              │
        │     - Identity data                      │
        │─────────────────────────────────────────>│
        │                                          │
-       │                4. Verify API key         │
-       │                5. Generate credential    │
-       │                6. Store on Algorand      │
+       │                2. Verify API key         │
+       │                3. Generate credential    │
+       │                4. Store on Algorand      │
        │                                          │
-       │  7. Return credential ID                 │
+       │  5. Return credential ID                 │
        │<─────────────────────────────────────────│
        │                                          │
-       │  8. Notify user                          │
-       │     "Your Cardless ID is ready!"          │`}</pre>
+       │  6. Notify user                          │
+       │     "Your Cardless ID is ready!"         │`}</pre>
           </div>
         </div>
       </section>
