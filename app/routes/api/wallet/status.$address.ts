@@ -16,7 +16,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   try {
     // Dynamic imports
-    const { getWalletCredentials } = await import("~/utils/nft-credentials");
+    const { getWalletCredentials, getIssuerInfo } = await import("~/utils/nft-credentials");
     const algosdk = (await import("algosdk")).default;
 
     console.log(`🔍 [WALLET STATUS] Checking wallet NFTs on blockchain: ${address}`);
@@ -56,6 +56,18 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
     const latestCredential = sortedCredentials[0];
 
+    // Get issuer info from smart contract registry
+    let issuerInfo = null;
+    try {
+      issuerInfo = await getIssuerInfo(appWalletAddress);
+      if (issuerInfo) {
+        console.log(`✓ [WALLET STATUS] Found issuer info: ${issuerInfo.name}`);
+      }
+    } catch (error) {
+      console.warn("Failed to fetch issuer info:", error);
+      // Continue without issuer info if it fails
+    }
+
     // Return verification status from blockchain
     return Response.json({
       verified: true,
@@ -66,13 +78,18 @@ export async function loader({ params }: LoaderFunctionArgs) {
         frozen: cred.frozen,
         issuedAt: cred.createdAt,
         credentialId: cred.metadata?.credentialId,
+        issuerName: cred.metadata?.issuerName,
+        issuerUrl: cred.metadata?.issuerUrl,
       })),
       latestCredential: {
         assetId: latestCredential.assetId,
         frozen: latestCredential.frozen,
         credentialId: latestCredential.metadata?.credentialId,
         compositeHash: latestCredential.metadata?.compositeHash,
+        issuerName: latestCredential.metadata?.issuerName,
+        issuerUrl: latestCredential.metadata?.issuerUrl,
       },
+      issuer: issuerInfo,
       network: process.env.VITE_ALGORAND_NETWORK || 'testnet',
     });
   } catch (error) {

@@ -1,6 +1,128 @@
 import algosdk from "algosdk";
 import { algodClient, indexerClient } from "./algorand";
 
+// Type for issuer info from smart contract
+interface IssuerInfo {
+  isActive: boolean;
+  name: string;
+  url: string;
+  addedAt: number;
+}
+
+/**
+ * Decode issuer info from box storage
+ * Same format as used in issuers.tsx
+ */
+function decodeIssuerInfo(boxValue: Uint8Array): IssuerInfo {
+  try {
+    // ARC4 Struct format with dynamic fields uses offsets:
+    // Byte 0: isActive (bool = 1 byte, but stored as 0x80 for true, 0x00 for false in ARC4)
+    // Bytes 1-2: offset to name (uint16)
+    // Bytes 3-4: offset to url (uint16)
+    // Bytes 5-12: addedAt (uint64)
+    // Then the actual string data follows
+
+    let offset = 0;
+
+    // Read isActive - ARC4 Bool is stored as 0x80 (true) or 0x00 (false)
+    const isActive = boxValue[offset] === 0x80;
+    offset += 1;
+
+    // Read offset to name (2 bytes)
+    const nameOffset = (boxValue[offset] << 8) | boxValue[offset + 1];
+    offset += 2;
+
+    // Read offset to url (2 bytes)
+    const urlOffset = (boxValue[offset] << 8) | boxValue[offset + 1];
+    offset += 2;
+
+    // Read addedAt (8 bytes uint64, big-endian)
+    const addedAtBytes = boxValue.slice(offset, offset + 8);
+    const addedAt = Number(
+      (BigInt(addedAtBytes[0]) << 56n) |
+      (BigInt(addedAtBytes[1]) << 48n) |
+      (BigInt(addedAtBytes[2]) << 40n) |
+      (BigInt(addedAtBytes[3]) << 32n) |
+      (BigInt(addedAtBytes[4]) << 24n) |
+      (BigInt(addedAtBytes[5]) << 16n) |
+      (BigInt(addedAtBytes[6]) << 8n) |
+      BigInt(addedAtBytes[7])
+    );
+    offset += 8;
+
+    // Now read the actual strings using their offsets
+    // Read name at nameOffset
+    const nameLength = (boxValue[nameOffset] << 8) | boxValue[nameOffset + 1];
+    const name = new TextDecoder().decode(
+      boxValue.slice(nameOffset + 2, nameOffset + 2 + nameLength)
+    );
+
+    // Read url at urlOffset
+    const urlLength = (boxValue[urlOffset] << 8) | boxValue[urlOffset + 1];
+    const url = new TextDecoder().decode(
+      boxValue.slice(urlOffset + 2, urlOffset + 2 + urlLength)
+    );
+
+    return {
+      isActive,
+      name,
+      url,
+      addedAt,
+    };
+  } catch (error) {
+    console.error("Error decoding issuer info:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get issuer name and URL from the smart contract registry
+ * Returns null if issuer not found or not active
+ */
+export async function getIssuerInfo(
+  issuerAddress: string
+): Promise<{ name: string; url: string } | null> {
+  try {
+    const appId = parseInt(process.env.ISSUER_REGISTRY_APP_ID || "0");
+    if (isNaN(appId) || appId === 0) {
+      console.warn("Issuer registry not configured");
+      return null;
+    }
+
+    // Box key is 'i' + issuer address bytes
+    const issuerAddressBytes = algosdk.decodeAddress(issuerAddress).publicKey;
+    const boxKey = new Uint8Array([105, ...issuerAddressBytes]); // 105 is 'i' in ASCII
+
+    try {
+      const boxResponse = await algodClient
+        .getApplicationBoxByName(appId, boxKey)
+        .do();
+
+      const issuerInfo = decodeIssuerInfo(boxResponse.value);
+
+      if (!issuerInfo.isActive) {
+        console.warn(`Issuer ${issuerAddress} is not active`);
+        return null;
+      }
+
+      return {
+        name: issuerInfo.name,
+        url: issuerInfo.url,
+      };
+    } catch (error: any) {
+      // Box doesn't exist - issuer not found
+      if (error.status === 404) {
+        console.warn(`Issuer ${issuerAddress} not found in registry`);
+        return null;
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Error getting issuer info:", error);
+    return null;
+  }
+}
+
 /**
  * NFT-based credential system for Cardless ID
  * Uses Algorand ASAs (Algorand Standard Assets) as non-transferable credentials
@@ -12,6 +134,8 @@ export interface NFTCredentialMetadata {
   credentialId: string;
   compositeHash: string;
   issuedAt: string;
+  issuerName?: string; // Human-readable issuer name from registry
+  issuerUrl?: string; // Issuer website from registry
   // NOTE: No age/birth information stored on-chain for privacy (minimal disclosure principle)
 }
 

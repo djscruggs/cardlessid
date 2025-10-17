@@ -546,7 +546,7 @@ export async function action({ request }: ActionFunctionArgs) {
       console.log(`[Credentials] Demo mode - skipping database writes`);
     }
 
-    return Response.json({
+    const responseData = {
       success: true,
       ...(isDemoMode && {
         demoMode: true,
@@ -607,11 +607,23 @@ export async function action({ request }: ActionFunctionArgs) {
       duplicateDetection: {
         duplicateCount: duplicateAssetIds.length,
         isDuplicate,
-        duplicateAssetIds,
+        duplicateAssetIds: duplicateAssetIds.map(id => Number(id)),
         message:
           duplicateAssetIds.length > 0
             ? `Warning: ${duplicateAssetIds.length} duplicate credential(s) found on blockchain`
             : "No duplicates found",
+      },
+    };
+
+    // Use JSON.stringify with BigInt replacer, then parse back to ensure all BigInts are converted
+    const jsonString = JSON.stringify(responseData, (_key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    );
+
+    return new Response(jsonString, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
       },
     });
   } catch (error) {

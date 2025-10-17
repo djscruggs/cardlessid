@@ -14,13 +14,21 @@ export default function WalletStatus() {
       frozen: boolean;
       issuedAt?: string;
       credentialId?: string;
+      issuerName?: string;
+      issuerUrl?: string;
     }>;
     latestCredential?: {
       assetId: number;
       frozen: boolean;
       credentialId?: string;
       compositeHash?: string;
+      issuerName?: string;
+      issuerUrl?: string;
     };
+    issuer?: {
+      name: string;
+      url: string;
+    } | null;
     network?: string;
   } | null>(null);
   const [error, setError] = useState("");
@@ -79,12 +87,13 @@ export default function WalletStatus() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <h1 className="card-title text-3xl mb-4">
-              Check Wallet Verification Status
+              Check Verification Status
             </h1>
 
             <p className="mb-6 text-base-content/70">
               Enter an Algorand wallet address to check verification status on
-              the blockchain. This queries the {import.meta.env.VITE_ALGORAND_NETWORK || 'testnet'} network.
+              the blockchain. This queries the{" "}
+              {import.meta.env.VITE_ALGORAND_NETWORK || "testnet"} network.
             </p>
 
             <div className="form-control">
@@ -161,13 +170,13 @@ export default function WalletStatus() {
                   <div>
                     <h3 className="font-bold">
                       {result.verified
-                        ? "Wallet Verified"
-                        : "Wallet Not Verified"}
+                        ? "Identity Verified"
+                        : "Identity Not Verified"}
                     </h3>
                     <div className="text-xs">
                       {result.verified
-                        ? "This wallet has been verified"
-                        : "This wallet has not been verified yet"}
+                        ? "This wallet's owner has completed the identity verification process."
+                        : "This wallet's owner has not had their identity verified."}
                     </div>
                   </div>
                 </div>
@@ -202,12 +211,14 @@ export default function WalletStatus() {
 
                     {result.latestCredential && (
                       <div className="mt-4 p-4 bg-base-200 rounded-lg">
-                        <h3 className="font-semibold mb-2">Latest NFT Credential:</h3>
+                        <h3 className="font-semibold mb-2">
+                          Latest NFT Credential:
+                        </h3>
                         <div className="space-y-2 text-sm">
                           <p>
                             <strong>Asset ID:</strong>{" "}
                             <a
-                              href={`https://${result.network === 'mainnet' ? '' : 'testnet.'}explorer.perawallet.app/asset/${result.latestCredential.assetId}`}
+                              href={`https://${result.network === "mainnet" ? "" : "testnet."}explorer.perawallet.app/asset/${result.latestCredential.assetId}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="link link-primary font-mono"
@@ -217,10 +228,31 @@ export default function WalletStatus() {
                           </p>
                           <p>
                             <strong>Status:</strong>{" "}
-                            <span className={`badge ${result.latestCredential.frozen ? 'badge-success' : 'badge-warning'}`}>
-                              {result.latestCredential.frozen ? 'Frozen (Non-transferable)' : 'Transferable'}
+                            <span
+                              className={`badge ${result.latestCredential.frozen ? "badge-success" : "badge-warning"}`}
+                            >
+                              {result.latestCredential.frozen
+                                ? "Frozen (Non-transferable)"
+                                : "Transferable"}
                             </span>
                           </p>
+                          {(result.latestCredential.issuerName || result.issuer?.name) && (
+                            <p>
+                              <strong>Issued By:</strong>{" "}
+                              {result.latestCredential.issuerUrl || result.issuer?.url ? (
+                                <a
+                                  href={result.latestCredential.issuerUrl || result.issuer?.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="link link-primary"
+                                >
+                                  {result.latestCredential.issuerName || result.issuer?.name}
+                                </a>
+                              ) : (
+                                <span>{result.latestCredential.issuerName || result.issuer?.name}</span>
+                              )}
+                            </p>
+                          )}
                           {result.latestCredential.credentialId && (
                             <p>
                               <strong>Credential ID:</strong>{" "}
@@ -250,7 +282,7 @@ export default function WalletStatus() {
                                 <tr key={cred.assetId}>
                                   <td>
                                     <a
-                                      href={`https://${result.network === 'mainnet' ? '' : 'testnet.'}explorer.perawallet.app/asset/${cred.assetId}`}
+                                      href={`https://${result.network === "mainnet" ? "" : "testnet."}explorer.perawallet.app/asset/${cred.assetId}`}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="link link-primary font-mono text-xs"
@@ -259,12 +291,18 @@ export default function WalletStatus() {
                                     </a>
                                   </td>
                                   <td>
-                                    <span className={`badge badge-xs ${cred.frozen ? 'badge-success' : 'badge-warning'}`}>
-                                      {cred.frozen ? 'Frozen' : 'Active'}
+                                    <span
+                                      className={`badge badge-xs ${cred.frozen ? "badge-success" : "badge-warning"}`}
+                                    >
+                                      {cred.frozen ? "Frozen" : "Active"}
                                     </span>
                                   </td>
                                   <td className="text-xs">
-                                    {cred.issuedAt ? new Date(cred.issuedAt).toLocaleDateString() : 'N/A'}
+                                    {cred.issuedAt
+                                      ? new Date(
+                                          cred.issuedAt
+                                        ).toLocaleDateString()
+                                      : "N/A"}
                                   </td>
                                 </tr>
                               ))}
@@ -287,16 +325,21 @@ export default function WalletStatus() {
                   Credentials are issued as non-transferable NFTs on Algorand
                 </li>
                 <li>
-                  Each NFT is frozen after issuance to prevent transfers (soulbound)
+                  Each NFT is frozen after issuance to prevent transfers
+                  (soulbound)
                 </li>
                 <li>
-                  NFT metadata contains credential details (birth year, credential ID)
+                  NFT metadata contains credential ID, issuer info, and cryptographic hash
                 </li>
                 <li>
-                  This ensures decentralized, tamper-proof, revocable verification
+                  No personal information (age, birthdate) is stored on-chain for privacy
                 </li>
                 <li>
-                  Costs approximately 0.003-0.004 ALGO per credential
+                  This ensures decentralized, tamper-proof, revocable
+                  verification
+                </li>
+                <li>
+                  Costs approximately 0.003-0.004 ALGO per credential issued
                 </li>
               </ul>
             </div>

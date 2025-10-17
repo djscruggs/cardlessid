@@ -776,6 +776,49 @@ For mobile app developers:
 **Issue:** "Invalid HMAC" error during credential creation
 **Solution:** Verify `HMAC_SECRET` in `.env` matches between verification and credential creation
 
+### BigInt Serialization Error
+
+**Issue:** "TypeError: Do not know how to serialize a BigInt" during credential issuance
+**Root Cause:** Algorand SDK returns BigInt values for asset IDs, transaction IDs, and numeric blockchain data. JavaScript's `Response.json()` cannot serialize BigInt directly.
+
+**Symptoms:**
+- Error occurs after successful NFT creation
+- Only happens with full verification (not mock mode)
+- Error message: `Credential issuance error: TypeError: Do not know how to serialize a BigInt`
+
+**Solution:**
+Use `JSON.stringify()` with a BigInt replacer function instead of `Response.json()`:
+
+```typescript
+// ❌ Wrong - fails with BigInt
+return Response.json({
+  assetId: BigInt(12345),
+  duplicateAssetIds: [BigInt(111), BigInt(222)]
+});
+
+// ✅ Correct - use JSON.stringify with BigInt replacer
+const responseData = {
+  assetId: "12345",  // Convert to string
+  duplicateAssetIds: [111, 222]  // Convert to numbers
+};
+
+const jsonString = JSON.stringify(responseData, (_key, value) =>
+  typeof value === 'bigint' ? value.toString() : value
+);
+
+return new Response(jsonString, {
+  status: 200,
+  headers: { 'Content-Type': 'application/json' }
+});
+```
+
+**Prevention:**
+- Always convert BigInt to string or number before serialization
+- Use `.toString()` or `Number()` for conversion
+- Array conversion: `assetIds.map(id => Number(id))`
+- See [docs/BIGINT_SERIALIZATION_FIX.md](docs/BIGINT_SERIALIZATION_FIX.md) for full details
+- Tests: [app/__tests__/bigint-serialization.test.ts](app/__tests__/bigint-serialization.test.ts)
+
 ## Contributing
 
 This is an open-source project welcoming contributions:
@@ -799,5 +842,5 @@ See [LICENSE.md](LICENSE.md) for details.
 - **Mobile Wallet:** https://github.com/djscruggs/cardless-mobile
 - **Website:** https://cardlessid.org (assumed - update if different)
 
-**Last Updated:** 2025-10-15
+**Last Updated:** 2025-01-15
 **Version:** 1.0.0

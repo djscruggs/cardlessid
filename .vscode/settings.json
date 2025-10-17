@@ -1,5 +1,7 @@
 {
   "task.autoDetect": "on",
   "task.quickOpen.detail": true,
-  "task.quickOpen.history": 10
+  "task.quickOpen.history": 10,
+  "chat.mcp.access": "all",
+  "claude-code.environmentVariables": []
 }
