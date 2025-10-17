@@ -236,20 +236,29 @@ export default function WalletStatus() {
                                 : "Transferable"}
                             </span>
                           </p>
-                          {(result.latestCredential.issuerName || result.issuer?.name) && (
+                          {(result.latestCredential.issuerName ||
+                            result.issuer?.name) && (
                             <p>
                               <strong>Issued By:</strong>{" "}
-                              {result.latestCredential.issuerUrl || result.issuer?.url ? (
+                              {result.latestCredential.issuerUrl ||
+                              result.issuer?.url ? (
                                 <a
-                                  href={result.latestCredential.issuerUrl || result.issuer?.url}
+                                  href={
+                                    result.latestCredential.issuerUrl ||
+                                    result.issuer?.url
+                                  }
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="link link-primary"
                                 >
-                                  {result.latestCredential.issuerName || result.issuer?.name}
+                                  {result.latestCredential.issuerName ||
+                                    result.issuer?.name}
                                 </a>
                               ) : (
-                                <span>{result.latestCredential.issuerName || result.issuer?.name}</span>
+                                <span>
+                                  {result.latestCredential.issuerName ||
+                                    result.issuer?.name}
+                                </span>
                               )}
                             </p>
                           )}
@@ -329,11 +338,10 @@ export default function WalletStatus() {
                   (soulbound)
                 </li>
                 <li>
-                  NFT metadata contains credential ID, issuer info, and cryptographic hash
+                  NFT metadata contains credential ID, issuer info, and
+                  cryptographic hash
                 </li>
-                <li>
-                  No personal information (age, birthdate) is stored on-chain for privacy
-                </li>
+                <li>No personal information is stored on-chain</li>
                 <li>
                   This ensures decentralized, tamper-proof, revocable
                   verification
