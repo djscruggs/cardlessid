@@ -4,9 +4,17 @@ import { defineConfig } from "vite";
 import devtoolsJson from "vite-plugin-devtools-json";
 import llms from "vite-plugin-llms";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { reactRouterDevTools } from "react-router-devtools";
 
 export default defineConfig({
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths(), devtoolsJson(), llms()],
+  plugins: [
+    tailwindcss(),
+    reactRouterDevTools(),
+    reactRouter(),
+    tsconfigPaths(),
+    devtoolsJson(),
+    llms(),
+  ],
   server: {
     host: true,
     allowedHosts: [".ngrok-free.app"],
