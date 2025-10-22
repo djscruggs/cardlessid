@@ -61,9 +61,6 @@ const Home: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Why Cardless ID?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We partner with content companies, technology providers, media and regulators to make this possible.
-            </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -139,7 +136,33 @@ const Carousel = () => {
       <div className="flex justify-center w-full mb-4">
         <p className="italic text-gray-500 text-sm">Swipe to explore the process</p>
       </div>
-      <div className="carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg">
+      <div className="relative carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Swipe hint overlay */}
+        <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-between px-4">
+          <div className="swipe-hint-left">
+            <svg className="w-8 h-8 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+          <div className="swipe-hint-right">
+            <svg className="w-8 h-8 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+        
+        {/* Touch gesture hint */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
+          <div className="flex items-center space-x-2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
+            <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+            </svg>
+            <span>Swipe</span>
+            <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+        </div>
         {/* The first image */}
         <div id="item1" className="carousel-item w-full">
           <img
