@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 export function meta() {
-  return [{ title: "For Adult Content Companies | Cardless ID" }];
+  return [{ title: "For Adult Sites | Cardless ID" }];
 }
 
 const ForCompanies: React.FC = () => {
@@ -13,7 +13,7 @@ const ForCompanies: React.FC = () => {
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
               Age Verification for
-              <span className="block text-red-600">Adult Content Companies</span>
+              <span className="block text-red-600">Adult Sites</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
               24 US states and several European countries require adult sites to verify age. 
