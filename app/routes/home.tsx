@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import React from "react";
 
 export function meta() {
   return [{ title: "Home | Cardless ID" }];
@@ -131,12 +132,41 @@ const Home: React.FC = () => {
 };
 
 const Carousel = () => {
+  const [currentSlide, setCurrentSlide] = React.useState(0);
+  const totalSlides = 3;
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      // Scroll down - next slide
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    } else {
+      // Scroll up - previous slide
+      setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    }
+  };
+
+  const scrollToSlide = (slideIndex: number) => {
+    setCurrentSlide(slideIndex);
+    const element = document.getElementById(`item${slideIndex + 1}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  React.useEffect(() => {
+    scrollToSlide(currentSlide);
+  }, [currentSlide]);
+
   return (
     <>
       <div className="flex justify-center w-full mb-4">
-        <p className="italic text-gray-500 text-sm">Swipe to explore the process</p>
+        <p className="italic text-gray-500 text-sm">Swipe or scroll to explore the process</p>
       </div>
-      <div className="relative carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+      <div 
+        className="relative carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
+        onWheel={handleWheel}
+      >
         {/* Swipe hint overlay */}
         <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-between px-4">
           <div className="swipe-hint-left">
@@ -193,9 +223,24 @@ const Carousel = () => {
       
       {/* Carousel navigation dots */}
       <div className="flex justify-center w-full mt-4 space-x-2">
-        <a href="#item1" className="btn btn-xs">1</a>
-        <a href="#item2" className="btn btn-xs">2</a>
-        <a href="#item3" className="btn btn-xs">3</a>
+        <button 
+          onClick={() => scrollToSlide(0)}
+          className={`btn btn-xs ${currentSlide === 0 ? 'btn-primary' : 'btn-outline'}`}
+        >
+          1
+        </button>
+        <button 
+          onClick={() => scrollToSlide(1)}
+          className={`btn btn-xs ${currentSlide === 1 ? 'btn-primary' : 'btn-outline'}`}
+        >
+          2
+        </button>
+        <button 
+          onClick={() => scrollToSlide(2)}
+          className={`btn btn-xs ${currentSlide === 2 ? 'btn-primary' : 'btn-outline'}`}
+        >
+          3
+        </button>
       </div>
     </>
   );
