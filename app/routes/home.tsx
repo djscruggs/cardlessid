@@ -9,7 +9,7 @@ const Home: React.FC = () => {
   return (
     <>
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-50 to-white py-16 md:py-24">
+      <div className="rounded-4xl relative bg-gradient-to-br from-blue-50 to-white py-16 md:py-24 md:pt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
