@@ -239,7 +239,7 @@ cardlessID.verifyAge()
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link to="/contact">
                 <button className="bg-white hover:bg-gray-100 text-red-600 font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer">
-                  Contact Sales
+                  Contact Us
                 </button>
               </Link>
               <Link to="/docs">
