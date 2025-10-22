@@ -10,7 +10,7 @@ const Main: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isDemo = location.pathname.includes("demo");
-  const showHeader = location.pathname != "/" && !isDemo;
+  const showHeader = !isDemo;
   const showFooter = !isDemo;
   const isPhone = location.pathname.includes("phone");
 
