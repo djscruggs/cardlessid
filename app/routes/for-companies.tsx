@@ -25,12 +25,12 @@ const ForCompanies: React.FC = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link to="/demo">
-                <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer">
                   Try Demo
                 </button>
               </Link>
               <Link to="/contact">
-                <button className="bg-white hover:bg-gray-50 text-red-600 font-semibold py-4 px-8 rounded-full text-lg border-2 border-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                <button className="bg-white hover:bg-gray-50 text-red-600 font-semibold py-4 px-8 rounded-full text-lg border-2 border-red-600 transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer">
                   Get Started
                 </button>
               </Link>
@@ -237,16 +237,16 @@ cardlessID.verifyAge()
             Join the future of privacy-first age verification
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link to="/contact">
-              <button className="bg-white hover:bg-gray-100 text-red-600 font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 transform hover:scale-105 shadow-lg">
-                Contact Sales
-              </button>
-            </Link>
-            <Link to="/docs">
-              <button className="bg-transparent hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-full text-lg border-2 border-white transition-all duration-200 transform hover:scale-105">
-                View Documentation
-              </button>
-            </Link>
+              <Link to="/contact">
+                <button className="bg-white hover:bg-gray-100 text-red-600 font-semibold py-4 px-8 rounded-full text-lg transition-all duration-200 transform hover:scale-105 shadow-lg cursor-pointer">
+                  Contact Sales
+                </button>
+              </Link>
+              <Link to="/docs">
+                <button className="bg-transparent hover:bg-red-700 text-white font-semibold py-4 px-8 rounded-full text-lg border-2 border-white transition-all duration-200 transform hover:scale-105 cursor-pointer">
+                  View Documentation
+                </button>
+              </Link>
           </div>
         </div>
       </div>
