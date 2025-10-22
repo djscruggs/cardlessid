@@ -81,8 +81,8 @@ const Home: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Fast</h3>
-              <p className="text-gray-600">One-time verification works across all adult sites</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Portable</h3>
+              <p className="text-gray-600">One-time verification works across <em>all</em> sites</p>
             </div>
             
             <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
