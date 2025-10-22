@@ -104,6 +104,16 @@ const Home: React.FC = () => {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure</h3>
               <p className="text-gray-600">Crypto wallet-based verification with blockchain security</p>
             </div>
+            
+            <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="w-16 h-16 bg-logoblue rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Not for Profit</h3>
+              <p className="text-gray-600">We don't monetize your data - this is a free service provided by a nonprofit</p>
+            </div>
           </div>
         </div>
       </div>
