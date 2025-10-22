@@ -21,6 +21,9 @@ const Header: React.FC = () => {
               <Link to="/about">About</Link>
             </li>
             <li>
+              <Link to="/for-companies">For Companies</Link>
+            </li>
+            <li>
               <Link to="/demo">Demo</Link>
             </li>
             <li>

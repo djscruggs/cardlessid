@@ -9,6 +9,7 @@ import {
 export default [
   route("/", "routes/home.tsx", { id: "foo" }),
   route("about", "routes/about.tsx"),
+  route("for-companies", "routes/for-companies.tsx"),
   route("contact", "routes/contact.tsx"),
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),

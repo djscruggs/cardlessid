@@ -16,10 +16,8 @@ const Home: React.FC = () => {
               <span className="block text-logoblue">Age Verification</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-              24 US states and several European countries require adult sites to verify age. 
-              Children should never have access to sexually explicit material. However, the 
-              verification process should be{" "}
-              <strong className="text-logoblue">free, private and portable across all web sites</strong>.
+              Age verification that's{" "}
+              <strong className="text-logoblue">free, private, and works everywhere</strong>.
             </p>
             
             {/* CTA Buttons */}
