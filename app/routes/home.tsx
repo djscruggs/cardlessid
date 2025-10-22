@@ -160,9 +160,6 @@ const Carousel = () => {
 
   return (
     <>
-      <div className="flex justify-center w-full mb-4">
-        <p className="italic text-gray-500 text-sm">Swipe or scroll to explore the process</p>
-      </div>
       <div 
         className="relative carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
         onWheel={handleWheel}
