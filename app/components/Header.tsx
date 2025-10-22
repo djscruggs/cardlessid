@@ -15,27 +15,32 @@ const Header: React.FC = () => {
         <nav className="flex-grow md:order-2 md:ml-auto">
           <ul className="flex items-center justify-center md:justify-end md:mr-10 space-x-8 text-logoblue">
             <li>
-              <Link to="/">Home</Link>
+              <Link to="/" className="hover:text-blue-600 transition-colors cursor-pointer">Home</Link>
             </li>
             <li>
-              <Link to="/about">About</Link>
+              <Link to="/about" className="hover:text-blue-600 transition-colors cursor-pointer">About</Link>
             </li>
             <li>
-              <Link to="/for-companies">For Websites</Link>
+              <Link to="/for-companies" className="hover:text-blue-600 transition-colors cursor-pointer">For Websites</Link>
             </li>
             <li>
-              <Link to="/demo">Demo</Link>
+              <Link to="/demo" className="hover:text-blue-600 transition-colors cursor-pointer">Demo</Link>
             </li>
             <li>
-              <Link to="/docs">Docs</Link>
+              <Link to="/docs" className="hover:text-blue-600 transition-colors cursor-pointer">Docs</Link>
             </li>
             <li>
-              <Link to="https://open.substack.com/pub/cardlessid/p/common-questions-about-cardless-id">
+              <Link 
+                to="https://open.substack.com/pub/cardlessid/p/common-questions-about-cardless-id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-blue-600 transition-colors cursor-pointer"
+              >
                 FAQ
               </Link>
             </li>
             <li>
-              <Link to="/contact">Contact</Link>
+              <Link to="/contact" className="hover:text-blue-600 transition-colors cursor-pointer">Contact</Link>
             </li>
           </ul>
         </nav>
