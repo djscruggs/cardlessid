@@ -228,6 +228,72 @@ if (result.verified) {
 }
 ```
 
+## Advanced Verification
+
+### Credential Structure
+
+While the basic integration flow returns only `verified` (true/false) and `walletAddress`, integrators who need deeper verification can inspect the W3C Verifiable Credential stored on-chain.
+
+Each credential includes:
+
+- **credentialSubject**: Contains a composite hash of identity (for duplicate detection)
+- **evidence**: W3C-standard verification metadata including:
+  - Fraud detection results (Google Document AI)
+  - OCR confidence levels (AWS Textract)
+  - Biometric matching scores (AWS Rekognition face match + liveness)
+- **service** (optional): System attestation metadata
+- **proof**: Ed25519 cryptographic signature for verification
+
+### System Attestation (service field)
+
+Credentials issued after October 2025 may include a `service` array with system attestation:
+
+```json
+"service": [
+  {
+    "id": "#system-attestation",
+    "type": "ZkProofSystemVersion",
+    "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
+  }
+]
+```
+
+**Benefits for Integrators:**
+
+1. **Auditability**: Inspect the exact code version that issued the credential
+2. **Trust**: Verify the issuer's transparency and commitment to open processes
+3. **Version Tracking**: Identify credentials from specific code versions
+4. **Security Review**: Review the issuing code for security vulnerabilities
+
+**Usage:**
+
+```javascript
+// After receiving walletAddress from verification
+const credentials = await getWalletCredentials(result.walletAddress);
+const credential = credentials[0];
+
+// Check if system attestation is available
+if (credential.service) {
+  const attestation = credential.service.find(s => s.type === "ZkProofSystemVersion");
+  if (attestation) {
+    console.log("Issued by code version:", attestation.serviceEndpoint);
+    // Optional: Fetch and review the code at that commit
+  }
+}
+
+// Check verification quality
+const evidence = credential.evidence[0];
+if (evidence.documentAnalysis.qualityLevel === "high" &&
+    evidence.fraudDetection.passed &&
+    evidence.biometricVerification.faceMatch.confidence > 0.9) {
+  // High-confidence verification
+}
+```
+
+**Note:** The service field is only included when git information is available at build time. Development builds will not include this field.
+
+For complete credential schema details, see [NFT-CREDENTIAL-CLIENT-GUIDE.md](./NFT-CREDENTIAL-CLIENT-GUIDE.md).
+
 ## Testing
 
 ### Local Development
