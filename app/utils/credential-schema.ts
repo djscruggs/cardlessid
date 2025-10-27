@@ -13,6 +13,26 @@ export const CARDLESS_FIELDS = {
     purpose: "Sybil-resistant duplicate detection - prevents the same person from creating multiple credentials",
     example: "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
   },
+  service: {
+    id: "https://www.w3.org/ns/did/v1#service",
+    type: "Array<ServiceEndpoint>",
+    description: "Optional array of service endpoints for system attestation and metadata",
+    purpose: "Links to the exact git commit of code that issued the credential for auditability and transparency",
+    structure: {
+      systemAttestation: {
+        id: "string - Service identifier (e.g., '#system-attestation')",
+        type: "string - Service type (e.g., 'ZkProofSystemVersion')",
+        serviceEndpoint: "string - GitHub commit URL for code audit"
+      }
+    },
+    example: {
+      id: "#system-attestation",
+      type: "ZkProofSystemVersion",
+      serviceEndpoint: "https://github.com/owner/repo/commit/abc123def456"
+    },
+    optional: true,
+    note: "Only included when git information is available at build time. Development builds will not include this field."
+  },
   evidence: {
     id: "https://www.w3.org/2018/credentials#evidence",
     type: "Array<DocumentVerification>",
@@ -70,4 +90,9 @@ export const USAGE_NOTES = {
     "document analysis (AWS Textract OCR confidence), and biometric verification (AWS Rekognition face match and liveness). " +
     "Quality levels (high/medium/low) help relying parties make risk-based acceptance decisions. " +
     "High quality requires: fraud check passed, both ID sides processed, no low-confidence fields, and strong biometric scores.",
+  service:
+    "The optional service array provides system attestation by linking to the exact git commit that issued the credential. " +
+    "This enables verifiers to audit the issuing code for security review and demonstrates the issuer's commitment to transparency. " +
+    "The serviceEndpoint contains a GitHub URL (e.g., https://github.com/owner/repo/commit/abc123) pointing to the exact code version. " +
+    "This field is only included when git information is available at build time and will be omitted in development builds.",
 };

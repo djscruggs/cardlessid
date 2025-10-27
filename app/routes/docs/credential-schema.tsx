@@ -82,6 +82,39 @@ export default function CredentialSchemaDocs() {
 
               <div className="border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  service (Optional - System Attestation)
+                </h3>
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-medium">Type:</span>{" "}
+                    <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                      {CARDLESS_FIELDS.service.type}
+                    </code>
+                  </p>
+                  <p>
+                    <span className="font-medium">Description:</span>{" "}
+                    {CARDLESS_FIELDS.service.description}
+                  </p>
+                  <p>
+                    <span className="font-medium">Purpose:</span>{" "}
+                    {CARDLESS_FIELDS.service.purpose}
+                  </p>
+                  <p>
+                    <span className="font-medium">Example:</span>{" "}
+                    <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono block mt-1">
+                      {JSON.stringify(CARDLESS_FIELDS.service.example, null, 2)}
+                    </code>
+                  </p>
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mt-3">
+                    <p className="text-sm text-yellow-800">
+                      <span className="font-medium">Note:</span> {CARDLESS_FIELDS.service.note}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
                   evidence (W3C Standard)
                 </h3>
                 <div className="space-y-2">
@@ -175,6 +208,13 @@ export default function CredentialSchemaDocs() {
                 </h3>
                 <p className="text-indigo-800">{USAGE_NOTES.evidence}</p>
               </div>
+
+              <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4">
+                <h3 className="text-lg font-medium text-yellow-900 mb-2">
+                  System Attestation (service field)
+                </h3>
+                <p className="text-yellow-800">{USAGE_NOTES.service}</p>
+              </div>
             </div>
           </section>
 
@@ -235,6 +275,11 @@ export default function CredentialSchemaDocs() {
                 <li>
                   • <strong>Biometric Confidence:</strong> For high-security scenarios,
                   require faceMatchConfidence and livenessConfidence above threshold (e.g., 0.85)
+                </li>
+                <li>
+                  • <strong>System Attestation:</strong> If the service field is present,
+                  you can audit the exact code version that issued the credential by
+                  following the GitHub commit URL
                 </li>
                 <li>
                   • <strong>Expiration:</strong> Consider implementing
