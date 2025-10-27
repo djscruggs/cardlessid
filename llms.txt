@@ -69,6 +69,7 @@ Cardless ID issues W3C-compliant verifiable credentials with the following struc
 - `credentialSubject`: Contains composite hash of identity
 - `evidence`: W3C standard verification metadata (fraud detection, OCR confidence, biometrics)
 - `credentialStatus`: References Algorand issuer registry smart contract
+- `service`: (Optional) System attestation linking to git commit of issuing code
 - `proof`: Ed25519 signature for cryptographic verification
 
 **Example Credential:** See [app/components/credentials/w3c-minimal.ts:30-92](app/components/credentials/w3c-minimal.ts)
@@ -101,6 +102,32 @@ The W3C-standard `evidence` property includes:
 - **biometricVerification**: AWS Rekognition face match and liveness scores
 
 This allows relying parties to make risk-based trust decisions. See [app/utils/credential-schema.ts:16-42](app/utils/credential-schema.ts)
+
+### Service Property (System Attestation)
+
+The optional `service` array provides transparency and auditability:
+
+```json
+"service": [
+  {
+    "id": "#system-attestation",
+    "type": "ZkProofSystemVersion",
+    "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
+  }
+]
+```
+
+**Purpose:**
+- Links to the exact git commit of the code that issued the credential
+- Enables anyone to audit the issuing code for security review
+- Helps track which code version generated each credential
+- Demonstrates commitment to transparent, auditable processes
+
+**Implementation:**
+- Git information is captured at build time via environment variables
+- Package.json build script extracts commit hash, repo owner, and repo slug
+- Only included when git information is available (not in development builds)
+- See [app/utils/git-info.ts](app/utils/git-info.ts) for implementation
 
 ### Privacy Model (Transient Data)
 
@@ -546,6 +573,12 @@ try {
 - `VITE_APP_WALLET_ADDRESS` - Issuer wallet address
 - `VITE_ALGORAND_NETWORK` - `testnet` or `mainnet`
 - `ISSUER_PRIVATE_KEY` - Issuer private key (NEVER commit to version control)
+
+**Git Information (Optional - for system attestation):**
+- `VITE_COMMIT_HASH` - Git commit hash (auto-set during build)
+- `VITE_GIT_REPO_OWNER` - GitHub repository owner (auto-set during build)
+- `VITE_GIT_REPO_SLUG` - GitHub repository name (auto-set during build)
+- Note: These are automatically captured by the build script in package.json
 
 **Firebase:**
 - `VITE_FIREBASE_API_KEY`

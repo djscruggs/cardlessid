@@ -124,6 +124,13 @@ After identity verification is complete, request a credential to be minted.
         }
       }
     ],
+    "service": [
+      {
+        "id": "#system-attestation",
+        "type": "ZkProofSystemVersion",
+        "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
+      }
+    ],
     "proof": {...}
   },
   "personalData": {
@@ -204,6 +211,28 @@ The credential includes a W3C-standard `evidence` property with detailed verific
 - `low` - Low-confidence OCR, fraud signals present, or no fraud check
 
 Relying parties can inspect the `evidence` array to make risk-based trust decisions. The evidence property follows W3C VC Data Model standards for interoperability.
+
+**System Attestation** (optional):
+
+The credential may include a `service` array with system attestation metadata:
+
+```json
+"service": [
+  {
+    "id": "#system-attestation",
+    "type": "ZkProofSystemVersion",
+    "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
+  }
+]
+```
+
+This field provides:
+- **Auditability**: Links to the exact git commit of the code that issued the credential
+- **Transparency**: Anyone can inspect the issuing code for security review
+- **Version Tracking**: Helps identify credentials issued with specific code versions
+- **Trust**: Demonstrates the issuer's commitment to open, auditable processes
+
+The service field is only included when git information is available at build time. It will not be present in development builds.
 
 ---
 
@@ -425,6 +454,12 @@ interface WalletCredentialStorage {
           faceMatch: { confidence: number; provider: string };
           liveness: { confidence: number; provider: string };
         };
+      }>;
+      // System attestation (optional) - links to git commit of issuing code
+      service?: Array<{
+        id: string; // "#system-attestation"
+        type: string; // "ZkProofSystemVersion"
+        serviceEndpoint: string; // GitHub commit URL
       }>;
       proof: {
         type: string;

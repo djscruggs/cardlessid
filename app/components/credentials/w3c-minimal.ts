@@ -19,6 +19,12 @@
  * - biometricVerification: AWS Rekognition face match and liveness confidence scores
  * This allows relying parties to make risk-based trust decisions based on verification quality.
  *
+ * SERVICE (System Attestation):
+ * The service array includes metadata about the system that issued the credential:
+ * - ZkProofSystemVersion: Links to the specific git commit of the issuing code
+ * - Provides auditability and transparency about which version generated the credential
+ * - Allows verifiers to inspect the exact code used for credential generation
+ *
  * REVOCATION:
  * The credentialStatus field references the on-chain issuer registry smart contract.
  * Relying parties (verifiers) must check:
@@ -82,6 +88,13 @@ const CardlessCredential = {
     id: "did:algo:app:REGISTRY_APP_ID",
     type: "AlgorandIssuerRegistry2025",
   },
+  service: [
+    {
+      id: "#system-attestation",
+      type: "ZkProofSystemVersion",
+      serviceEndpoint: "https://github.com/REPO_OWNER/REPO_SLUG/commit/COMMIT_HASH_HERE"
+    }
+  ],
   proof: {
     type: "Ed25519Signature2020",
     created: "2025-09-30T17:00:00Z",

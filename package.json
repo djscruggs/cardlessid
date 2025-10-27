@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "VITE_COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo 'development') VITE_GIT_REPO_OWNER=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/]([^/]+)/[^/]+(\\.git)?$|\\1|' || echo '') VITE_GIT_REPO_SLUG=$(git remote get-url origin 2>/dev/null | sed -E 's|.*[:/][^/]+/([^/]+)(\\.git)?$|\\1|' || echo '') react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",

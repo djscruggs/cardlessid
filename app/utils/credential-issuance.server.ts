@@ -4,6 +4,7 @@
  */
 
 import type { VerifiedIdentity } from '~/types/verification';
+import { getSystemAttestationService } from '~/utils/git-info';
 
 /**
  * Issue a credential to a wallet address
@@ -76,6 +77,9 @@ export async function issueCredential(
   const credentialId = `urn:uuid:${crypto.randomUUID()}`;
   const issuanceDate = new Date().toISOString();
 
+  // Get system attestation service (git commit info)
+  const systemAttestationService = getSystemAttestationService();
+
   // Create credential without proof
   const credentialWithoutProof = {
     '@context': [
@@ -94,6 +98,8 @@ export async function issueCredential(
       'cardlessid:compositeHash': identity.compositeHash,
     },
     evidence: [identity.evidence],
+    // Include service array if git info is available
+    ...(systemAttestationService && { service: [systemAttestationService] }),
   };
 
   // Sign the credential
