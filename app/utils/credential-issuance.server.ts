@@ -4,7 +4,7 @@
  */
 
 import type { VerifiedIdentity } from '~/types/verification';
-import { getSystemAttestationService } from '~/utils/git-info';
+import { getSystemAttestationService, getCommitUrl } from '~/utils/git-info';
 
 /**
  * Issue a credential to a wallet address
@@ -148,6 +148,9 @@ export async function issueCredential(
       );
     }
 
+    // Get system attestation URL for NFT metadata
+    const systemAttestationUrl = getCommitUrl();
+
     // Create the NFT credential
     const nftResult = await createCredentialNFT(
       appWalletAddress,
@@ -159,6 +162,7 @@ export async function issueCredential(
         credentialId,
         compositeHash: identity.compositeHash,
         issuedAt: issuanceDate,
+        ...(systemAttestationUrl && { systemAttestationUrl }),
       }
     );
 
