@@ -136,6 +136,7 @@ export interface NFTCredentialMetadata {
   issuedAt: string;
   issuerName?: string; // Human-readable issuer name from registry
   issuerUrl?: string; // Issuer website from registry
+  systemAttestationUrl?: string; // GitHub commit URL for code auditability
   // NOTE: No age/birth information stored on-chain for privacy (minimal disclosure principle)
 }
 

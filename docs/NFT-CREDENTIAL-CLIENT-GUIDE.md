@@ -29,7 +29,7 @@ The NFT serves as an efficient on-chain marker that a wallet holds a verified cr
 - **Blockchain**: Credentials are issued as Algorand Standard Assets (ASAs/NFTs)
 - **Non-transferable**: Each NFT is frozen after issuance to prevent transfers
 - **Minimal Disclosure**: NO age/birth information stored on-chain (privacy best practice)
-- **Metadata**: Only credential ID and composite hash stored in NFT metadata
+- **Metadata**: Only credential ID, composite hash, and system attestation URL stored in NFT metadata
 - **Revocable**: Issuer maintains clawback rights to revoke credentials if needed
 
 ### Why NFTs?
@@ -189,7 +189,7 @@ The `verificationToken` and identity data come from the verification process:
 **Important**:
 
 - Store the `credential` (with proof), `personalData`, AND `verificationQuality` locally in the wallet
-- The blockchain only stores the NFT with minimal metadata (credential ID, composite hash)
+- The blockchain only stores the NFT with minimal metadata (credential ID, composite hash, system attestation URL)
 - NO age or birth information is stored on-chain for privacy
 - `assetId` is returned as a **string** (not number) due to JSON bigint handling
 - **Wallet Funding**: If the wallet has insufficient balance (< 0.101 ALGO), the issuer automatically funds it with 0.2 ALGO to enable asset opt-in. The `funding` field will only appear if funding was needed.
@@ -499,6 +499,7 @@ interface WalletCredentialStorage {
       network: "testnet" | "mainnet";
       frozen: boolean;
       issuedAt: string;
+      systemAttestationUrl?: string; // GitHub commit URL (stored on-chain in NFT metadata)
     };
   }>;
 }
