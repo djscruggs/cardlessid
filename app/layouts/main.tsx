@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,13 +10,15 @@ const Main: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isDemo = location.pathname.includes("demo");
-  const showHeader = !isDemo;
-  const showFooter = !isDemo;
   const isPhone = location.pathname.includes("phone");
+  const [params] = useSearchParams();
+  const isWidget = params.get("widget");
+  const showHeader = !isDemo && !isWidget;
+  const showFooter = !isDemo && !isWidget;
 
   return (
     <div className="flex flex-col w-screen h-screen bg-white dark:bg-white">
-      {!isDemo && !isPhone && <Header />}
+      {!isDemo && !isPhone && showHeader && <Header />}
       {isDemo && !isPhone && (
         <div className="pt-8">
           <button

@@ -84,13 +84,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const { issuer, source } = authResult;
 
-  // Determine if this is a demo request (web UI without API key)
-  const isDemoMode = source === "env";
+  // Determine if this is a demo request
+  // Demo mode if: no API key OR explicit createNFT=false from widget
+  const isDemoMode = source === "env" || createNFT === false;
+
+  // Determine network: mainnet only if API key provided, otherwise testnet
+  const network = (source === "api-key" ? process.env.VITE_ALGORAND_NETWORK : "testnet") as "testnet" | "mainnet";
 
   if (isDemoMode) {
-    console.log(`[Credentials] DEMO MODE: Web UI demonstration (no real credentials issued)`);
+    console.log(`[Credentials] DEMO MODE: ${widgetMode ? 'Widget' : 'Web UI'} demonstration (no real credentials issued)`);
   } else {
-    console.log(`[Credentials] PRODUCTION MODE: ${issuer.name} (API key)`);
+    console.log(`[Credentials] PRODUCTION MODE: ${issuer.name} on ${network}`);
   }
 
   // Check rate limit (only for API key users)
@@ -120,6 +124,9 @@ export async function action({ request }: ActionFunctionArgs) {
       idType,
       state,
       expirationDate,
+      // Widget-specific parameters
+      widgetMode,
+      createNFT,
     } = body;
 
     // Validate required inputs
@@ -490,14 +497,10 @@ export async function action({ request }: ActionFunctionArgs) {
       console.log(`[Credentials] Demo mode - skipping NFT creation`);
       assetId = "DEMO_ASSET_ID";
       mintTxId = "DEMO_TX_ID";
-      credentialExplorerUrl = "https://testnet.explorer.perawallet.app/tx/DEMO_TX_ID";
+      credentialExplorerUrl = `https://${network}.explorer.perawallet.app/tx/DEMO_TX_ID`;
     } else {
       // PRODUCTION MODE: Actually mint NFT on blockchain
       try {
-        // Get network from env
-        const network = (process.env.VITE_ALGORAND_NETWORK || "testnet") as
-          | "testnet"
-          | "mainnet";
 
         // Import funding utilities
         const { walletNeedsFunding, fundNewWallet } = await import(
@@ -588,8 +591,11 @@ export async function action({ request }: ActionFunctionArgs) {
       success: true,
       ...(isDemoMode && {
         demoMode: true,
-        demoNotice: "This is a DEMONSTRATION only. No real credentials were created on the blockchain. To issue real credentials, mobile apps must register for an API key at https://cardlessid.org/contact",
+        demoNotice: widgetMode 
+          ? "This is a DEMONSTRATION credential on testnet. To issue real credentials on mainnet and create NFTs, obtain an API key at https://cardlessid.org/contact"
+          : "This is a DEMONSTRATION only. No real credentials were created on the blockchain. To issue real credentials, mobile apps must register for an API key at https://cardlessid.org/contact",
       }),
+      network,
       credential,
       personalData: {
         firstName: credentialData.firstName,

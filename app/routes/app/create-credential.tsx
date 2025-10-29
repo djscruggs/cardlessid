@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs } from "react-router";
-import { useLoaderData } from "react-router";
+import { useLoaderData, useSearchParams } from "react-router";
 import { useState, useEffect } from "react";
 import CredentialQR from "~/components/CredentialQR";
 
@@ -13,18 +13,28 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw new Error("VITE_APP_WALLET_ADDRESS environment variable is required");
   }
   const issuerId = `did:algo:${appWalletAddress}`;
+  
+  const url = new URL(request.url);
+  const isWidget = url.searchParams.get('widget') === 'true';
+  const apiKey = url.searchParams.get('apiKey');
+  const widgetWalletAddress = url.searchParams.get('wallet');
 
   return {
     issuerId,
     appWalletAddress,
+    isWidget,
+    hasApiKey: !!apiKey,
+    widgetWalletAddress,
   };
 }
 
 const CreateCredential = () => {
   const loaderData = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
+  const apiKey = searchParams.get('apiKey');
 
   const [formData, setFormData] = useState({
-    walletAddress: "",
+    walletAddress: loaderData.widgetWalletAddress || "",
     birthDate: "",
     governmentId: "",
     idType: "government_id",
@@ -37,6 +47,7 @@ const CreateCredential = () => {
 
   const [showQR, setShowQR] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showJson, setShowJson] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiResponse, setApiResponse] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +56,19 @@ const CreateCredential = () => {
     null
   );
 
+  // Send widget messages
+  const sendWidgetMessage = (type: string, payload?: any) => {
+    if (loaderData.isWidget) {
+      window.parent.postMessage({ type, payload }, '*');
+    }
+  };
+
   // Check for verification token and load extracted data on mount
   useEffect(() => {
+    if (loaderData.isWidget) {
+      sendWidgetMessage('WidgetLoaded');
+    }
+
     const token = sessionStorage.getItem("verificationToken");
     const extractedDataJson = sessionStorage.getItem("extractedData");
     if (token) {
@@ -87,7 +109,7 @@ const CreateCredential = () => {
         "[Credential Creation] No verification token - user must complete verification first"
       );
     }
-  }, []);
+  }, [loaderData.isWidget]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -164,11 +186,23 @@ const CreateCredential = () => {
         );
       }
 
+      // Add widget parameters
+      if (loaderData.isWidget) {
+        payload.widgetMode = true;
+        payload.createNFT = !!apiKey;
+      }
+
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+
+      if (apiKey) {
+        headers['X-API-Key'] = apiKey;
+      }
+
       const response = await fetch("/api/credentials", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(payload),
       });
 
@@ -177,6 +211,10 @@ const CreateCredential = () => {
       if (!response.ok) {
         setError(data.error || "Failed to create credential");
         setIsSubmitting(false);
+        
+        if (loaderData.isWidget) {
+          sendWidgetMessage('VerificationFailed');
+        }
         return;
       }
 
@@ -185,6 +223,19 @@ const CreateCredential = () => {
       sessionStorage.removeItem("verificationSessionId");
 
       setApiResponse(data);
+      
+      // Send success to widget
+      if (loaderData.isWidget) {
+        sendWidgetMessage('VerificationCompleted', {
+          sessionId: sessionStorage.getItem('verificationSessionId'),
+          verificationToken,
+          verified: true,
+          credentialId: data.credential?.id,
+          assetId: data.nft?.assetId,
+          credential: data.credential,
+          personalData: data.personalData,
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
@@ -193,25 +244,47 @@ const CreateCredential = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <div className={`min-h-screen ${loaderData.isWidget ? 'bg-white' : 'bg-gray-50'} py-12 px-4 sm:px-6 lg:px-8`}>
+      {loaderData.isWidget && (
+        <style>{`
+          body {
+            margin: 0;
+            overflow: auto;
+          }
+        `}</style>
+      )}
+      <div className={`max-w-2xl mx-auto ${loaderData.isWidget ? '' : 'bg-white rounded-lg shadow-md'} p-6`}>
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Create Credential (Demo)
+          {loaderData.isWidget ? 'Credential Verification' : 'Create Credential (Demo)'}
         </h1>
 
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-md">
-          <p className="text-sm text-yellow-900 font-semibold mb-1">
-            ⚠️ Demonstration Mode
-          </p>
-          <p className="text-xs text-yellow-800">
-            This page demonstrates the credential format. No real NFTs will be
-            created on the blockchain. Mobile apps must register for an API key
-            to issue real credentials.{" "}
-            <a href="/contact" className="underline font-medium">
-              Contact us
-            </a>
-          </p>
-        </div>
+        {!loaderData.isWidget && (
+          <div className="mb-4 p-4 bg-yellow-50 border border-yellow-300 rounded-md">
+            <p className="text-sm text-yellow-900 font-semibold mb-1">
+              ⚠️ Demonstration Mode
+            </p>
+            <p className="text-xs text-yellow-800">
+              This page demonstrates the credential format. No real NFTs will be
+              created on the blockchain. Mobile apps must register for an API key
+              to issue real credentials.{" "}
+              <a href="/contact" className="underline font-medium">
+                Contact us
+              </a>
+            </p>
+          </div>
+        )}
+        
+        {loaderData.isWidget && !loaderData.hasApiKey && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-900">
+              <strong>Testnet Demo:</strong> This will create a demonstration credential on testnet. 
+              For mainnet credentials with NFTs, obtain an API key at{" "}
+              <a href="https://cardlessid.org/contact" target="_blank" className="underline font-medium">
+                cardlessid.org/contact
+              </a>
+            </p>
+          </div>
+        )}
 
         {isVerified && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
@@ -301,19 +374,101 @@ const CreateCredential = () => {
               </button>
             </div>
 
-            {showDetails && (
-              <div className="bg-gray-100 p-4 rounded-md overflow-x-auto mb-4">
-                <h3 className="text-sm font-semibold mb-2">Credential:</h3>
-                <pre className="text-sm text-gray-800 whitespace-pre-wrap mb-4">
+            {/* Table View */}
+            {showDetails && !showJson && apiResponse.personalData && (
+              <div className="bg-white rounded-lg border border-gray-300 overflow-hidden mb-4">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200">
+                    {apiResponse.personalData.firstName && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 w-1/3">First Name</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{apiResponse.personalData.firstName}</td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.middleName && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Middle Name</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{apiResponse.personalData.middleName}</td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.lastName && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Last Name</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{apiResponse.personalData.lastName}</td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.birthDate && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Birth Date</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{apiResponse.personalData.birthDate}</td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.idType && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">ID Type</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {apiResponse.personalData.idType.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        </td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.governmentId && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Government ID</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 font-mono">{apiResponse.personalData.governmentId}</td>
+                      </tr>
+                    )}
+                    {apiResponse.personalData.state && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">State</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{apiResponse.personalData.state}</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Credential ID</td>
+                      <td className="px-4 py-3 text-xs text-gray-900 font-mono break-all">{apiResponse.credential?.id}</td>
+                    </tr>
+                    {apiResponse.nft?.assetId && apiResponse.nft.assetId !== 'DEMO_ASSET_ID' && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">NFT Asset ID</td>
+                        <td className="px-4 py-3 text-xs text-gray-900 font-mono">{apiResponse.nft.assetId}</td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Network</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {apiResponse.network || 'testnet'}
+                        {apiResponse.demoMode && ' (demo)'}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* JSON View */}
+            {showDetails && showJson && (
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto mb-4">
+                <h3 className="text-sm font-semibold mb-2 text-green-400">Credential:</h3>
+                <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap mb-4">
                   {JSON.stringify(apiResponse.credential, null, 2)}
                 </pre>
-                <h3 className="text-sm font-semibold mb-2">
+                <h3 className="text-sm font-semibold mb-2 text-green-400">
                   Personal Data (stored locally in wallet):
                 </h3>
-                <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap">
                   {JSON.stringify(apiResponse.personalData, null, 2)}
                 </pre>
               </div>
+            )}
+
+            {/* Toggle JSON Button */}
+            {showDetails && (
+              <button
+                onClick={() => setShowJson(!showJson)}
+                className="w-full mb-4 px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200"
+              >
+                {showJson ? 'Show Table View' : 'View JSON'}
+              </button>
             )}
 
             <div className="space-x-2">
