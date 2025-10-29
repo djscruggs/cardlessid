@@ -7,34 +7,36 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import type { VerifiedIdentity } from '~/types/verification';
 
-const HMAC_SECRET = process.env.DATA_INTEGRITY_SECRET || process.env.HMAC_SECRET || process.env.SESSION_SECRET;
+// Require dedicated secret - no fallbacks for security
+const HMAC_SECRET = process.env.DATA_INTEGRITY_SECRET || process.env.HMAC_SECRET;
 
 if (!HMAC_SECRET) {
-  console.warn('⚠️  DATA_INTEGRITY_SECRET not set - using HMAC_SECRET or SESSION_SECRET fallback');
+  throw new Error('DATA_INTEGRITY_SECRET or HMAC_SECRET environment variable is required');
 }
+
+// Token expiration time in milliseconds (10 minutes)
+const TOKEN_TTL_MS = 10 * 60 * 1000;
 
 /**
  * Generate HMAC hash of verified identity data
+ * Uses canonical JSON serialization to prevent delimiter collisions
  * @param data Verified identity data from document processing
  * @returns HMAC signature as hex string
  */
 export function generateDataHMAC(data: Partial<VerifiedIdentity>): string {
-  if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
-  }
+  // Use canonical JSON object with fixed key order (prevents collisions)
+  const canonicalData = {
+    birthDate: data.birthDate || '',
+    expirationDate: data.expirationDate || '',
+    firstName: data.firstName || '',
+    governmentId: data.governmentId || '',
+    idType: data.idType || '',
+    lastName: data.lastName || '',
+    middleName: data.middleName || '',
+    state: data.state || '',
+  };
 
-  // Create deterministic string from data (order matters)
-  const dataString = [
-    data.firstName || '',
-    data.middleName || '',
-    data.lastName || '',
-    data.birthDate || '',
-    data.governmentId || '',
-    data.idType || '',
-    data.state || '',
-    data.expirationDate || ''
-  ].join('|');
-
+  const dataString = JSON.stringify(canonicalData);
   const hmac = createHmac('sha256', HMAC_SECRET);
   hmac.update(dataString);
   return hmac.digest('hex');
@@ -51,10 +53,6 @@ export function verifyDataHMAC(
   data: Partial<VerifiedIdentity>,
   providedHmac: string
 ): boolean {
-  if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
-  }
-
   try {
     const expectedHmac = generateDataHMAC(data);
     
@@ -77,6 +75,7 @@ export function verifyDataHMAC(
 /**
  * Create a signed verification token containing sessionId and data hash
  * This prevents session hijacking and data tampering
+ * Includes timestamp for expiration checking
  * @param sessionId Verification session ID
  * @param dataHmac HMAC of the verified data
  * @returns Signed token to send to client
@@ -85,37 +84,49 @@ export function createVerificationToken(
   sessionId: string,
   dataHmac: string
 ): string {
-  const tokenData = `${sessionId}:${dataHmac}`;
-  const signature = createHmac('sha256', HMAC_SECRET!)
+  const timestamp = Date.now();
+  const tokenData = `${sessionId}:${dataHmac}:${timestamp}`;
+  const signature = createHmac('sha256', HMAC_SECRET)
     .update(tokenData)
     .digest('hex');
   
-  // Format: sessionId:dataHmac:signature
+  // Format: sessionId:dataHmac:timestamp:signature
   return `${tokenData}:${signature}`;
 }
 
 /**
  * Verify and parse a verification token
+ * Checks signature and expiration time
  * @param token Token from client
- * @returns Parsed sessionId and dataHmac if valid, null if invalid
+ * @returns Parsed sessionId and dataHmac if valid, null if invalid or expired
  */
 export function verifyVerificationToken(
   token: string
 ): { sessionId: string; dataHmac: string } | null {
-  if (!HMAC_SECRET) {
-    throw new Error('DATA_INTEGRITY_SECRET, HMAC_SECRET, or SESSION_SECRET environment variable required');
-  }
-
   try {
     const parts = token.split(':');
-    if (parts.length !== 3) {
+    if (parts.length !== 4) {
+      console.error('Token verification failed: invalid format');
       return null;
     }
 
-    const [sessionId, dataHmac, providedSignature] = parts;
+    const [sessionId, dataHmac, timestampStr, providedSignature] = parts;
+    const timestamp = parseInt(timestampStr, 10);
+    
+    if (isNaN(timestamp)) {
+      console.error('Token verification failed: invalid timestamp');
+      return null;
+    }
+    
+    // Check expiration (10 minutes)
+    const now = Date.now();
+    if (now - timestamp > TOKEN_TTL_MS) {
+      console.error('Token verification failed: token expired');
+      return null;
+    }
     
     // Re-compute signature
-    const tokenData = `${sessionId}:${dataHmac}`;
+    const tokenData = `${sessionId}:${dataHmac}:${timestamp}`;
     const expectedSignature = createHmac('sha256', HMAC_SECRET)
       .update(tokenData)
       .digest('hex');
@@ -125,10 +136,12 @@ export function verifyVerificationToken(
     const providedBuffer = Buffer.from(providedSignature, 'hex');
 
     if (expectedBuffer.length !== providedBuffer.length) {
+      console.error('Token verification failed: signature length mismatch');
       return null;
     }
 
     if (!timingSafeEqual(expectedBuffer, providedBuffer)) {
+      console.error('Token verification failed: signature mismatch');
       return null;
     }
 

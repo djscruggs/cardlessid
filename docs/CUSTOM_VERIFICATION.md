@@ -408,7 +408,7 @@ fetch('/api/verification/upload-id', {
 {
   "success": true,
   "sessionId": "custom_1234567890",
-  "verificationToken": "session_xxx:hmac_xxx:signature_xxx",
+  "verificationToken": "session_xxx:hmac_xxx:timestamp:signature_xxx",
   "extractedData": {
     "firstName": "John",
     "middleName": "Michael",
@@ -1104,8 +1104,9 @@ DATA_INTEGRITY_SECRET=your_generated_secret_here
 ```
 
 **Security Notes:**
-- Uses HMAC-SHA256 for cryptographic hashing
+- Uses HMAC-SHA256 for cryptographic hashing with canonical JSON serialization
 - Uses timing-safe comparison to prevent timing attacks
+- Token includes timestamp and expires after 10 minutes
 - Token includes cryptographic signature (prevents forgery)
 - Hash proves data integrity without storing actual data
 - Rotate DATA_INTEGRITY_SECRET periodically in production
@@ -1124,12 +1125,13 @@ DATA_INTEGRITY_SECRET=your_generated_secret_here
 - Use environment variables for all sensitive data
 - Rotate keys regularly in production
 - **Important**: Rotate `DATA_INTEGRITY_SECRET` regularly
+- Ensure required secrets are set with no fallbacks: `DATA_INTEGRITY_SECRET`, `SESSION_SECRET`, `MOBILE_API_KEY`
 
 ### Data Privacy
 
 - Extract only necessary fields from ID documents
 - Don't store raw Document AI responses long-term
-- Implement proper session expiration
+- Implement proper session expiration (verification tokens expire after 10 minutes)
 - Follow GDPR/CCPA requirements for user data
 - Verified data never sent in cleartext during credential creation
 

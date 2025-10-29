@@ -1,4 +1,5 @@
 import type { ActionFunctionArgs } from "react-router";
+import { handleCorsPreflightRequest, setCorsHeaders } from "~/utils/cors.server";
 
 /**
  * Determine verification quality level based on provider metadata
@@ -38,6 +39,18 @@ function determineVerificationLevel(metadata: any): "high" | "medium" | "low" {
  * The mobile wallet stores both the credential (with hashes) and the original unhashed data locally.
  */
 export async function action({ request }: ActionFunctionArgs) {
+  // Handle CORS preflight
+  const preflightResponse = handleCorsPreflightRequest(request);
+  if (preflightResponse) {
+    return preflightResponse;
+  }
+
+  // Check CORS and set headers
+  const corsHeaders = setCorsHeaders(request);
+  if (!corsHeaders && request.headers.get('Origin')) {
+    return Response.json({ error: "Origin not allowed" }, { status: 403 });
+  }
+
   // Import server-only modules inside the action to prevent client bundling
   const { saveVerification, updateCredentialIssued } = await import(
     "~/utils/firebase.server"
@@ -264,15 +277,40 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
-    // Validate Algorand address format (58 characters, base32)
-    const algorandAddressRegex = /^[A-Z2-7]{58}$/;
-    if (!algorandAddressRegex.test(walletAddress)) {
+    // Validate Algorand address using SDK validation
+    if (!algosdk.isValidAddress(walletAddress)) {
       return Response.json(
         {
-          error: "Invalid Algorand wallet address format",
+          error: "Invalid Algorand wallet address",
         },
         { status: 400 }
       );
+    }
+    
+    // Validate identity fields
+    if (firstName && (typeof firstName !== 'string' || firstName.length > 100)) {
+      return Response.json({ error: "Invalid firstName" }, { status: 400 });
+    }
+    if (lastName && (typeof lastName !== 'string' || lastName.length > 100)) {
+      return Response.json({ error: "Invalid lastName" }, { status: 400 });
+    }
+    if (middleName && (typeof middleName !== 'string' || middleName.length > 100)) {
+      return Response.json({ error: "Invalid middleName" }, { status: 400 });
+    }
+    if (governmentId && (typeof governmentId !== 'string' || governmentId.length > 50)) {
+      return Response.json({ error: "Invalid governmentId" }, { status: 400 });
+    }
+    if (state && (typeof state !== 'string' || state.length > 2 || !/^[A-Z]{2}$/.test(state))) {
+      return Response.json({ error: "Invalid state - must be 2-letter code" }, { status: 400 });
+    }
+    
+    // Validate date formats (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (birthDate && (!dateRegex.test(birthDate) || isNaN(new Date(birthDate).getTime()))) {
+      return Response.json({ error: "Invalid birthDate format - use YYYY-MM-DD" }, { status: 400 });
+    }
+    if (expirationDate && (!dateRegex.test(expirationDate) || isNaN(new Date(expirationDate).getTime()))) {
+      return Response.json({ error: "Invalid expirationDate format - use YYYY-MM-DD" }, { status: 400 });
     }
 
     // Use authenticated issuer's wallet address
@@ -624,6 +662,7 @@ export async function action({ request }: ActionFunctionArgs) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
+        ...(corsHeaders || {}),
       },
     });
   } catch (error) {

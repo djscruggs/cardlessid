@@ -3,6 +3,7 @@
  * Handles API key validation and issuer credential extraction
  */
 
+import { timingSafeEqual } from "crypto";
 import type { ApiKeyConfig } from "~/config/api-keys.example";
 
 export interface AuthenticatedIssuer {
@@ -48,9 +49,12 @@ export async function authenticateApiKey(
     };
   }
 
-  // Validate API key
-  if (apiKey !== expectedApiKey) {
-    console.warn(`[API Auth] Invalid API key attempted: ${apiKey.substring(0, 8)}...`);
+  // Validate API key using constant-time comparison to prevent timing attacks
+  const apiKeyBuffer = Buffer.from(apiKey);
+  const expectedKeyBuffer = Buffer.from(expectedApiKey);
+  
+  if (apiKeyBuffer.length !== expectedKeyBuffer.length || !timingSafeEqual(apiKeyBuffer, expectedKeyBuffer)) {
+    console.warn(`[API Auth] Invalid API key attempted`);
     return {
       success: false,
       error: "Invalid API key",
@@ -71,6 +75,10 @@ export async function authenticateApiKey(
 
   console.log(`[API Auth] ✓ Authenticated: Mobile Client (${issuerAddress.substring(0, 8)}...)`);
 
+  // Create a stable hash of the API key for rate limiting (never log the actual key)
+  const crypto = await import("crypto");
+  const apiKeyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
+
   // Return issuer credentials
   return {
     success: true,
@@ -79,7 +87,7 @@ export async function authenticateApiKey(
       contactEmail: process.env.MOBILE_API_CONTACT || "mobile@cardlessid.org",
       address: issuerAddress,
       privateKeyBase64: issuerPrivateKey,
-      apiKey: apiKey.substring(0, 8) + "...", // Truncated for logging
+      apiKey: apiKeyHash, // Use hash for rate limiting, never the actual key
       rateLimit: Number(process.env.MOBILE_API_RATE_LIMIT) || 1000,
     },
   };
@@ -200,7 +208,7 @@ export function checkRateLimit(apiKey: string, limit: number): boolean {
   }
 
   if (stored.count >= limit) {
-    console.warn(`[API Auth] Rate limit exceeded for ${apiKey}`);
+    console.warn(`[API Auth] Rate limit exceeded`);
     return true; // Rate limit exceeded
   }
 
