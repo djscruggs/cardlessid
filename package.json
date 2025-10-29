@@ -27,6 +27,7 @@
     "@aws-sdk/client-textract": "^3.907.0",
     "@emailjs/browser": "^4.4.1",
     "@google-cloud/documentai": "^9.4.0",
+    "@heyo.so/js": "^1.1.2",
     "@react-router/node": "^7.7.1",
     "@react-router/serve": "^7.7.1",
     "@types/react-syntax-highlighter": "^15.5.13",
