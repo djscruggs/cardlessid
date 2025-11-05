@@ -45,6 +45,7 @@ To launch the app for development, run : npm run dev
 **Project Documentation**
 
 This project includes a comprehensive `llms.txt` file at the root with detailed documentation about:
+
 - Project architecture and core concepts
 - All API endpoints with request/response formats
 - Component library and utility functions
@@ -107,3 +108,6 @@ Common blz commands:
 **Coding Conventions**
 
 Route files are named in lower case, but their components inside the file are capitalize - e.g. Home, Contact. Components are named in CamelCase with the first word capitalized
+
+**Scratchpad**
+When creating test scripts and working documents, always put them in /@scratchpad unless otherwise specified
