@@ -11,3 +11,7 @@
 /storage/
 google-credentials.json
 *-credentials.json
+
+# Claude Code
+.claude/*
+@scratchpad
