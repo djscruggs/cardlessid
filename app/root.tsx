@@ -11,7 +11,6 @@ import type { LoaderFunction } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
 import Main from "./layouts/main";
-import { HEYO } from "@heyo.so/js";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -38,18 +37,9 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Initialize Heyo widget
   const [params] = useSearchParams();
   const isWidget = params.get("widget");
-  if (!isWidget) {
-    HEYO.init({
-      projectId: "69022d22e37ea52538b6f2a3",
-      // Optional configuration
-      position: "bottom-right",
-      theme: "auto",
-      locale: "en",
-    });
-  }
+
   return (
     <html lang="en" data-theme="light">
       <head>
