@@ -7,6 +7,7 @@
 ## Table of Contents
 
 - [Documentation](#documentation "Documentation")
+- [API Documentation](#api-documentation "API Documentation")
 - [Privacy & Data Storage](#privacy--data-storage "Privacy & Data Storage")
 - [How to Contribute](#how-to-contribute "How to Contribute")
 - [Tech Stack](#tech-stack "Tech Stack")
@@ -27,6 +28,69 @@
 - [Verification API](docs/VERIFICATION_API.md "Verification API")
 - [VPN Age Verification Risks](docs/VPN-AGE-VERIFICATION-RISKS.md "VPN Age Verification Risks")
 - [Wallet App Guide](docs/WALLET_APP_GUIDE.md "Wallet App Guide")
+
+## API Documentation
+
+This project uses [**Bruno**](https://www.usebruno.com/) for API testing and documentation. Bruno is a fast, open-source API client that stores collections directly in your filesystem.
+
+### Bruno Collections
+
+API test collections and examples are located in the `/bruno` directory:
+
+```
+/bruno
+  └── Cardless ID API/
+      ├── Verification/
+      ├── Credentials/
+      ├── Age Verification/
+      ├── Integrator/
+      └── ...
+```
+
+### Getting Started with Bruno
+
+1. **Install Bruno** from [usebruno.com](https://www.usebruno.com/)
+
+2. **Open the collection:**
+   - Launch Bruno
+   - Click "Open Collection"
+   - Navigate to the `/bruno` directory in this project
+
+3. **Configure environment variables:**
+   - Bruno will use the environment settings from the collection
+   - Update the `baseUrl` if needed (default: `http://localhost:5173`)
+
+### OpenAPI Specification
+
+An OpenAPI 3.0.3 specification is available at [`openapi.yaml`](openapi.yaml) in the project root. This spec documents all API endpoints, request/response schemas, and authentication requirements.
+
+**Import to Bruno:**
+
+```bash
+# Install Bruno CLI
+npm install -g @usebruno/cli
+
+# Import OpenAPI spec
+bruno import openapi \
+  --source openapi.yaml \
+  --output ./bruno \
+  --collection-name "Cardless ID API"
+```
+
+**Other tools:**
+- **Postman**: Import `openapi.yaml` directly
+- **Swagger UI**: Host the spec for interactive documentation
+- **OpenAPI Generator**: Generate client SDKs in any language
+
+### API Overview
+
+The API provides endpoints for:
+- **Identity Verification** - Document upload and verification workflows
+- **Credential Issuance** - W3C Verifiable Credentials on Algorand blockchain
+- **Age Verification** - QR code-based age challenges
+- **Integrator API** - Third-party website integration (requires API key)
+
+For detailed API flows and endpoint documentation, see [@scratchpad/api-flow-summary.md](@scratchpad/api-flow-summary.md).
 
 24 US states and countries including the UK, France and Germany have passed laws requiring adult sites to verify age.
 

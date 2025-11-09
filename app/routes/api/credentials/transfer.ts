@@ -1,39 +1,51 @@
 import type { ActionFunctionArgs } from "react-router";
 import algosdk from "algosdk";
+import { getPeraExplorerUrl } from "~/utils/algorand";
+import {
+  transferCredentialNFT,
+  freezeCredentialNFT,
+} from "~/utils/nft-credentials";
 
 /**
  * POST /api/credentials/transfer
  *
  * Transfer and freeze credential NFT after client has opted in
  *
+ * SECURITY: This endpoint now requires session validation to prevent
+ * unauthorized transfers. Only the wallet that was verified in the
+ * session can receive the credential.
+ *
  * Expected payload:
  * {
+ *   sessionId: string,      // Required for authorization
  *   assetId: number,
  *   walletAddress: string
  * }
  */
 export async function action({ request }: ActionFunctionArgs) {
-  const {
-    transferCredentialNFT,
-    freezeCredentialNFT,
-  } = await import("~/utils/nft-credentials");
-  const { getPeraExplorerUrl } = await import("~/utils/algorand");
-  
   if (request.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
   try {
-    const { assetId, walletAddress } = await request.json();
+    // Import session validation utilities
+    const {
+      getVerificationSession,
+      isSessionValidForTransfer,
+      markSessionAssetTransferred
+    } = await import("~/utils/verification.server");
 
-    if (!assetId || !walletAddress) {
+    const { sessionId, assetId, walletAddress } = await request.json();
+
+    // Validate all required fields
+    if (!sessionId || !assetId || !walletAddress) {
       return Response.json(
-        { error: "Missing assetId or walletAddress" },
+        { error: "Missing sessionId, assetId, or walletAddress" },
         { status: 400 }
       );
     }
 
-    // Ensure assetId is a number (but keep original for response)
+    // Ensure assetId is a number
     const numericAssetId = Number(assetId);
     if (isNaN(numericAssetId)) {
       return Response.json(
@@ -42,36 +54,77 @@ export async function action({ request }: ActionFunctionArgs) {
       );
     }
 
+    // Get and validate session
+    const session = await getVerificationSession(sessionId);
+    if (!session) {
+      console.warn(`[Transfer] Attempt with invalid session: ${sessionId}`);
+      return Response.json(
+        { error: "Invalid session" },
+        { status: 404 }
+      );
+    }
+
+    // Validate session is authorized for this transfer
+    const { valid, error: validationError } = isSessionValidForTransfer(
+      session,
+      assetId.toString(),
+      walletAddress
+    );
+
+    if (!valid) {
+      console.warn(
+        `[Transfer] Validation failed for session ${sessionId}: ${validationError}`
+      );
+      console.warn(`[Transfer] Attempted: assetId=${assetId}, wallet=${walletAddress}`);
+      console.warn(`[Transfer] Expected: assetId=${session.assetId}, wallet=${session.walletAddress}`);
+      return Response.json(
+        { error: validationError },
+        { status: 403 }
+      );
+    }
+
     // Get issuer credentials
     const appWalletAddress = process.env.VITE_APP_WALLET_ADDRESS;
     const issuerPrivateKey = process.env.ISSUER_PRIVATE_KEY;
 
-    console.log(`🔍 Environment check: appWalletAddress=${appWalletAddress}, hasPrivateKey=${!!issuerPrivateKey}`);
+    console.log(
+      `🔍 Environment check: appWalletAddress=${appWalletAddress}, hasPrivateKey=${!!issuerPrivateKey}`
+    );
 
     if (!appWalletAddress || !issuerPrivateKey) {
       throw new Error("Issuer credentials not configured");
     }
 
     // Restore account from private key
-    const secretKey = new Uint8Array(Buffer.from(issuerPrivateKey, 'base64'));
+    const secretKey = new Uint8Array(Buffer.from(issuerPrivateKey, "base64"));
     const issuerAccount = {
       addr: algosdk.encodeAddress(secretKey.slice(32)),
       sk: secretKey,
     };
 
-    console.log(`🔍 Account restoration: derivedAddress=${issuerAccount.addr}, expectedAddress=${appWalletAddress}`);
+    console.log(
+      `🔍 Account restoration: derivedAddress=${issuerAccount.addr}, expectedAddress=${appWalletAddress}`
+    );
 
     // Check if issuer wallet needs funding before attempting transfer
     const { walletNeedsFunding } = await import("~/utils/algorand");
     const issuerNeedsFunds = await walletNeedsFunding(appWalletAddress);
     if (issuerNeedsFunds) {
-      throw new Error(`Issuer wallet ${appWalletAddress} has insufficient ALGO balance for transaction fees. Please fund it with at least 0.1 ALGO.`);
+      throw new Error(
+        `Issuer wallet ${appWalletAddress} has insufficient ALGO balance for transaction fees. Please fund it with at least 0.1 ALGO.`
+      );
     }
 
-    const network = (process.env.VITE_ALGORAND_NETWORK || 'testnet') as 'testnet' | 'mainnet';
+    const network = (process.env.VITE_ALGORAND_NETWORK || "testnet") as
+      | "testnet"
+      | "mainnet";
 
-    console.log(`🔄 Transferring credential NFT ${numericAssetId} to ${walletAddress}`);
-    console.log(`🔍 Transfer params: appWallet=${appWalletAddress}, wallet=${walletAddress}, assetId=${numericAssetId}`);
+    console.log(
+      `✅ Authorized transfer: session=${sessionId}, asset=${numericAssetId}, wallet=${walletAddress}`
+    );
+    console.log(
+      `🔍 Transfer params: appWallet=${appWalletAddress}, wallet=${walletAddress}, assetId=${numericAssetId}`
+    );
 
     // Transfer the NFT
     const transferTxId = await transferCredentialNFT(
@@ -92,6 +145,10 @@ export async function action({ request }: ActionFunctionArgs) {
     );
 
     console.log(`✓ Froze NFT, Tx: ${freezeTxId}`);
+
+    // Mark session as transferred (prevents replay attacks)
+    await markSessionAssetTransferred(sessionId);
+    console.log(`✓ Marked session ${sessionId} as transferred`);
 
     return Response.json({
       success: true,

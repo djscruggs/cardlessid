@@ -36,6 +36,11 @@ export interface VerificationSession {
   credentialIssued?: boolean;
   walletAddress?: string;
 
+  // NFT transfer tracking
+  assetId?: string;           // Asset ID of the minted NFT credential
+  assetTransferred?: boolean; // Has the NFT been transferred to the wallet?
+  transferredAt?: number;     // Timestamp when NFT was transferred
+
   // Custom verification flow data
   idPhotoUrl?: string;
   selfiePhotoUrl?: string;

@@ -1,0 +1,11 @@
+meta {
+  name: Get system announcements
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/announcements
+  body: none
+  auth: inherit
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Get challenge details
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/integrator/challenge/details/:challengeId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  challengeId: 
+}
+
+auth:bearer {
+  token: {{token}}
+}

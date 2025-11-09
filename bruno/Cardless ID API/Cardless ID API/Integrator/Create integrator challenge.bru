@@ -1,0 +1,22 @@
+meta {
+  name: Create integrator challenge
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/integrator/challenge/create
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "minimumAge": 0,
+    "metadata": {}
+  }
+}

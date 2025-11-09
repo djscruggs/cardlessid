@@ -1,0 +1,19 @@
+meta {
+  name: Upload ID document
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/verification/upload-id
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "sessionId": "",
+    "frontImage": "",
+    "backImage": ""
+  }
+}

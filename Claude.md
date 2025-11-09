@@ -1,10 +1,10 @@
 # Claude.md
 
-**Project Overview:** 
+**Project Overview:**
 
 This is a web site that issues a lightweight decentralize identity credential. At the top level are informational pages and an app.
 
-**Project Goals:** 
+**Project Goals:**
 
 The goal is to use a third party tool still TBD to verify someone’s identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
 
@@ -111,3 +111,21 @@ Route files are named in lower case, but their components inside the file are ca
 
 **Scratchpad**
 When creating test scripts and working documents, always put them in /@scratchpad unless otherwise specified
+
+When importing functions do them at the top of the file instead of inline
+
+**DO**
+
+```
+import { saveVerification, updateCredentialIssued } from "~/utils/firebase.server"
+import { getPeraExplorerUrl } from "~/utils/algorand";
+```
+
+**DON'T**
+
+```
+const { saveVerification, updateCredentialIssued } = await import(
+   "~/utils/firebase.server"
+ );
+ const { getPeraExplorerUrl } = await import("~/utils/algorand");
+```

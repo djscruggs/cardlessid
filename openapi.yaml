@@ -1,0 +1,1114 @@
+openapi: 3.0.3
+info:
+  title: Cardless ID API
+  description: |
+    A decentralized identity verification and credential issuance system built on Algorand blockchain.
+
+    This API provides endpoints for:
+    - Identity verification workflows
+    - W3C Verifiable Credential issuance
+    - Age verification challenges via QR codes
+    - Website integration for verifiers
+
+    For detailed integration guides, see the project documentation.
+  version: 1.0.0
+  contact:
+    name: Cardless ID
+    url: https://cardlessid.org
+servers:
+  - url: http://localhost:5173
+    description: Development server
+  - url: https://cardlessid.org
+    description: Production server
+
+tags:
+  - name: Verification
+    description: Identity verification workflow endpoints
+  - name: Credentials
+    description: W3C Verifiable Credential management
+  - name: Age Verification
+    description: QR code-based age verification challenges
+  - name: Wallet
+    description: Wallet status and credential checks
+  - name: Integrator
+    description: Third-party website integration endpoints
+  - name: Webhooks
+    description: Webhook endpoints for verification providers
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: API key for integrator endpoints
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+
+    VerificationSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          description: Unique session identifier
+        provider:
+          type: string
+          enum: [cardlessid, idenfy, stripe_identity, persona, mock, custom]
+          description: Verification provider used
+        status:
+          type: string
+          enum: [pending, approved, rejected, expired]
+          description: Current verification status
+        createdAt:
+          type: integer
+          description: Unix timestamp when session was created
+        expiresAt:
+          type: integer
+          description: Unix timestamp when session expires
+        walletAddress:
+          type: string
+          description: Algorand wallet address being verified
+          nullable: true
+        credentialIssued:
+          type: boolean
+          description: Whether a credential has been issued for this session
+          nullable: true
+        assetId:
+          type: string
+          description: Asset ID of the minted NFT credential (populated after credential issuance)
+          nullable: true
+        assetTransferred:
+          type: boolean
+          description: Whether the NFT has been transferred to the wallet (prevents replay attacks)
+          nullable: true
+        transferredAt:
+          type: integer
+          description: Unix timestamp when NFT was transferred
+          nullable: true
+        verifiedData:
+          type: object
+          description: Verified identity data (only populated after approval)
+          nullable: true
+          properties:
+            firstName:
+              type: string
+            middleName:
+              type: string
+              nullable: true
+            lastName:
+              type: string
+            birthDate:
+              type: string
+              format: date
+            governmentId:
+              type: string
+            idType:
+              type: string
+            state:
+              type: string
+            expirationDate:
+              type: string
+              format: date
+              nullable: true
+
+    VerificationStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        data:
+          type: object
+          nullable: true
+
+    Credential:
+      type: object
+      properties:
+        '@context':
+          type: array
+          items:
+            type: string
+        type:
+          type: array
+          items:
+            type: string
+        issuer:
+          type: string
+        credentialSubject:
+          type: object
+        issuanceDate:
+          type: string
+          format: date-time
+        proof:
+          type: object
+
+    AgeVerificationChallenge:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        qrCode:
+          type: string
+          description: Base64 encoded QR code image
+        expiresAt:
+          type: string
+          format: date-time
+
+    WalletStatus:
+      type: object
+      properties:
+        hasCredential:
+          type: boolean
+        isVerified:
+          type: boolean
+
+paths:
+  # Verification Flow Endpoints
+  /api/verification/start:
+    post:
+      tags:
+        - Verification
+      summary: Start verification process
+      description: Initiates a new identity verification session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletAddress
+              properties:
+                walletAddress:
+                  type: string
+                  description: Algorand wallet address
+                  example: "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM"
+      responses:
+        '200':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationSession'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verification/upload-id:
+    post:
+      tags:
+        - Verification
+      summary: Upload ID document
+      description: Upload front (and optionally back) image of government-issued ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - frontImage
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                frontImage:
+                  type: string
+                  format: byte
+                  description: Base64 encoded front image of ID
+                backImage:
+                  type: string
+                  format: byte
+                  nullable: true
+                  description: Base64 encoded back image of ID
+      responses:
+        '200':
+          description: ID uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  extractedData:
+                    type: object
+                    nullable: true
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verification/upload-selfie:
+    post:
+      tags:
+        - Verification
+      summary: Upload selfie for face matching
+      description: Upload selfie image for biometric verification against ID photo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - selfieImage
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                selfieImage:
+                  type: string
+                  format: byte
+                  description: Base64 encoded selfie image
+      responses:
+        '200':
+          description: Selfie uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  faceMatch:
+                    type: object
+                    nullable: true
+                    properties:
+                      confidence:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 100
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verification/status/{sessionId}:
+    get:
+      tags:
+        - Verification
+      summary: Check verification status
+      description: Get current status of a verification session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationStatus'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verification/session/{sessionId}:
+    get:
+      tags:
+        - Verification
+      summary: Get verification session details
+      description: Retrieve detailed information about a verification session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Credential Endpoints
+  /api/credentials:
+    post:
+      tags:
+        - Credentials
+      summary: Create verifiable credential
+      description: |
+        Issue a W3C Verifiable Credential and mint NFT on Algorand blockchain.
+
+        **Security Flow**:
+        1. Validates verification session is approved
+        2. Mints NFT credential on blockchain
+        3. Stores assetId in session for transfer validation
+        4. Returns assetId to client
+
+        **Next Steps**:
+        After receiving the assetId, the client must:
+        1. Opt-in to the asset (Algorand requirement)
+        2. Call `/api/credentials/transfer` with sessionId to complete the transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - verificationSessionId
+                - walletAddress
+                - firstName
+                - lastName
+                - birthDate
+              properties:
+                verificationSessionId:
+                  type: string
+                  format: uuid
+                  description: Verification session ID from approved session
+                walletAddress:
+                  type: string
+                  description: Algorand wallet address to receive credential
+                firstName:
+                  type: string
+                  description: First name from verified identity
+                lastName:
+                  type: string
+                  description: Last name from verified identity
+                birthDate:
+                  type: string
+                  format: date
+                  description: Birth date from verified identity
+                governmentId:
+                  type: string
+                  description: Government ID number
+                middleName:
+                  type: string
+                  nullable: true
+                idType:
+                  type: string
+                  description: Type of ID document
+                state:
+                  type: string
+                  description: State code (for US IDs)
+                expirationDate:
+                  type: string
+                  format: date
+                  nullable: true
+      responses:
+        '200':
+          description: Credential created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  credential:
+                    $ref: '#/components/schemas/Credential'
+                  personalData:
+                    type: object
+                    description: Personal data included in credential (not on blockchain)
+                  nft:
+                    type: object
+                    properties:
+                      assetId:
+                        type: string
+                        description: Algorand asset ID - save this for transfer call
+                      requiresOptIn:
+                        type: boolean
+                        description: Whether client must opt-in before transfer
+                      instructions:
+                        type: object
+                        properties:
+                          step1:
+                            type: string
+                            example: "Client must opt-in to the asset"
+                          step2:
+                            type: string
+                            example: "Call POST /api/credentials/transfer with sessionId, assetId and walletAddress"
+                          step3:
+                            type: string
+                            example: "Asset will be transferred and frozen (non-transferable)"
+                  blockchain:
+                    type: object
+                    properties:
+                      transaction:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Blockchain transaction ID
+                          explorerUrl:
+                            type: string
+                            format: uri
+                            description: Blockchain explorer URL
+                      network:
+                        type: string
+                        enum: [testnet, mainnet]
+        '400':
+          description: Invalid request or session not valid for credential issuance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Verification session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/credentials/schema:
+    get:
+      tags:
+        - Credentials
+      summary: Get credential schema
+      description: Retrieve W3C Verifiable Credential schema definition
+      responses:
+        '200':
+          description: Schema retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/credentials/transfer:
+    post:
+      tags:
+        - Credentials
+      summary: Transfer and freeze credential NFT
+      description: |
+        Transfer a minted credential NFT to the verified wallet and freeze it to make it non-transferable.
+
+        **SECURITY**: Requires session validation. Only the wallet address that was verified in the
+        original verification session can receive the credential. The sessionId, assetId, and
+        walletAddress must all match the verification session data.
+
+        **Prerequisites**:
+        1. Complete verification flow and receive approved status
+        2. Call `/api/credentials` to mint the NFT credential
+        3. Client wallet must opt-in to the asset
+        4. Call this endpoint to transfer and freeze the NFT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - assetId
+                - walletAddress
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                  description: Verification session ID (required for authorization)
+                  example: "session_1234567890_abc123"
+                assetId:
+                  type: integer
+                  description: Algorand asset ID of the minted credential NFT
+                  example: 123456789
+                walletAddress:
+                  type: string
+                  description: Algorand wallet address (must match verified session)
+                  example: "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM"
+      responses:
+        '200':
+          description: Transfer successful - NFT transferred and frozen
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  assetId:
+                    type: string
+                    description: Asset ID of the transferred credential
+                  walletAddress:
+                    type: string
+                    description: Wallet address that received the credential
+                  transactions:
+                    type: object
+                    properties:
+                      transfer:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Transaction ID for the transfer
+                          explorerUrl:
+                            type: string
+                            format: uri
+                            description: Blockchain explorer URL for transfer transaction
+                      freeze:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            description: Transaction ID for the freeze
+                          explorerUrl:
+                            type: string
+                            format: uri
+                            description: Blockchain explorer URL for freeze transaction
+                  message:
+                    type: string
+                    example: "Credential NFT transferred and frozen (non-transferable)"
+        '400':
+          description: Invalid request - missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: |
+            Forbidden - session validation failed. Possible reasons:
+            - Wallet address does not match session
+            - Asset ID does not match session
+            - Asset already transferred
+            - No credential issued for session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error during transfer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Age Verification Endpoints
+  /api/age-verify/create:
+    post:
+      tags:
+        - Age Verification
+      summary: Create age verification challenge
+      description: Generate a QR code challenge for age verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - minimumAge
+              properties:
+                minimumAge:
+                  type: integer
+                  minimum: 0
+                  maximum: 150
+                  example: 21
+                verifierName:
+                  type: string
+                  nullable: true
+                  example: "Joe's Bar & Grill"
+      responses:
+        '200':
+          description: Challenge created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgeVerificationChallenge'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/age-verify/respond:
+    post:
+      tags:
+        - Age Verification
+      summary: Respond to age verification challenge
+      description: Submit response to an age verification challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - walletAddress
+                - meetsAge
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                walletAddress:
+                  type: string
+                  description: Wallet address of the person being verified
+                meetsAge:
+                  type: boolean
+                  description: Whether the person meets the minimum age requirement
+      responses:
+        '200':
+          description: Response recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/age-verify/session/{sessionId}:
+    get:
+      tags:
+        - Age Verification
+      summary: Check challenge status
+      description: Get current status of an age verification challenge
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, approved, rejected]
+                  meetsAge:
+                    type: boolean
+                    nullable: true
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Wallet Endpoints
+  /api/wallet/status/{address}:
+    get:
+      tags:
+        - Wallet
+      summary: Check wallet status
+      description: Check if a wallet has a credential and verification status
+      parameters:
+        - name: address
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Algorand wallet address
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletStatus'
+        '400':
+          description: Invalid wallet address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Integrator API Endpoints
+  /api/integrator/challenge/create:
+    post:
+      tags:
+        - Integrator
+      summary: Create integrator challenge
+      description: Create an age verification challenge for third-party websites
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - minimumAge
+              properties:
+                minimumAge:
+                  type: integer
+                  minimum: 0
+                  maximum: 150
+                metadata:
+                  type: object
+                  nullable: true
+                  description: Additional metadata for the challenge
+      responses:
+        '200':
+          description: Challenge created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challengeId:
+                    type: string
+                    format: uuid
+                  qrCodeUrl:
+                    type: string
+                    format: uri
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/integrator/challenge/verify/{challengeId}:
+    get:
+      tags:
+        - Integrator
+      summary: Verify challenge
+      description: Check if a challenge has been successfully verified
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Verification status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                  walletAddress:
+                    type: string
+                    nullable: true
+                  timestamp:
+                    type: string
+                    format: date-time
+                    nullable: true
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Challenge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/integrator/challenge/details/{challengeId}:
+    get:
+      tags:
+        - Integrator
+      summary: Get challenge details
+      description: Retrieve detailed information about a challenge including responses
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Challenge details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge:
+                    type: object
+                  responses:
+                    type: array
+                    items:
+                      type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Challenge not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/integrator/challenge/respond:
+    post:
+      tags:
+        - Integrator
+      summary: Respond to integrator challenge
+      description: Submit a response to an integrator challenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - challengeId
+                - walletAddress
+                - meetsAge
+              properties:
+                challengeId:
+                  type: string
+                  format: uuid
+                walletAddress:
+                  type: string
+                meetsAge:
+                  type: boolean
+      responses:
+        '200':
+          description: Response recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Webhook Endpoints
+  /api/verification/webhook:
+    post:
+      tags:
+        - Webhooks
+      summary: Verification provider webhook
+      description: Webhook endpoint for verification service providers to send updates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Provider-specific webhook payload
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          description: Invalid webhook payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verify-webhook:
+    post:
+      tags:
+        - Webhooks
+      summary: Generic verification webhook
+      description: Generic webhook endpoint for verification updates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/verify-worldcoin:
+    post:
+      tags:
+        - Webhooks
+      summary: World ID verification webhook
+      description: Webhook endpoint for World ID verification responses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: World ID proof payload
+      responses:
+        '200':
+          description: Verification processed
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invalid proof
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Utility Endpoints
+  /api/announcements:
+    get:
+      tags:
+        - Utility
+      summary: Get system announcements
+      description: Retrieve current system announcements and status messages
+      responses:
+        '200':
+          description: Announcements retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  announcements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum: [info, warning, error]
+                        timestamp:
+                          type: string
+                          format: date-time
+
+  /api/hello:
+    get:
+      tags:
+        - Utility
+      summary: Health check
+      description: Simple health check endpoint
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Hello from Cardless ID API"
+
+  /api/delegated-verification/issue:
+    post:
+      tags:
+        - Credentials
+      summary: Issue delegated verification credential
+      description: Issue a credential through delegated verification process
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletAddress
+              properties:
+                walletAddress:
+                  type: string
+                verificationData:
+                  type: object
+      responses:
+        '200':
+          description: Credential issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credential:
+                    $ref: '#/components/schemas/Credential'
+                  txId:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

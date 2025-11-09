@@ -1,0 +1,15 @@
+meta {
+  name: Get verification session details
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/verification/session/:sessionId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  sessionId: 
+}

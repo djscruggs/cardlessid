@@ -66,6 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
     getVerificationSession,
     isSessionValidForCredential,
     markSessionCredentialIssued,
+    updateVerificationSession,
   } = await import("~/utils/verification.server");
   const algosdk = (await import("algosdk")).default;
   const { authenticateRequestWithFallback, checkRateLimit } = await import("~/utils/api-auth.server");
@@ -581,8 +582,14 @@ export async function action({ request }: ActionFunctionArgs) {
       await saveVerification(walletAddress, true);
       await updateCredentialIssued(walletAddress, compositeHash);
 
-      // Mark verification session as consumed
-      await markSessionCredentialIssued(verificationSessionId, walletAddress);
+      // Mark verification session as consumed and store assetId for transfer validation
+      await markSessionCredentialIssued(sessionId, walletAddress);
+      await updateVerificationSession(sessionId, {
+        assetId: assetId?.toString(),
+        assetTransferred: false,
+      });
+
+      console.log(`[Credentials] Stored assetId ${assetId} in session for transfer validation`);
     } else {
       console.log(`[Credentials] Demo mode - skipping database writes`);
     }

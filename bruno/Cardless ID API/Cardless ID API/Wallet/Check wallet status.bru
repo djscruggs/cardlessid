@@ -1,0 +1,15 @@
+meta {
+  name: Check wallet status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/wallet/status/:address
+  body: none
+  auth: inherit
+}
+
+params:path {
+  address: 
+}

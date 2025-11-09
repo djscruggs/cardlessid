@@ -1,0 +1,19 @@
+meta {
+  name: Verify challenge
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/integrator/challenge/verify/:challengeId
+  body: none
+  auth: bearer
+}
+
+params:path {
+  challengeId: 
+}
+
+auth:bearer {
+  token: {{token}}
+}

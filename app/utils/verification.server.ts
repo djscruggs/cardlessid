@@ -134,3 +134,66 @@ export function isSessionValidForCredential(session: VerificationSession): {
 
   return { valid: true };
 }
+
+/**
+ * Check if session is valid for NFT transfer
+ * Validates that the transfer request matches the session credentials
+ */
+export function isSessionValidForTransfer(
+  session: VerificationSession,
+  requestedAssetId: string,
+  requestedWalletAddress: string
+): { valid: boolean; error?: string } {
+  if (!session) {
+    return { valid: false, error: "Session not found" };
+  }
+
+  // Must have issued a credential
+  if (!session.credentialIssued) {
+    return { valid: false, error: "No credential issued for this session" };
+  }
+
+  // Must have an assetId stored
+  if (!session.assetId) {
+    return { valid: false, error: "No asset ID associated with session" };
+  }
+
+  // Wallet address must match
+  if (session.walletAddress !== requestedWalletAddress) {
+    return {
+      valid: false,
+      error: "Wallet address does not match session"
+    };
+  }
+
+  // Asset ID must match
+  if (session.assetId !== requestedAssetId) {
+    return {
+      valid: false,
+      error: "Asset ID does not match session"
+    };
+  }
+
+  // Must not have been transferred already
+  if (session.assetTransferred) {
+    return {
+      valid: false,
+      error: "Asset already transferred for this session"
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Mark session's NFT as transferred
+ * Prevents replay attacks by marking the transfer as complete
+ */
+export async function markSessionAssetTransferred(
+  sessionId: string
+): Promise<void> {
+  await updateVerificationSession(sessionId, {
+    assetTransferred: true,
+    transferredAt: Date.now(),
+  });
+}

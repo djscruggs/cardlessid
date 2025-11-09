@@ -1,0 +1,15 @@
+meta {
+  name: Verification provider webhook
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/verification/webhook
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {}
+}

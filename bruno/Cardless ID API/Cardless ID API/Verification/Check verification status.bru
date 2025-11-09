@@ -1,0 +1,15 @@
+meta {
+  name: Check verification status
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/verification/status/:sessionId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  sessionId: 
+}

@@ -1,0 +1,17 @@
+meta {
+  name: Start verification process
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/verification/start
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "walletAddress": ""
+  }
+}
