@@ -5,3 +5,86 @@ meta {
 auth {
   mode: none
 }
+
+docs {
+  # Cardless ID API - High Level Flow Summary
+  
+  ## /api/verification - Identity Verification Workflow
+  * Start a verification session with a wallet address
+  * Upload government-issued ID documents (front and optionally back)
+  * Upload selfie for biometric face matching
+  * Check verification status (pending/approved/rejected)
+  * Retrieve detailed session information
+  * If verified, proceed to credential issuance
+  
+  ## /api/credentials - W3C Verifiable Credential Management
+  * Create and issue W3C Verifiable Credentials after successful verification
+  * Credentials are minted as NFTs on the Algorand blockchain
+  * **Security**: assetId is stored in verification session for transfer authorization
+  * Retrieve the W3C credential schema definition
+  * Transfer credentials to verified wallet with session validation (sessionId required)
+  * NFTs are frozen after transfer to make them non-transferable
+  * Delegated verification for issuing credentials through trusted third parties
+  
+  ## /api/age-verify - QR Code Age Verification
+  * Create age verification challenges with configurable minimum age
+  * Generate QR codes for the challenge
+  * Wallet holders scan QR code and respond with true/false (meets age requirement)
+  * Verifier checks challenge status to see if person meets age requirement
+  * Zero-knowledge: wallet only returns boolean, not actual age or credentials
+  
+  ## /api/wallet - Wallet Status
+  * Check if a wallet address has credentials
+  * Verify if credentials are valid and verified
+  * Query wallet verification status
+  
+  ## /api/integrator/challenge - Third-Party Website Integration
+  * **Requires API key authentication** (Bearer token)
+  * Create age verification challenges for external websites
+  * Poll to verify if challenge has been completed
+  * Retrieve challenge details and all responses
+  * Public endpoint for wallet holders to respond to challenges
+  * Enables websites to verify user age without collecting personal data
+  
+  ## Webhook Endpoints
+  * `/api/verification/webhook` - Receive updates from verification service providers
+  * `/api/verify-webhook` - Generic verification status updates
+  * `/api/verify-worldcoin` - World ID verification responses
+  * Allow asynchronous verification workflows with third-party services
+  
+  ## Utility Endpoints
+  * `/api/announcements` - System status messages and announcements
+  * `/api/hello` - Health check / API availability test
+  
+  ## Typical User Flows
+  
+  ### Flow 1: New User Getting Verified
+  1. User starts verification session → `/api/verification/start` (save sessionId)
+  2. Upload ID documents → `/api/verification/upload-id`
+  3. Upload selfie → `/api/verification/upload-selfie`
+  4. Check status until approved → `/api/verification/status/{sessionId}`
+  5. Create credential → `/api/credentials` (NFT minted, assetId returned and stored in session)
+  6. Client opts-in to asset (wallet operation)
+  7. Transfer NFT → `/api/credentials/transfer` (requires sessionId for security)
+  8. NFT is frozen, making it non-transferable
+  
+  ### Flow 2: Age Verification at a Bar/Restaurant
+  1. Business creates challenge → `/api/age-verify/create`
+  2. Display QR code to customer
+  3. Customer scans QR code with wallet
+  4. Customer responds → `/api/age-verify/respond`
+  5. Business polls status → `/api/age-verify/session/{sessionId}`
+  6. Business receives boolean: meets age requirement (yes/no)
+  
+  ### Flow 3: Website Age Gate Integration
+  1. Website creates challenge → `/api/integrator/challenge/create` (with API key)
+  2. Display QR code to visitor
+  3. Visitor scans and responds → `/api/integrator/challenge/respond`
+  4. Website verifies completion → `/api/integrator/challenge/verify/{challengeId}`
+  5. Website grants/denies access based on result
+  
+  ### Flow 4: Quick Status Check
+  1. Check if wallet has credentials → `/api/wallet/status/{address}`
+  2. Returns credential existence and verification status
+  
+}
