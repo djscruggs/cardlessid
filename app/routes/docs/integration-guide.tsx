@@ -63,6 +63,18 @@ export default function IntegrationGuide() {
             <a href="#rest-api" className="hover:underline">
               REST API
             </a>
+            <ul className="ml-4 mt-1 space-y-1">
+              <li>
+                <a href="#integrator-apis" className="hover:underline text-sm">
+                  Integrator APIs
+                </a>
+              </li>
+              <li>
+                <a href="#credential-apis" className="hover:underline text-sm">
+                  Credential APIs
+                </a>
+              </li>
+            </ul>
           </li>
           <li>
             <a href="#examples" className="hover:underline">
@@ -336,6 +348,22 @@ if (result.verified) {
           header or request body.
         </p>
 
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-semibold text-purple-900 mb-3">
+            API Categories
+          </h3>
+          <ul className="space-y-2 text-purple-800">
+            <li>
+              <strong>Integrator APIs</strong> - For verifying users' existing credentials (challenge/response)
+            </li>
+            <li>
+              <strong>Credential APIs</strong> - For issuing new credentials to users (internal/advanced use)
+            </li>
+          </ul>
+        </div>
+
+        <h2 id="integrator-apis" className="text-3xl font-bold text-gray-900 mb-6">Integrator APIs</h2>
+
         <h3 className="text-2xl font-semibold text-gray-900 mb-3">
           POST /api/integrator/challenge/create
         </h3>
@@ -383,6 +411,99 @@ X-API-Key: your_api_key`}</CodeBlock>
   "expiresAt": 1234568490000,
   "respondedAt": 1234568123000
 }`}</pre>
+        </div>
+
+        <h2 id="credential-apis" className="text-3xl font-bold text-gray-900 mb-6 mt-12">Credential APIs</h2>
+
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
+          <h3 className="text-lg font-semibold text-orange-900 mb-3">
+            Advanced Use Only
+          </h3>
+          <p className="text-orange-800">
+            The Credential APIs are used internally by the Cardless ID system to issue new credentials.
+            Most integrators should use the Integrator APIs above. Only use these endpoints if you're
+            building a custom verification flow or have been approved as a trusted issuer.
+          </p>
+        </div>
+
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+          POST /api/credentials
+        </h3>
+        <p className="text-gray-700 mb-4">
+          Issue a new credential NFT to a user's wallet after successful verification.
+        </p>
+        <div className="mb-4">
+          <CodeBlock language="http">{`POST /api/credentials
+Content-Type: application/json
+
+{
+  "sessionId": "verification_session_id",
+  "walletAddress": "ALGORAND_WALLET_ADDRESS",
+  "birthdate": "YYYY-MM-DD",
+  "demo": false
+}`}</CodeBlock>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <strong className="text-blue-900">Response:</strong>
+          <pre className="mt-2 text-blue-800 text-sm">{`{
+  "success": true,
+  "assetId": "123456789",
+  "credentialUrl": "https://cardlessid.com/app/wallet-status/...",
+  "optInUrl": "https://cardlessid.com/app/optin/...",
+  "explorerUrl": "https://testnet.explorer.perawallet.app/asset/123456789/"
+}`}</pre>
+        </div>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+          <h4 className="font-semibold text-yellow-900 mb-2">Security Notes:</h4>
+          <ul className="space-y-2 text-yellow-800 text-sm">
+            <li>• Session validation ensures only verified users receive credentials</li>
+            <li>• AssetId is stored in the session for transfer validation</li>
+            <li>• Each session can only issue one credential (prevents replay attacks)</li>
+            <li>• Birthdate is never stored - only used to generate the credential hash</li>
+          </ul>
+        </div>
+
+        <h3 className="text-2xl font-semibold text-gray-900 mb-3">
+          POST /api/credentials/transfer
+        </h3>
+        <p className="text-gray-700 mb-4">
+          Transfer and freeze credential NFT after user has opted in to receive it.
+        </p>
+        <div className="mb-4">
+          <CodeBlock language="http">{`POST /api/credentials/transfer
+Content-Type: application/json
+
+{
+  "sessionId": "verification_session_id",
+  "assetId": 123456789,
+  "walletAddress": "ALGORAND_WALLET_ADDRESS"
+}`}</CodeBlock>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <strong className="text-blue-900">Response:</strong>
+          <pre className="mt-2 text-blue-800 text-sm">{`{
+  "success": true,
+  "assetId": "123456789",
+  "transferTxId": "TRANSFER_TRANSACTION_ID",
+  "freezeTxId": "FREEZE_TRANSACTION_ID",
+  "explorerUrls": {
+    "transfer": "https://testnet.explorer.perawallet.app/tx/...",
+    "freeze": "https://testnet.explorer.perawallet.app/tx/..."
+  }
+}`}</pre>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+          <h4 className="font-semibold text-red-900 mb-2">Important Security Features:</h4>
+          <ul className="space-y-2 text-red-800 text-sm">
+            <li>• <strong>Session Validation:</strong> Only transfers to the wallet that completed verification</li>
+            <li>• <strong>Asset Validation:</strong> Only transfers the assetId that was issued in this session</li>
+            <li>• <strong>Single Use:</strong> Each session can only transfer once (prevents replay attacks)</li>
+            <li>• <strong>NFT Freeze:</strong> Credential is frozen after transfer to prevent tampering</li>
+          </ul>
+          <p className="mt-3 text-red-800 font-medium">
+            These security measures were added to prevent unauthorized credential transfers and ensure
+            that credentials can only be issued to verified users.
+          </p>
         </div>
       </section>
 

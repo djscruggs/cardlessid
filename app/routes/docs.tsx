@@ -39,8 +39,8 @@ export default function DocsIndex() {
             </h3>
             <p className="text-gray-600">
               Complete guide to integrating Cardless ID age verification into
-              your application. Includes SDK documentation, REST API reference,
-              code examples, and best practices.
+              your application. Includes SDK documentation, REST API reference
+              (Integrator and Credential APIs), security best practices, and code examples.
             </p>
           </div>
 
@@ -144,6 +144,9 @@ export default function DocsIndex() {
             <h3 className="text-lg font-medium text-blue-900 mb-2">
               Credential API
             </h3>
+            <p className="text-blue-700 text-xs mb-2">
+              Session-validated credential issuance and transfer
+            </p>
             <ul className="space-y-1 text-blue-800 text-sm">
               <li>
                 <code className="bg-blue-100 px-2 py-1 rounded">
