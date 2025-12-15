@@ -59,7 +59,7 @@ export function getSystemAttestationService() {
 
   return {
     id: "#system-attestation",
-    type: "ZkProofSystemVersion",
+    type: "SystemAttestation",
     serviceEndpoint: commitUrl
   };
 }

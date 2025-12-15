@@ -127,7 +127,7 @@ After identity verification is complete, request a credential to be minted.
     "service": [
       {
         "id": "#system-attestation",
-        "type": "ZkProofSystemVersion",
+        "type": "SystemAttestation",
         "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
       }
     ],
@@ -220,7 +220,7 @@ The credential may include a `service` array with system attestation metadata:
 "service": [
   {
     "id": "#system-attestation",
-    "type": "ZkProofSystemVersion",
+    "type": "SystemAttestation",
     "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
   }
 ]
@@ -458,7 +458,7 @@ interface WalletCredentialStorage {
       // System attestation (optional) - links to git commit of issuing code
       service?: Array<{
         id: string; // "#system-attestation"
-        type: string; // "ZkProofSystemVersion"
+        type: string; // "SystemAttestation"
         serviceEndpoint: string; // GitHub commit URL
       }>;
       proof: {

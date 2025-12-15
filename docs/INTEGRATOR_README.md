@@ -252,7 +252,7 @@ Credentials issued after October 2025 may include a `service` array with system 
 "service": [
   {
     "id": "#system-attestation",
-    "type": "ZkProofSystemVersion",
+    "type": "SystemAttestation",
     "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
   }
 ]
@@ -274,7 +274,7 @@ const credential = credentials[0];
 
 // Check if system attestation is available
 if (credential.service) {
-  const attestation = credential.service.find(s => s.type === "ZkProofSystemVersion");
+  const attestation = credential.service.find(s => s.type === "SystemAttestation");
   if (attestation) {
     console.log("Issued by code version:", attestation.serviceEndpoint);
     // Optional: Fetch and review the code at that commit

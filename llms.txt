@@ -111,7 +111,7 @@ The optional `service` array provides transparency and auditability:
 "service": [
   {
     "id": "#system-attestation",
-    "type": "ZkProofSystemVersion",
+    "type": "SystemAttestation",
     "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
   }
 ]

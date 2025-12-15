@@ -21,13 +21,13 @@ export const CARDLESS_FIELDS = {
     structure: {
       systemAttestation: {
         id: "string - Service identifier (e.g., '#system-attestation')",
-        type: "string - Service type (e.g., 'ZkProofSystemVersion')",
+        type: "string - Service type (e.g., 'SystemAttestation')",
         serviceEndpoint: "string - GitHub commit URL for code audit"
       }
     },
     example: {
       id: "#system-attestation",
-      type: "ZkProofSystemVersion",
+      type: "SystemAttestation",
       serviceEndpoint: "https://github.com/owner/repo/commit/abc123def456"
     },
     optional: true,

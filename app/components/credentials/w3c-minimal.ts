@@ -21,7 +21,7 @@
  *
  * SERVICE (System Attestation):
  * The service array includes metadata about the system that issued the credential:
- * - ZkProofSystemVersion: Links to the specific git commit of the issuing code
+ * - SystemAttestation: Links to the specific git commit of the issuing code
  * - Provides auditability and transparency about which version generated the credential
  * - Allows verifiers to inspect the exact code used for credential generation
  *
@@ -91,7 +91,7 @@ const CardlessCredential = {
   service: [
     {
       id: "#system-attestation",
-      type: "ZkProofSystemVersion",
+      type: "SystemAttestation",
       serviceEndpoint: "https://github.com/REPO_OWNER/REPO_SLUG/commit/COMMIT_HASH_HERE"
     }
   ],
