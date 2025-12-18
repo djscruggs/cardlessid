@@ -18,9 +18,12 @@ const Home: React.FC = () => {
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
               Age verification that's{" "}
-              <strong className="text-logoblue">free, private, and works everywhere</strong>.
+              <strong className="text-logoblue">
+                free, private, and works everywhere
+              </strong>
+              .
             </p>
-            
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link to="/demo">
@@ -46,7 +49,7 @@ const Home: React.FC = () => {
               <div className="hidden md:block">
                 <img
                   src="/diagrams/diagram-full.png"
-                  className="max-w-5xl mx-auto rounded-4xl shadow-2xl"
+                  className="max-w-5xl mx-auto rounded-4xl shadow-2xl md:p-4 bg-white"
                   alt="Cardless ID verification process diagram"
                 />
               </div>
@@ -63,46 +66,102 @@ const Home: React.FC = () => {
               Why Cardless ID?
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="w-16 h-16 bg-logoblue rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Private</h3>
-              <p className="text-gray-600">Only requires birth date, no personal information stored</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Private
+              </h3>
+              <p className="text-gray-600">
+                Only requires birth date, no personal information stored
+              </p>
             </div>
-            
+
             <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="w-16 h-16 bg-logoblue rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Portable</h3>
-              <p className="text-gray-600">One-time verification works across <em>all</em> sites</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Portable
+              </h3>
+              <p className="text-gray-600">
+                One-time verification works across <em>all</em> sites
+              </p>
             </div>
-            
+
             <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="w-16 h-16 bg-logoblue rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure</h3>
-              <p className="text-gray-600">Crypto wallet-based verification with blockchain security</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Secure
+              </h3>
+              <p className="text-gray-600">
+                Crypto wallet-based verification with blockchain security
+              </p>
             </div>
-            
+
             <div className="text-center p-6 rounded-4xl bg-gray-50 hover:bg-gray-100 transition-colors">
               <div className="w-16 h-16 bg-logoblue rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Not for Profit</h3>
-              <p className="text-gray-600">Age verification should never be monetized</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Not for Profit
+              </h3>
+              <p className="text-gray-600">
+                Age verification should never be monetized
+              </p>
             </div>
           </div>
         </div>
@@ -115,7 +174,8 @@ const Home: React.FC = () => {
             Stay Updated
           </h2>
           <p className="text-xl text-gray-600 mb-8">
-            Get the latest updates on Cardless ID development and privacy-first age verification.
+            Get the latest updates on Cardless ID development and privacy-first
+            age verification.
           </p>
           <div className="bg-white rounded-4xl shadow-lg p-8">
             <iframe
@@ -150,7 +210,7 @@ const Carousel = () => {
     setCurrentSlide(slideIndex);
     const element = document.getElementById(`item${slideIndex + 1}`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      element.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   };
 
@@ -160,33 +220,73 @@ const Carousel = () => {
 
   return (
     <>
-      <div 
+      <div
         className="relative carousel carousel-center w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
         onWheel={handleWheel}
       >
         {/* Swipe hint overlay */}
         <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-between px-4">
           <div className="swipe-hint-left">
-            <svg className="w-8 h-8 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-8 h-8 text-gray-400 animate-pulse"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </div>
           <div className="swipe-hint-right">
-            <svg className="w-8 h-8 text-gray-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-8 h-8 text-gray-400 animate-pulse"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
         </div>
-        
+
         {/* Touch gesture hint */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-10">
           <div className="flex items-center space-x-2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-xs">
-            <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+            <svg
+              className="w-4 h-4 animate-bounce"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16l-4-4m0 0l4-4m-4 4h18"
+              />
             </svg>
             <span>Swipe</span>
-            <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            <svg
+              className="w-4 h-4 animate-bounce"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
             </svg>
           </div>
         </div>
@@ -201,9 +301,9 @@ const Carousel = () => {
 
         {/* The middle image */}
         <div id="item2" className="carousel-item w-full">
-          <img 
-            src="/diagrams/diagram2.png" 
-            className="w-full h-80 object-contain" 
+          <img
+            src="/diagrams/diagram2.png"
+            className="w-full h-80 object-contain"
             alt="Step 2: Verification details"
           />
         </div>
@@ -217,24 +317,24 @@ const Carousel = () => {
           />
         </div>
       </div>
-      
+
       {/* Carousel navigation dots */}
       <div className="flex justify-center w-full mt-4 space-x-2">
-        <button 
+        <button
           onClick={() => scrollToSlide(0)}
-          className={`btn btn-xs ${currentSlide === 0 ? 'btn-primary' : 'btn-outline'}`}
+          className={`btn btn-xs ${currentSlide === 0 ? "btn-primary" : "btn-outline"}`}
         >
           1
         </button>
-        <button 
+        <button
           onClick={() => scrollToSlide(1)}
-          className={`btn btn-xs ${currentSlide === 1 ? 'btn-primary' : 'btn-outline'}`}
+          className={`btn btn-xs ${currentSlide === 1 ? "btn-primary" : "btn-outline"}`}
         >
           2
         </button>
-        <button 
+        <button
           onClick={() => scrollToSlide(2)}
-          className={`btn btn-xs ${currentSlide === 2 ? 'btn-primary' : 'btn-outline'}`}
+          className={`btn btn-xs ${currentSlide === 2 ? "btn-primary" : "btn-outline"}`}
         >
           3
         </button>
