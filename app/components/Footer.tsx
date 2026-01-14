@@ -2,7 +2,7 @@ const Footer: React.FC = () => {
   return (
     <footer className="my-2 justify-center">
       <p className="text-sm text-center">
-        &copy; {new Date().getFullYear()} Cardless ID. All rights reserved.
+        &copy; 2025-{new Date().getFullYear()} Cardless ID. All rights reserved.
       </p>
       <div className="flex justify-center my-4 space-x-4">
         <a
