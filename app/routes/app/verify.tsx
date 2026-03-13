@@ -4,12 +4,14 @@
  */
 
 import { useState, useEffect } from "react";
-import { redirect, type ActionFunctionArgs } from "react-router";
+import { data, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData } from "react-router";
 import { IdPhotoCapture } from "~/components/verification/IdPhotoCapture";
 import { IdentityForm } from "~/components/verification/IdentityForm";
 import { SelfieCapture } from "~/components/verification/SelfieCapture";
 import { VerificationResult } from "~/components/verification/VerificationResult";
 import type { VerifiedIdentity } from "~/types/verification";
+import { isEEARequest, getCountryCode } from "~/utils/geo.server";
 
 type VerificationStep = "id-photo" | "confirm-data" | "selfie" | "result";
 
@@ -23,7 +25,45 @@ interface VerificationState {
   error?: string;
 }
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  if (isEEARequest(request)) {
+    const country = getCountryCode(request);
+    return data({ blocked: true, country }, { status: 451 });
+  }
+  return data({ blocked: false, country: getCountryCode(request) });
+}
+
 export default function CustomVerify() {
+  const { blocked } = useLoaderData<typeof loader>();
+
+  if (blocked) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <h1 className="text-2xl font-bold mb-4">Not Available in Your Region</h1>
+            <p className="text-gray-600 mb-4">
+              Cardless ID currently supports US identity documents only and is not
+              available to users in the EU or EEA.
+            </p>
+            <p className="text-gray-500 text-sm">
+              For more information, see our{" "}
+              <a
+                href="https://github.com/djscruggs/cardlessid/blob/main/docs/NON_US_DEPLOYMENT.md"
+                className="text-blue-600 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                deployment documentation
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const [state, setState] = useState<VerificationState>({
     step: "id-photo",
   });
