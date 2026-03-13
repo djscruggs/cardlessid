@@ -6,10 +6,15 @@ import type { ActionFunctionArgs } from 'react-router';
 import { getVerificationSession, updateVerificationSession } from '~/utils/verification.server';
 import { saveSelfiePhoto, deletePhoto } from '~/utils/temp-photo-storage.server';
 import { compareFaces, checkLiveness } from '~/utils/face-comparison.server';
+import { isEEARequest } from '~/utils/geo.server';
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  if (isEEARequest(request)) {
+    return Response.json({ error: 'Service not available in your region' }, { status: 451 });
   }
 
   let selfieUrl: string | null = null;
