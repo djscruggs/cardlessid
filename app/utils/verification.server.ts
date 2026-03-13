@@ -4,9 +4,10 @@
  */
 
 import { db } from "./firebase.server";
-import type { VerificationSession, VerificationStatus, VerificationProvider } from "~/types/verification";
+import type { VerificationSession, VerificationProvider } from "~/types/verification";
 
 const SESSION_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
+const DATA_RETENTION_MS = 48 * 60 * 60 * 1000; // 48 hours — GDPR retention limit
 
 /**
  * Create a new verification session
@@ -44,6 +45,12 @@ export async function getVerificationSession(
   }
 
   const session = snapshot.val() as VerificationSession;
+
+  // Delete and return null if past data retention period
+  if (Date.now() > session.createdAt + DATA_RETENTION_MS) {
+    await sessionRef.remove();
+    return null;
+  }
 
   // Check if expired
   if (Date.now() > session.expiresAt && session.status === "pending") {
@@ -196,4 +203,40 @@ export async function markSessionAssetTransferred(
     assetTransferred: true,
     transferredAt: Date.now(),
   });
+}
+
+/**
+ * Delete a verification session immediately
+ */
+export async function deleteVerificationSession(sessionId: string): Promise<void> {
+  const sessionRef = db.ref(`verificationSessions/${sessionId}`);
+  await sessionRef.remove();
+}
+
+/**
+ * Delete all verificationSessions older than the data retention period.
+ * Call this from a scheduled job (e.g. daily Cloud Function or cron) to
+ * ensure GDPR compliance independent of read-path cleanup.
+ * Returns the number of sessions deleted.
+ */
+export async function purgeExpiredVerificationSessions(): Promise<number> {
+  const sessionsRef = db.ref("verificationSessions");
+  const snapshot = await sessionsRef.get();
+
+  if (!snapshot.exists()) {
+    return 0;
+  }
+
+  const cutoff = Date.now() - DATA_RETENTION_MS;
+  const deletions: Promise<void>[] = [];
+
+  snapshot.forEach((child) => {
+    const session = child.val() as VerificationSession;
+    if (session.createdAt < cutoff) {
+      deletions.push(db.ref(`verificationSessions/${child.key}`).remove());
+    }
+  });
+
+  await Promise.all(deletions);
+  return deletions.length;
 }
