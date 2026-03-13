@@ -21,7 +21,9 @@ export interface LivenessCheckResult {
 
 const FACE_COMPARISON_PROVIDER = process.env.FACE_COMPARISON_PROVIDER || 'mock';
 const FACE_MATCH_THRESHOLD = parseFloat(process.env.AWS_REKOGNITION_THRESHOLD || '85') / 100;
-const AWS_REGION = process.env.AWS_REGION || 'us-east-1';
+// Default to eu-west-1 for GDPR compliance (EU users' biometric data stays in EEA).
+// Override via AWS_REGION env var if deploying exclusively to non-EU regions.
+const AWS_REGION = process.env.AWS_REGION || 'eu-west-1';
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 
