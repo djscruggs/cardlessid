@@ -23,6 +23,7 @@ export default [
       route("integration-guide", "routes/docs/integration-guide.tsx"),
       route("custom-verification-guide", "routes/docs/custom-verification-guide.tsx"),
       route("delegated-verification", "routes/docs/delegated-verification.tsx"),
+      route("privacy-architecture", "routes/docs/privacy-architecture.tsx"),
     ]),
   ]),
   ...prefix("api", [
