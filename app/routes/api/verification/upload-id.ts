@@ -10,10 +10,15 @@ import { checkDocumentFraud, checkDocumentFraudBothSides } from '~/utils/documen
 import { createVerificationSession, updateVerificationSession } from '~/utils/verification.server';
 import { saveIdPhoto, deletePhoto } from '~/utils/temp-photo-storage.server';
 import { generateDataHMAC, createVerificationToken } from '~/utils/data-integrity.server';
+import { isEEARequest } from '~/utils/geo.server';
 
 export async function action({ request }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
+  if (isEEARequest(request)) {
+    return Response.json({ error: 'Service not available in your region' }, { status: 451 });
   }
 
   let photoUrl: string | null = null;
