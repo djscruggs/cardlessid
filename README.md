@@ -18,6 +18,7 @@
 
 ## Documentation
 
+- [Deploying Outside the US](docs/NON_US_DEPLOYMENT.md "Non-US Deployment") — geo-restrictions, GDPR considerations, and what's needed for EU/EEA support
 - [Deep Linking Guide](docs/DEEP_LINKING.md "Deep Linking Guide")
 - [Firebase Admin Setup](docs/FIREBASE-ADMIN-SETUP.md "Firebase Admin Setup")
 - [Integrator README](docs/INTEGRATOR_README.md "Integrator README")
