@@ -132,7 +132,8 @@ Add the following to your `.env.local` file:
 
 ```bash
 # AWS Configuration for Rekognition and Textract
-AWS_REGION=us-east-1
+# Use eu-west-1 (Ireland) to keep EU users' biometric data within the EEA (GDPR Art. 44)
+AWS_REGION=eu-west-1
 AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
 AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 AWS_REKOGNITION_THRESHOLD=85
@@ -340,6 +341,45 @@ npm run dev
 - Add rate limiting
 - Set up AWS Budgets alerts
 - Monitor CloudWatch metrics
+
+---
+
+## GDPR Compliance
+
+### Data Processing Agreement
+
+AWS's standard [Data Processing Addendum (DPA)](https://aws.amazon.com/agreement/data-processing-addendum/) covers use of Rekognition and Textract as processors under GDPR Article 28. Accepting the AWS Customer Agreement constitutes acceptance of the DPA. No separate agreement is required.
+
+### What AWS Processes and Retains
+
+| Service | Data sent | AWS retention |
+|---------|-----------|---------------|
+| Rekognition `CompareFaces` | ID photo + selfie (base64 images) | **Not retained** — processed in-memory, deleted immediately |
+| Rekognition `DetectFaces` | Selfie (base64 image) | **Not retained** — processed in-memory, deleted immediately |
+| Textract `AnalyzeID` | ID photo (base64 image) | **Not retained** — processed in-memory, deleted immediately |
+
+AWS confirms in its documentation that images submitted to these APIs are not stored or used to improve models unless you explicitly opt in to AI services improvement.
+
+### International Transfer (Articles 44–49)
+
+Facial images and government ID photos constitute special category biometric data under GDPR Article 9. Sending them to AWS constitutes an international transfer to a third-country processor.
+
+**Lawful transfer mechanism:** AWS participates in the EU–US Data Privacy Framework (DPF), which provides an adequacy decision for transfers to certified US companies. AWS's certification covers all AWS services including Rekognition and Textract.
+
+**Region recommendation:** The default `AWS_REGION` is `eu-west-1` (Ireland) so that EU users' biometric data is processed within the EEA and never leaves EU jurisdiction. Override with `AWS_REGION=us-east-1` only if you are deploying exclusively for non-EU users.
+
+### Privacy Policy Disclosure
+
+Your privacy policy must disclose the following (adapt as needed):
+
+> *Identity verification uses AWS Rekognition and AWS Textract to extract data from your government-issued ID and to compare your selfie with your ID photo. Your images are transmitted to AWS for processing and are not retained by AWS after processing is complete. AWS acts as a data processor under a Data Processing Agreement. Images are processed in the EU (Ireland) by default.*
+
+### Checklist
+
+- [ ] Accept the AWS Customer Agreement (includes the DPA)
+- [ ] Set `AWS_REGION=eu-west-1` in production for EU users (default in code)
+- [ ] Add the privacy policy disclosure above to your public privacy policy
+- [ ] Reference this in your DPIA under "Third-party processors"
 
 ---
 
