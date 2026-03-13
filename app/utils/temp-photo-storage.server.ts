@@ -2,12 +2,17 @@
  * Temporary photo storage utilities for ID and selfie images
  * Photos are stored VERY briefly on disk during processing, then immediately deleted
  * All photos are deleted after processing completes (success or failure)
+ *
+ * Crash safety: a startup sweep + periodic sweep delete any orphaned files older
+ * than ORPHAN_MAX_AGE_MS that survived a crash before normal deletion ran.
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 
 const STORAGE_DIR = process.env.PHOTO_STORAGE_DIR || './storage/photos';
+const ORPHAN_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes
+const SWEEP_INTERVAL_MS = 5 * 60 * 1000;  // sweep every 5 minutes
 
 /**
  * Ensure storage directory exists
@@ -100,4 +105,48 @@ export async function deleteSessionPhotos(sessionId: string): Promise<void> {
   }
 }
 
+/**
+ * Delete all files in STORAGE_DIR older than ORPHAN_MAX_AGE_MS.
+ * Handles files left behind by a server crash before normal deletion ran.
+ * Returns the number of files deleted.
+ */
+export async function sweepOrphanedPhotos(): Promise<number> {
+  let deleted = 0;
+  try {
+    await ensureStorageDir();
+    const files = await fs.readdir(STORAGE_DIR);
+    const cutoff = Date.now() - ORPHAN_MAX_AGE_MS;
 
+    await Promise.all(
+      files.map(async (file) => {
+        const filepath = path.join(STORAGE_DIR, file);
+        try {
+          const stat = await fs.stat(filepath);
+          if (stat.mtimeMs < cutoff) {
+            await fs.unlink(filepath);
+            console.log(`[Photo Storage] Swept orphaned file: ${filepath}`);
+            deleted++;
+          }
+        } catch {
+          // file may have been deleted between readdir and stat — ignore
+        }
+      })
+    );
+  } catch (error) {
+    console.error('[Photo Storage] Error during orphan sweep:', error);
+  }
+  return deleted;
+}
+
+// ── Startup sweep + periodic background sweep ─────────────────────────────────
+// Runs automatically when this module is first imported on the server.
+// Cleans up any orphaned photos from a prior crash, then repeats on an interval.
+sweepOrphanedPhotos().then((n) => {
+  if (n > 0) console.log(`[Photo Storage] Startup sweep: deleted ${n} orphaned file(s)`);
+});
+
+setInterval(() => {
+  sweepOrphanedPhotos().catch((err) =>
+    console.error('[Photo Storage] Periodic sweep error:', err)
+  );
+}, SWEEP_INTERVAL_MS).unref(); // .unref() so the interval doesn't prevent process exit
