@@ -1,5 +1,4 @@
 import type { ActionFunctionArgs } from "react-router";
-import { saveVerification } from "~/utils/firebase.server";
 
 /**
  * Webhook endpoint for Veriff/Prove verification completion
@@ -35,10 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Missing or invalid verified status" }, { status: 400 });
     }
 
-    // Only save if verification was successful
     if (verified) {
-      await saveVerification(walletAddress, false); // credentialIssued will be set to true later
-
       return {
         success: true,
         message: "Verification recorded successfully",

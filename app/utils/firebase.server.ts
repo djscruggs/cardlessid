@@ -29,81 +29,12 @@ const db = app.database();
 export { db };
 
 // Types
-export interface Verification {
-  verifiedAt: number;
-  credentialIssued: boolean;
-  compositeHash?: string; // For duplicate detection
-}
-
 export interface Announcement {
   id: string;
   title: string;
   message: string;
   severity: "info" | "warning" | "critical";
   createdAt: number;
-}
-
-/**
- * Production verification storage
- * Path: /verifications/{walletAddress}
- */
-export async function saveVerification(
-  walletAddress: string,
-  credentialIssued: boolean = false
-): Promise<void> {
-  const verificationRef = db.ref(`verifications/${walletAddress}`);
-  const verification: Verification = {
-    verifiedAt: Date.now(),
-    credentialIssued,
-  };
-  await verificationRef.set(verification);
-}
-
-export async function getVerification(
-  walletAddress: string
-): Promise<Verification | null> {
-  const verificationRef = db.ref(`verifications/${walletAddress}`);
-  const snapshot = await verificationRef.get();
-  return snapshot.exists() ? snapshot.val() : null;
-}
-
-export async function updateCredentialIssued(
-  walletAddress: string,
-  compositeHash: string
-): Promise<void> {
-  const verificationRef = db.ref(`verifications/${walletAddress}`);
-  const snapshot = await verificationRef.get();
-
-  if (snapshot.exists()) {
-    const verification = snapshot.val();
-    verification.credentialIssued = true;
-    verification.compositeHash = compositeHash;
-    await verificationRef.set(verification);
-  }
-}
-
-/**
- * Check if a composite hash already exists (duplicate detection)
- */
-export async function checkDuplicateCredential(
-  compositeHash: string
-): Promise<boolean> {
-  const verificationsRef = db.ref("verifications");
-  const snapshot = await verificationsRef.get();
-
-  if (!snapshot.exists()) {
-    return false;
-  }
-
-  let isDuplicate = false;
-  snapshot.forEach((child) => {
-    const verification = child.val();
-    if (verification.compositeHash === compositeHash) {
-      isDuplicate = true;
-    }
-  });
-
-  return isDuplicate;
 }
 
 /**

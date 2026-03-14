@@ -52,9 +52,6 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   // Import server-only modules inside the action to prevent client bundling
-  const { saveVerification, updateCredentialIssued } = await import(
-    "~/utils/firebase.server"
-  );
   const { getPeraExplorerUrl } = await import("~/utils/algorand");
   const {
     createCredentialNFT,
@@ -577,11 +574,7 @@ export async function action({ request }: ActionFunctionArgs) {
       }
     }
 
-    // Save verification record with composite hash for duplicate detection (SKIP FOR DEMO)
     if (!isDemoMode) {
-      await saveVerification(walletAddress, true);
-      await updateCredentialIssued(walletAddress, compositeHash);
-
       // Mark verification session as consumed and store assetId for transfer validation
       await markSessionCredentialIssued(sessionId, walletAddress);
       await updateVerificationSession(sessionId, {
