@@ -113,6 +113,25 @@ Route files are named in lower case, but their components inside the file are ca
 **Scratchpad**
 When creating test scripts and working documents, always put them in /@scratchpad unless otherwise specified
 
+## Commit Message Format
+
+- **Commit messages follow ticket-prefix format with descriptive body explaining the 'why'.** Non-merge commit subjects use the pattern 'DJS-NN: lowercase imperative description'. The commit body explains the implementation approach, the rationale (often citing specific GDPR articles), and behavioral details. This provides traceability from Linear tickets to code and makes commit history self-documenting for compliance audits.
+  ```
+  // Good
+    DJS-16: block verification flow for EU/EEA users by IP geolocation
+    
+    Adds geo.server.ts with isEEARequest() using Vercel's x-vercel-ip-country
+    header (no API key needed). Loader in verify.tsx returns 451 and renders
+    a "not available in your region" message for EEA visitors before any
+    identity data is collected. No-op in local dev (header absent = allow).
+
+  // Bad
+    add geo blocking
+    
+    or:
+    
+    DJS-16: updated verify.tsx and added geo.server.ts
+  ```
 When importing functions do them at the top of the file instead of inline
 
 **DO**
@@ -165,6 +184,30 @@ Use `Response.json()` (Web Response API) for all API responses — not framework
 
 Page components that handle identity or biometric data must check `isEEARequest()` server-side in the React Router `loader`, returning `data({ blocked: true }, { status: 451 })`. The component renders a "Not Available in Your Region" UI when `blocked` is true, before any identity-collecting UI.
 
+## Graceful Degradation for Infrastructure Headers
+
+- **Graceful degradation for optional infrastructure headers.** When depending on infrastructure-provided headers (like Vercel's x-vercel-ip-country or Cloudflare's cf-ipcountry), always fall back gracefully when the header is absent. In local development, the header won't exist, so the function should return a safe default (e.g., 'allow' / false for geo-blocking). Chain multiple header sources with nullish coalescing for portability across hosting providers.
+  ```
+  // Good
+    export function getCountryCode(request: Request): string | null {
+      return (
+        request.headers.get('x-vercel-ip-country') ??
+        request.headers.get('cf-ipcountry') ??
+        null
+      );
+    }
+    export function isEEARequest(request: Request): boolean {
+      const country = getCountryCode(request);
+      if (!country) return false; // No header = allow (local dev)
+      return EEA_COUNTRY_CODES.has(country.toUpperCase());
+    }
+
+  // Bad
+    export function isEEARequest(request: Request): boolean {
+      const country = request.headers.get('x-vercel-ip-country')!;
+      return EEA_COUNTRY_CODES.has(country); // Crashes in local dev
+    }
+  ```
 **GDPR and Data Handling**
 
 - Define all data retention durations as named constants (e.g., `DATA_RETENTION_MS`, `SESSION_EXPIRY_MS`, `ORPHAN_MAX_AGE_MS`) at the top of the module with a comment explaining the GDPR rationale.
@@ -187,6 +230,26 @@ try {
   return Response.json({ success: false }, { status: 500 });
 }
 ```
+
+- **Return count of items affected from cleanup/purge functions.** Batch cleanup and purge functions return the number of records or files deleted as a numeric count, rather than returning void or boolean. This enables logging of sweep results and monitoring of data retention effectiveness without requiring callers to implement their own counting.
+  ```
+  // Good
+    export async function purgeExpiredSessions(): Promise<number> {
+      // ... delete logic ...
+      await Promise.all(deletions);
+      return deletions.length;
+    }
+    // Caller:
+    const n = await purgeExpiredSessions();
+    if (n > 0) console.log(`Purged ${n} session(s)`);
+
+  // Bad
+    export async function purgeExpiredSessions(): Promise<void> {
+      // ... delete logic ...
+      await Promise.all(deletions);
+      // Caller has no idea how many were purged
+    }
+  ```
 
 **Validation Functions**
 
