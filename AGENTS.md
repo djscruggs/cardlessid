@@ -6,7 +6,7 @@ This is a web site that issues a lightweight decentralize identity credential. A
 
 **Project Goals:**
 
-The goal is to use a third party tool still TBD to verify someone’s identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
+The goal is to use a third party tool still TBD to verify someone's identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
 
 **Technology Stack**
 
@@ -231,3 +231,47 @@ Use `console.log`/`warn`/`error` with a bracketed module prefix: `[Photo Storage
 console.log('[Photo Storage] Deleted:', filepath);
 console.error('[Rekognition] Face comparison error:', error);
 ```
+
+## Defense-in-Depth Geo-Blocking
+
+- **Defense-in-depth: apply geo-blocking at both UI loader and API action layers.** Geo-restriction checks (isEEARequest) are applied redundantly at both the page loader level (returning a blocked UI) and at every downstream API endpoint that handles sensitive data. This prevents bypassing the UI block via direct API calls. The commit message explicitly calls this 'defense-in-depth'. Every route or endpoint that touches identity/biometric data must independently enforce the geo-block rather than relying on the UI layer alone.
+  ```
+  // Good
+    // In verify.tsx loader:
+    if (isEEARequest(request)) return data({ blocked: true }, { status: 451 });
+    
+    // AND in api/verification/start.ts action:
+    if (isEEARequest(request)) return Response.json({ error: 'Service not available in your region' }, { status: 451 });
+
+  // Bad
+    // Only blocking in the UI loader, assuming API endpoints are safe
+    export async function loader({ request }) {
+      if (isEEARequest(request)) return data({ blocked: true }, { status: 451 });
+    }
+    // api/verification/start.ts has NO geo-block check
+  ```
+
+- **Server-side early return for blocked states before rendering any identity-collecting UI.** When a page loader detects a blocked condition (geo-restriction, expired session, etc.), the component renders a dedicated blocked UI as an early return BEFORE any stateful hooks or interactive UI. This ensures no identity-collecting widgets, camera components, or form inputs are ever mounted for blocked users. The blocked check goes at the very top of the component body, before useState calls.
+  ```
+  // Good
+    export default function CustomVerify() {
+      const { blocked } = useLoaderData<typeof loader>();
+      if (blocked) {
+        return (
+          <div className="text-center">
+            <h1>Not Available in Your Region</h1>
+            <p>Cardless ID is not available to users in the EU or EEA.</p>
+          </div>
+        );
+      }
+      const [state, setState] = useState({ step: 'id-photo' });
+      // ...rest of component
+
+  // Bad
+    export default function CustomVerify() {
+      const { blocked } = useLoaderData<typeof loader>();
+      const [state, setState] = useState({ step: 'id-photo' });
+      // Camera/form mounts before blocked check
+      if (blocked) return <BlockedMessage />;
+      // ...
+  ```
