@@ -15,3 +15,6 @@ google-credentials.json
 # Claude Code
 .claude/*
 @scratchpad
+
+# FastEmbed model cache
+.fastembed_cache/

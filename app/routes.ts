@@ -24,6 +24,7 @@ export default [
       route("custom-verification-guide", "routes/docs/custom-verification-guide.tsx"),
       route("delegated-verification", "routes/docs/delegated-verification.tsx"),
       route("privacy-architecture", "routes/docs/privacy-architecture.tsx"),
+      route("smart-contracts", "routes/docs/smart-contracts.tsx"),
     ]),
   ]),
   ...prefix("api", [

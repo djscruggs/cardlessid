@@ -307,6 +307,10 @@ See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for full integration 
 - Syntax-highlighted code display for documentation
 - Props: `code: string`, `language: string`
 
+**MermaidDiagram** - [app/components/MermaidDiagram.tsx](app/components/MermaidDiagram.tsx)
+- Renders Mermaid diagram strings as SVG (client-side only, dynamic import)
+- Props: `chart: string`, `className?: string`
+
 ## Utility Functions
 
 ### Verification Utils
@@ -425,7 +429,8 @@ See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for full integration 
 - `/docs/integration-guide` - [app/routes/docs/integration-guide.tsx](app/routes/docs/integration-guide.tsx) - Integration guide
 - `/docs/credential-schema` - [app/routes/docs/credential-schema.tsx](app/routes/docs/credential-schema.tsx) - Credential schema docs
 - `/docs/custom-verification-guide` - [app/routes/docs/custom-verification-guide.tsx](app/routes/docs/custom-verification-guide.tsx) - Custom verification
-- `/docs/delegated-verification` - [app/routes/docs/delegated-verification.tsx](app/routes/docs/delegated-verification.tsx) - Delegated verification
+- `/docs/delegated-verification` - [app/routes/docs/delegated-verification.tsx](app/routes/docs/delegated-verification.tsx) - Delegated verification: API reference, request/response fields, error codes, and code examples for trusted issuers (banks, DMVs, etc.)
+- `/docs/smart-contracts` - [app/routes/docs/smart-contracts.tsx](app/routes/docs/smart-contracts.tsx) - Smart contract architecture, Algorand ASA credential NFTs, issuance costs, and portability to other chains
 
 ### App Pages
 
@@ -479,7 +484,7 @@ All API routes return JSON responses. See [API Endpoints](#api-endpoints) sectio
 - `GET /api/announcements` - [app/routes/api/announcements.ts](app/routes/api/announcements.ts) - System announcements
 - `POST /api/verify-worldcoin` - [app/routes/api/verify-worldcoin.ts](app/routes/api/verify-worldcoin.ts) - Worldcoin verification
 - `POST /api/verify-webhook` - [app/routes/api/verify-webhook.ts](app/routes/api/verify-webhook.ts) - Verification webhook
-- `POST /api/delegated-verification/issue` - [app/routes/api/delegated-verification/issue.ts](app/routes/api/delegated-verification/issue.ts)
+- `POST /api/delegated-verification/issue` - [app/routes/api/delegated-verification/issue.ts](app/routes/api/delegated-verification/issue.ts) - Issue credential to a wallet on behalf of a trusted issuer; API key in request body; compositeHash uses firstName+lastName+dateOfBirth (no middleName)
 
 **Credential V1 (legacy):**
 - `GET /credentials/v1` - [app/routes/credentials/v1.ts](app/routes/credentials/v1.ts)
@@ -766,6 +771,7 @@ For mobile app developers:
 - **Integration:** [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md)
 - **Custom Verification:** [docs/CUSTOM_VERIFICATION.md](docs/CUSTOM_VERIFICATION.md)
 - **Delegated Verification:** [docs/DELEGATED_VERIFICATION.md](docs/DELEGATED_VERIFICATION.md)
+- **Smart Contract Architecture:** [app/routes/docs/smart-contracts.tsx](/docs/smart-contracts) - Algorand integration, NFT credential issuance, costs, and chain portability
 - **Deep Linking:** [docs/DEEP_LINKING.md](docs/DEEP_LINKING.md)
 - **Firebase Setup:** [docs/FIREBASE-ADMIN-SETUP.md](docs/FIREBASE-ADMIN-SETUP.md)
 - **Mobile Testing:** [docs/MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md)
@@ -875,5 +881,5 @@ See [LICENSE.md](LICENSE.md) for details.
 - **Mobile Wallet:** https://github.com/djscruggs/cardless-mobile
 - **Website:** https://cardlessid.org (assumed - update if different)
 
-**Last Updated:** 2025-01-15
+**Last Updated:** 2026-04-14
 **Version:** 1.0.0

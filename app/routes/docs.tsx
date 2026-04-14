@@ -52,9 +52,6 @@ export default function DocsIndex() {
               >
                 Custom Verification Provider Guide
               </Link>
-              <span className="ml-2 text-xs bg-purple-200 text-purple-800 px-2 py-1 rounded">
-                NEW
-              </span>
             </h3>
             <p className="text-gray-600">
               Build custom identity verification flows for Cardless ID. Learn
@@ -72,9 +69,6 @@ export default function DocsIndex() {
               >
                 Delegated Verification Guide
               </Link>
-              <span className="ml-2 text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
-                NEW
-              </span>
             </h3>
             <p className="text-gray-600">
               For trusted issuers (banks, DMVs, universities, employers,
@@ -115,6 +109,26 @@ export default function DocsIndex() {
               How Cardless ID collects, processes, and protects your identity data. Covers
               data retention timelines, third-party processors, zero-knowledge credential
               design, and how to exercise your privacy rights.
+            </p>
+          </div>
+
+          <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-6 hover:bg-indigo-100 transition-colors">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Link
+                to="/docs/smart-contracts"
+                className="text-indigo-600 hover:text-indigo-800"
+              >
+                Smart Contract Architecture
+              </Link>
+              <span className="ml-2 text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded">
+                NEW
+              </span>
+            </h3>
+            <p className="text-gray-600">
+              How Cardless ID anchors identity credentials to the Algorand
+              blockchain using an on-chain issuer registry and non-transferable
+              NFTs. Covers the issuance flow, associated costs, and how the
+              architecture can be ported to other blockchains.
             </p>
           </div>
 

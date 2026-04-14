@@ -188,7 +188,7 @@ export async function loader() {
     {
       error: "Method not allowed",
       message: "Use POST to issue credentials via delegated verification",
-      documentation: "/docs/custom-verification-guide",
+      documentation: "/docs/delegated-verification",
     },
     { status: 405 }
   );

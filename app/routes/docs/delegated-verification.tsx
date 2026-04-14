@@ -1,6 +1,29 @@
 import type { MetaFunction } from "react-router";
 import { Link } from "react-router";
 import CodeBlock from "~/components/CodeBlock";
+import MermaidDiagram from "~/components/MermaidDiagram";
+
+const FLOW_DIAGRAM = `
+sequenceDiagram
+  participant Issuer as Trusted Issuer (Bank/DMV)
+  participant Cardless as Cardless ID API
+  participant Algorand
+
+  Issuer->>Cardless: POST /api/delegated-verification/issue
+  Note right of Issuer: API key + wallet address + identity
+
+  Cardless->>Cardless: Validate API key
+  Cardless->>Cardless: Validate identity fields
+  Cardless->>Cardless: Generate compositeHash
+  Cardless->>Algorand: Check for duplicate credential
+  Algorand-->>Cardless: No duplicate found
+  Cardless->>Cardless: Sign W3C Verifiable Credential
+  Cardless->>Algorand: Mint & transfer credential NFT
+  Algorand-->>Cardless: assetId + txId
+
+  Cardless-->>Issuer: credentialId + assetId + txId
+  Note left of Issuer: Notify user their Cardless ID is ready
+`;
 
 export const meta: MetaFunction = () => {
   return [
@@ -95,29 +118,7 @@ export default function DelegatedVerificationGuide() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
             How It Works
           </h3>
-          <div className="bg-white p-6 rounded border border-gray-300 font-mono text-sm overflow-x-auto">
-            <pre>{`┌─────────────┐                           ┌──────────────┐
-│   Bank/DMV  │                           │  Cardless ID │
-│   (Issuer)  │                           │   Platform   │
-└─────────────┘                           └──────────────┘
-       │                                          │
-       │                                          │
-       │  1. POST /api/delegated-verification/issue
-       │     - API Key                            │
-       │     - User's wallet address              │
-       │     - Identity data                      │
-       │─────────────────────────────────────────>│
-       │                                          │
-       │                2. Verify API key         │
-       │                3. Generate credential    │
-       │                4. Store on Algorand      │
-       │                                          │
-       │  5. Return credential ID                 │
-       │<─────────────────────────────────────────│
-       │                                          │
-       │  6. Notify user                          │
-       │     "Your Cardless ID is ready!"         │`}</pre>
-          </div>
+          <MermaidDiagram chart={FLOW_DIAGRAM} className="flex justify-center" />
         </div>
       </section>
 
@@ -265,6 +266,12 @@ export default function DelegatedVerificationGuide() {
           <h3 className="text-2xl font-semibold text-gray-900 mb-3">
             Request Body
           </h3>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-3">
+            <p className="text-yellow-800 text-sm">
+              <strong>Note:</strong> The API key is passed in the request body,
+              not in an <code>Authorization</code> header.
+            </p>
+          </div>
           <CodeBlock language="json">{`{
   "apiKey": "your_api_key_here_not_a_real_key_example",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
@@ -314,7 +321,7 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    Your API key from Cardless ID
+                    Your API key from Cardless ID (passed in body, not header)
                   </td>
                 </tr>
                 <tr>
@@ -328,7 +335,7 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    User's Algorand wallet address (58 characters)
+                    User's Algorand wallet address (58-character base32 string)
                   </td>
                 </tr>
                 <tr>
@@ -342,21 +349,7 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    User's middle name
-                  </td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
-                    <code>identity.middleName</code>
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
-                    string
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
-                    Yes
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
-                    User's middle name
+                    User's first name
                   </td>
                 </tr>
                 <tr>
@@ -384,7 +377,7 @@ export default function DelegatedVerificationGuide() {
                     Yes
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    Date of birth (YYYY-MM-DD format)
+                    Date of birth in <code>YYYY-MM-DD</code> format
                   </td>
                 </tr>
                 <tr>
@@ -412,7 +405,36 @@ export default function DelegatedVerificationGuide() {
                     No
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    drivers_license, passport, or government_id
+                    <code>drivers_license</code>, <code>passport</code>, or{" "}
+                    <code>government_id</code> (default: <code>government_id</code>)
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.issuingCountry</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    No
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    ISO country code of issuing country (default: <code>US</code>)
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <code>identity.issuingState</code>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    string
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    No
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    2-letter US state code (e.g. <code>CA</code>)
                   </td>
                 </tr>
               </tbody>
@@ -426,7 +448,7 @@ export default function DelegatedVerificationGuide() {
           </h3>
           <CodeBlock language="json">{`{
   "success": true,
-  "credentialId": "cred_1234567890_abc123",
+  "credentialId": "urn:uuid:f47ac10b-58cc-4372-a567-0e02b2c3d479",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
   "compositeHash": "a1b2c3d4e5f6...",
   "sessionId": "session_1234567890",
@@ -435,6 +457,11 @@ export default function DelegatedVerificationGuide() {
     "type": "bank"
   }
 }`}</CodeBlock>
+          <p className="text-sm text-gray-600 mt-2">
+            The <code>credentialId</code> is a <code>urn:uuid:…</code> string
+            — the W3C Verifiable Credential identifier stored in both the
+            off-chain credential and the on-chain NFT metadata.
+          </p>
         </div>
 
         <div className="mb-6">
@@ -443,20 +470,22 @@ export default function DelegatedVerificationGuide() {
           </h3>
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
-                401 Unauthorized
-              </h4>
-              <CodeBlock language="json">{`{
-  "error": "Invalid API key"
-}`}</CodeBlock>
+              <h4 className="font-semibold text-gray-900 mb-2">401 Unauthorized</h4>
+              <CodeBlock language="json">{`{ "error": "Invalid API key" }`}</CodeBlock>
             </div>
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
-                400 Bad Request
-              </h4>
-              <CodeBlock language="json">{`{
-  "error": "Invalid Algorand wallet address. Must be 58 characters."
-}`}</CodeBlock>
+              <h4 className="font-semibold text-gray-900 mb-2">400 Bad Request</h4>
+              <CodeBlock language="json">{`{ "error": "Invalid Algorand wallet address. Must be 58 characters." }
+{ "error": "Missing required identity fields: firstName, lastName, dateOfBirth" }
+{ "error": "dateOfBirth must be in YYYY-MM-DD format" }`}</CodeBlock>
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">500 Internal Server Error</h4>
+              <CodeBlock language="json">{`{ "error": "A credential with this identity has already been issued" }`}</CodeBlock>
+              <p className="text-sm text-gray-600 mt-1">
+                Returned in production when a credential with the same
+                compositeHash already exists on-chain.
+              </p>
             </div>
           </div>
         </div>
@@ -672,6 +701,12 @@ issue_cardless_id(
           Related Documentation
         </h2>
         <div className="space-y-2">
+          <Link
+            to="/docs/smart-contracts"
+            className="block text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            → Smart Contract Architecture (issuer registry, NFT costs, blockchain details)
+          </Link>
           <Link
             to="/docs/custom-verification-guide"
             className="block text-blue-600 hover:text-blue-800 hover:underline"
