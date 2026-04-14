@@ -179,7 +179,7 @@ export default function PrivacyArchitecture() {
           The only data stored permanently is on the Algorand blockchain:
         </p>
         <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
-          <li>Your <strong>Algorand wallet address</strong> (chosen by you)</li>
+          <li>Your <strong>wallet address</strong> (issued at the time of verification)</li>
           <li>A <strong>cryptographic hash</strong> of your identity data (not reversible to PII)</li>
           <li>The <strong>credential issuance date</strong></li>
         </ul>
