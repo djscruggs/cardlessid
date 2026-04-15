@@ -431,6 +431,7 @@ See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for full integration 
 - `/docs/custom-verification-guide` - [app/routes/docs/custom-verification-guide.tsx](app/routes/docs/custom-verification-guide.tsx) - Custom verification
 - `/docs/delegated-verification` - [app/routes/docs/delegated-verification.tsx](app/routes/docs/delegated-verification.tsx) - Delegated verification: API reference, request/response fields, error codes, and code examples for trusted issuers (banks, DMVs, etc.)
 - `/docs/smart-contracts` - [app/routes/docs/smart-contracts.tsx](app/routes/docs/smart-contracts.tsx) - Smart contract architecture, Algorand ASA credential NFTs, issuance costs, and portability to other chains
+- `/docs/verification-protocol` - [app/routes/docs/verification-protocol.tsx](app/routes/docs/verification-protocol.tsx) - How the stateless nonce-based verification protocol works for integrators, Algorand ed25519 proof signing, API reference (/api/v/*), and SIOP-OID4VP standards compatibility
 
 ### App Pages
 
@@ -772,6 +773,7 @@ For mobile app developers:
 - **Custom Verification:** [docs/CUSTOM_VERIFICATION.md](docs/CUSTOM_VERIFICATION.md)
 - **Delegated Verification:** [docs/DELEGATED_VERIFICATION.md](docs/DELEGATED_VERIFICATION.md)
 - **Smart Contract Architecture:** [app/routes/docs/smart-contracts.tsx](/docs/smart-contracts) - Algorand integration, NFT credential issuance, costs, and chain portability
+- **Verification Protocol:** [app/routes/docs/verification-protocol.tsx](/docs/verification-protocol) - Stateless nonce-based flow, Algorand ed25519 proof signing, /api/v/* API reference, and SIOP-OID4VP standards compatibility
 - **Deep Linking:** [docs/DEEP_LINKING.md](docs/DEEP_LINKING.md)
 - **Firebase Setup:** [docs/FIREBASE-ADMIN-SETUP.md](docs/FIREBASE-ADMIN-SETUP.md)
 - **Mobile Testing:** [docs/MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md)
