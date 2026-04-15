@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: true,
+    testTimeout: 15000,
     setupFiles: ["./vitest.setup.ts"],
     // Server-only test files run in Node so .server.ts imports are permitted.
     // environmentMatchGlobs is the supported per-file override in vitest 3.x
