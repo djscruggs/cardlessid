@@ -42,7 +42,7 @@ const DocsLayout: React.FC = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/app/age-verify" className="hover:underline">
+                    <Link to="/demo" className="hover:underline">
                       Try Live Demo
                     </Link>
                   </li>
