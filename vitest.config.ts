@@ -18,6 +18,7 @@ export default defineConfig({
       ["app/__tests__/proof-cache.test.ts", "node"],
       ["app/__tests__/algorand-verify.test.ts", "node"],
       ["app/__tests__/v-endpoints.test.ts", "node"],
+      ["app/__tests__/browser-sdk-verify.test.ts", "node"],
     ],
     exclude: [
       "**/node_modules/**",

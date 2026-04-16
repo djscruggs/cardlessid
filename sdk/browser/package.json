@@ -1,0 +1,43 @@
+{
+  "name": "@cardlessid/verify",
+  "version": "0.1.0",
+  "description": "Cardless ID age verification SDK for browsers and Node.js",
+  "license": "MIT",
+  "author": "Cardless ID",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djscruggs/cardlessid"
+  },
+  "keywords": [
+    "age-verification",
+    "identity",
+    "algorand",
+    "decentralized",
+    "blockchain",
+    "privacy"
+  ],
+  "type": "module",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "browser": "./dist/iife/cardlessid-verify.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "*",
+    "tweetnacl": "*",
+    "qrcode-generator": "*"
+  }
+}
