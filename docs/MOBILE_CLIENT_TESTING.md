@@ -201,3 +201,27 @@ The mobile app implements all the steps above and can be used as a reference or 
 - In production, you'd replace the mock provider `/verify` call with the real provider's SDK (e.g., `IdenfyReactNative.start()`)
 - The polling logic remains the same for production
 - The mock provider helps you test edge cases (rejections, delays, timeouts) that are hard to reproduce with real ID verification
+
+## Testing Anti-Spoofing
+
+The protocol has two layers preventing a rogue wallet from faking a verification:
+
+**Layer 1 — signature check**: `verifyProof(proof)` is synchronous and checks the ed25519 signature locally. To test it, sign a proof with a different key than the claimed `walletAddress` — it should fail immediately without hitting the network.
+
+**Layer 2 — on-chain credential check**: `verifyProofOnChain(proof)` calls `GET /api/wallet/status/:address` to confirm the wallet holds a credential NFT on Algorand. In testing:
+
+- A wallet address that completed the mock KYC flow and received an NFT will pass both layers
+- A freshly generated `algosdk.generateAccount()` address will pass Layer 1 but fail Layer 2 (no credential NFT)
+
+```typescript
+import { verifyProof, verifyProofOnChain } from '@cardlessid/verify';
+
+// Layer 1 only — fast, no network
+const local = verifyProof(proof);
+
+// Layer 1 + Layer 2 — recommended for production
+const full = await verifyProofOnChain(proof);
+// full.valid is only true if wallet holds a credential NFT on Algorand
+```
+
+See [MOBILE_CLIENT_INTEGRATION.md](./MOBILE_CLIENT_INTEGRATION.md#anti-spoofing-architecture) for the full attack/defense breakdown.

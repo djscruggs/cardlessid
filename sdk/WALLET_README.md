@@ -205,6 +205,53 @@ Submit a signed proof. No API key required.
 
 ---
 
+## Anti-Spoofing Architecture
+
+The protocol uses two independent layers to prevent a rogue wallet from faking a verification:
+
+### Layer 1 — Cryptographic signature
+
+Every proof is ed25519-signed with the wallet's Algorand private key. The signature covers the full payload including `nonce`, `walletAddress`, `minAge`, `meetsRequirement`, and `timestamp`. Any tampering (e.g. flipping `meetsRequirement` after signing) invalidates the signature.
+
+The server verifies this before storing the proof. The integrator's SDK (`verifyProof`) verifies it again client-side when the proof is picked up.
+
+**What this prevents:** A rogue wallet cannot forge a proof for a wallet address it doesn't control, and cannot tamper with the payload after signing.
+
+**What this does NOT prevent:** A wallet that controls its own private key can sign `meetsRequirement: true` regardless of whether it holds a real credential.
+
+### Layer 2 — On-chain credential check
+
+The integrator's `verifyProofOnChain()` function calls `GET /api/wallet/status/:address` after the signature check. This queries the Algorand blockchain (via Algonode indexer) to confirm the wallet holds a valid Cardless ID credential NFT — an ARC-69 NFT issued only after identity verification via KYC.
+
+```typescript
+import { verifyProofOnChain } from '@cardlessid/verify';
+
+const result = await verifyProofOnChain(proof);
+// result.valid is only true if:
+//   1. Signature is valid
+//   2. Timestamp is fresh (< 5 min)
+//   3. Wallet holds a credential NFT on Algorand
+if (result.valid && result.payload.meetsRequirement) {
+  grantAccess();
+}
+```
+
+**What this prevents:** A wallet that generates a fresh keypair and signs `meetsRequirement: true` — it won't have a credential NFT, so the check fails.
+
+### Why both layers together are robust
+
+| Attack | Layer 1 (sig) | Layer 2 (chain) |
+|--------|--------------|-----------------|
+| Tamper payload after signing | Blocks | — |
+| Sign with wrong key for claimed address | Blocks | — |
+| Sign `meetsRequirement: true` with own key, no credential | Passes | Blocks |
+| Replay a captured proof to a different site | Blocks (nonce mismatch) | — |
+| Replay the same proof twice | Blocked by nonce TTL (5 min) | — |
+
+The credential NFT is permanent and public on Algorand — there is no way to fake ownership without controlling the wallet's private key AND having passed real KYC.
+
+---
+
 ## Requirements
 
 Your wallet app must:

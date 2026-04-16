@@ -489,6 +489,50 @@ Secure Storage
 
 ---
 
+## Anti-Spoofing Architecture
+
+The protocol uses two independent layers to prevent a rogue wallet from faking a verification.
+
+### Layer 1 — Cryptographic signature
+
+Every proof is ed25519-signed with the wallet's Algorand private key. The signature covers the full payload including `nonce`, `walletAddress`, `minAge`, `meetsRequirement`, and `timestamp`. Any tampering (e.g. flipping `meetsRequirement` after signing) invalidates the signature.
+
+The server verifies this before storing the proof. The integrator's SDK (`verifyProof`) verifies it again when the proof is picked up.
+
+**What this prevents:** A rogue wallet cannot forge a proof for an address it doesn't control, and cannot tamper with the payload after signing.
+
+**What this does NOT prevent:** A wallet that controls its own private key can sign `meetsRequirement: true` regardless of whether it holds a real credential.
+
+### Layer 2 — On-chain credential check
+
+The integrator's `verifyProofOnChain()` function calls `GET /api/wallet/status/:address` after the signature check. This queries the Algorand blockchain to confirm the wallet holds a valid Cardless ID credential NFT — an ARC-69 NFT issued only after real KYC.
+
+```typescript
+import { verifyProofOnChain } from '@cardlessid/verify';
+
+const result = await verifyProofOnChain(proof);
+// valid only if: signature valid + timestamp fresh + wallet holds credential NFT
+if (result.valid && result.payload.meetsRequirement) {
+  grantAccess();
+}
+```
+
+**What this prevents:** A wallet that generates a fresh keypair and signs `meetsRequirement: true` — it won't have a credential NFT, so the check fails.
+
+### Attack/defense summary
+
+| Attack | Layer 1 (signature) | Layer 2 (on-chain) |
+|--------|--------------------|--------------------|
+| Tamper payload after signing | Blocks | — |
+| Sign with wrong key for claimed address | Blocks | — |
+| Sign `meetsRequirement: true` with own key, no credential | Passes | Blocks |
+| Replay a proof to a different site | Blocks (nonce mismatch) | — |
+| Replay the same proof twice | Blocked by nonce TTL (5 min) | — |
+
+The credential NFT is permanent and public on Algorand — there is no way to fake ownership without controlling the wallet's private key AND having passed real KYC.
+
+---
+
 ## Terms of Service & Penalties
 
 ### Your Responsibilities
