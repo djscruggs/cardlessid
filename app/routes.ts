@@ -25,6 +25,7 @@ export default [
       route("delegated-verification", "routes/docs/delegated-verification.tsx"),
       route("privacy-architecture", "routes/docs/privacy-architecture.tsx"),
       route("smart-contracts", "routes/docs/smart-contracts.tsx"),
+      route("verification-protocol", "routes/docs/verification-protocol.tsx"),
     ]),
   ]),
   ...prefix("api", [
@@ -43,31 +44,16 @@ export default [
       route("upload-selfie", "routes/api/verification/upload-selfie.ts"),
       route("session/:sessionId", "routes/api/verification/session.$sessionId.ts"),
     ]),
-    ...prefix("age-verify", [
-      route("create", "routes/api/age-verify/create.ts"),
-      route("respond", "routes/api/age-verify/respond.ts"),
-      route(
-        "session/:sessionId",
-        "routes/api/age-verify/session.$sessionId.ts"
-      ),
-    ]),
-    ...prefix("integrator/challenge", [
-      route("create", "routes/api/integrator/challenge/create.ts"),
-      route("respond", "routes/api/integrator/challenge/respond.ts"),
-      route(
-        "verify/:challengeId",
-        "routes/api/integrator/challenge/verify.$challengeId.ts"
-      ),
-      route(
-        "details/:challengeId",
-        "routes/api/integrator/challenge/details.$challengeId.ts"
-      ),
-    ]),
-    ...prefix("wallet", [
+...prefix("wallet", [
       route("status/:address", "routes/api/wallet/status.$address.ts"),
     ]),
     ...prefix("delegated-verification", [
       route("issue", "routes/api/delegated-verification/issue.ts"),
+    ]),
+    ...prefix("v", [
+      route("nonce", "routes/api/v/nonce.ts"),
+      route("submit", "routes/api/v/submit.ts"),
+      route("result/:nonce", "routes/api/v/result.$nonce.ts"),
     ]),
   ]),
   ...prefix("app", [
@@ -77,10 +63,7 @@ export default [
     route("verify/:txId", "routes/app/verify.$txId.tsx"),
     route("testnet-explorer", "routes/app/testnet-explorer.tsx"),
     route("mock-verification", "routes/app/mock-verification.tsx"),
-    route("age-verify", "routes/app/age-verify.tsx"),
-    route("age-verify-success", "routes/app/age-verify-success.tsx"),
-    route("age-verify-rejected", "routes/app/age-verify-rejected.tsx"),
-    route("wallet-verify", "routes/app/wallet-verify.tsx"),
+route("wallet-verify", "routes/app/wallet-verify.tsx"),
     route("wallet-verify-success", "routes/app/wallet-verify-success.tsx"),
     route("wallet-status", "routes/app/wallet-status.tsx"),
     route("wallet-status/:address", "routes/app/wallet-status.tsx", {

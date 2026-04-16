@@ -112,6 +112,25 @@ export default function DocsIndex() {
             </p>
           </div>
 
+          <div className="border border-teal-200 bg-teal-50 rounded-lg p-6 hover:bg-teal-100 transition-colors">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <Link
+                to="/docs/verification-protocol"
+                className="text-teal-600 hover:text-teal-800"
+              >
+                Verification Protocol
+              </Link>
+              <span className="ml-2 text-xs bg-teal-200 text-teal-800 px-2 py-1 rounded">
+                NEW
+              </span>
+            </h3>
+            <p className="text-gray-600">
+              How the challenge/response protocol works for integrator sites,
+              the role of the blockchain, and how the architecture scales to
+              millions of verifications without blockchain bottlenecks.
+            </p>
+          </div>
+
           <div className="border border-indigo-200 bg-indigo-50 rounded-lg p-6 hover:bg-indigo-100 transition-colors">
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               <Link
@@ -120,9 +139,6 @@ export default function DocsIndex() {
               >
                 Smart Contract Architecture
               </Link>
-              <span className="ml-2 text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded">
-                NEW
-              </span>
             </h3>
             <p className="text-gray-600">
               How Cardless ID anchors identity credentials to the Algorand
@@ -198,17 +214,22 @@ export default function DocsIndex() {
 
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
             <h3 className="text-lg font-medium text-purple-900 mb-2">
-              Integrator API
+              Verification API
             </h3>
             <ul className="space-y-1 text-purple-800 text-sm">
               <li>
                 <code className="bg-purple-100 px-2 py-1 rounded">
-                  POST /api/integrator/challenge/create
+                  GET /api/v/nonce
                 </code>
               </li>
               <li>
                 <code className="bg-purple-100 px-2 py-1 rounded">
-                  GET /api/integrator/challenge/verify/:id
+                  POST /api/v/submit
+                </code>
+              </li>
+              <li>
+                <code className="bg-purple-100 px-2 py-1 rounded">
+                  GET /api/v/result/:nonce
                 </code>
               </li>
             </ul>

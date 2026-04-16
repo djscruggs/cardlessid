@@ -1,66 +1,247 @@
 # Mobile Client Integration Guide
 
-This guide explains how to integrate CardlessID's identity verification and credential issuance into your mobile application.
+This guide covers two distinct flows for mobile wallet apps integrating with Cardless ID:
 
-> **🚀 Quick Start**: We use a simple single API key system. See [MOBILE_API_KEY_SIMPLE.md](./MOBILE_API_KEY_SIMPLE.md) for 2-minute setup.
+1. **Age Verification** — the wallet responds to a QR code challenge, signs a proof, and submits it. No API key required. This is the primary integration for wallet apps.
+2. **Credential Issuance** — the user goes through KYC once to receive a W3C Verifiable Credential on Algorand. Requires an API key. Only needed if you are building a delegated issuer app.
 
-## Overview
+> **🚀 Quick Start**: If you are building a wallet app that responds to age verification requests, start with [Age Verification Flow](#age-verification-flow). If you are building an issuer app that issues credentials, see [MOBILE_API_KEY_SIMPLE.md](./MOBILE_API_KEY_SIMPLE.md).
 
-CardlessID provides a complete identity verification and credential issuance system that mobile apps can integrate via REST API. You'll receive an API key that allows you to issue verifiable credentials on the Algorand blockchain.
+---
 
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Security Requirements](#security-requirements)
-3. [API Authentication](#api-authentication)
-4. [Integration Flow](#integration-flow)
-5. [API Endpoints](#api-endpoints)
-6. [Credential Storage](#credential-storage)
-7. [Terms of Service & Penalties](#terms-of-service--penalties)
-8. [Rate Limits](#rate-limits)
-9. [Error Handling](#error-handling)
+1. [Overview](#overview)
+2. [Age Verification Flow](#age-verification-flow)
+   - [How it works](#how-it-works)
+   - [QR Code / Deep Link format](#qr-code--deep-link-format)
+   - [Signing a proof](#signing-a-proof)
+   - [Submitting the proof](#submitting-the-proof)
+   - [React Native example](#react-native-example)
+3. [Credential Issuance Flow](#credential-issuance-flow)
+   - [Getting Started](#getting-started)
+   - [Security Requirements](#security-requirements)
+   - [API Authentication](#api-authentication)
+   - [Step-by-step](#step-by-step)
+   - [API Endpoints](#api-endpoints)
+   - [Credential Storage](#credential-storage)
+4. [Terms of Service & Penalties](#terms-of-service--penalties)
+5. [Rate Limits](#rate-limits)
+6. [Error Handling](#error-handling)
 
 ---
 
-## Getting Started
+## Overview
 
-### Request an API Key
+Cardless ID separates two operations:
 
-To integrate Cardless ID into your mobile application:
+| Operation | Frequency | API Key needed? | What the wallet does |
+|---|---|---|---|
+| **Age Verification** | Every time a site checks | ❌ No | Read on-chain credential, sign proof, submit to relay |
+| **Credential Issuance** | Once per user | ✅ Yes | Capture ID + selfie, receive W3C credential + NFT |
+
+---
+
+## Age Verification Flow
+
+### How it works
+
+When a website with the Cardless ID JS snippet needs to verify a user's age:
+
+1. The site fetches a signed nonce from `GET /api/v/nonce`
+2. The site displays a QR code encoding the nonce and `minAge`
+3. The user scans the QR with the Cardless ID wallet app
+4. The wallet reads the credential NFT from Algorand (read-only, no gas)
+5. The wallet checks whether the birthdate in the credential meets `minAge`
+6. The wallet signs a proof with the user's Algorand ed25519 private key
+7. The wallet POSTs the proof to `POST /api/v/submit`
+8. The site polls `GET /api/v/result/:nonce` and receives the proof
+
+The wallet **never sends personal data**. The proof contains only a wallet address and a boolean.
+
+### QR Code / Deep Link format
+
+The QR code encodes a URL in this format:
+
+```
+https://cardlessid.org/app/wallet-verify?nonce=<NONCE>&minAge=<MIN_AGE>
+```
+
+On mobile, this opens as a deep link directly into the wallet app. Parse the query params to extract `nonce` and `minAge`.
+
+**Example deep link:**
+```
+https://cardlessid.org/app/wallet-verify?nonce=eyJqdGkiOiJ...&minAge=21
+```
+
+The `nonce` is an HMAC-signed token that expires in **5 minutes**. The wallet must sign and submit the proof before it expires.
+
+### Signing a proof
+
+Build the proof payload and sign it with the user's Algorand private key using `algosdk.signBytes`. The Algorand SDK prepends its standard signing prefix before computing the ed25519 signature.
+
+```typescript
+import algosdk from 'algosdk';
+
+interface SignedProofPayload {
+  nonce: string;          // The nonce from the QR code
+  walletAddress: string;  // The user's Algorand wallet address
+  minAge: number;         // Must match what was in the QR code
+  meetsRequirement: boolean;
+  timestamp: number;      // Date.now()
+}
+
+interface SignedProof {
+  payload: SignedProofPayload;
+  signature: string; // base64url-encoded ed25519 signature
+}
+
+function signProof(
+  nonce: string,
+  minAge: number,
+  meetsRequirement: boolean,
+  account: algosdk.Account
+): SignedProof {
+  const payload: SignedProofPayload = {
+    nonce,
+    walletAddress: algosdk.encodeAddress(account.addr.publicKey),
+    minAge,
+    meetsRequirement,
+    timestamp: Date.now(),
+  };
+
+  const message = Buffer.from(JSON.stringify(payload));
+  const sigBytes = algosdk.signBytes(message, account.sk);
+
+  return {
+    payload,
+    signature: Buffer.from(sigBytes).toString('base64url'),
+  };
+}
+```
+
+**Important:** The private key never leaves the wallet. The signature proves the holder of that wallet address made the assertion.
+
+### Determining `meetsRequirement`
+
+Before signing, the wallet must read the credential NFT from Algorand and check the birthdate:
+
+```typescript
+async function checkAgeRequirement(
+  walletAddress: string,
+  minAge: number
+): Promise<boolean> {
+  // Query Algorand for assets held by walletAddress
+  // Find the Cardless ID credential NFT (issued by a registered issuer)
+  // Read ARC-69 metadata to get the birthdate hash
+  // Compute: Date.now().getFullYear() - birthYear >= minAge
+  // Return true if requirement is met, false otherwise
+  //
+  // This is a read-only Algorand node query — no transaction, no gas.
+}
+```
+
+If the wallet cannot find a valid credential, it should **not** sign a proof — the user needs to complete credential issuance first.
+
+### Submitting the proof
+
+```typescript
+async function submitProof(nonce: string, signedProof: SignedProof): Promise<void> {
+  const response = await fetch('https://cardlessid.org/api/v/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nonce, signedProof }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error ?? 'Failed to submit verification');
+  }
+}
+```
+
+**Response on success:**
+```json
+{ "success": true }
+```
+
+The proof is stored in a 60-second TTL cache. The integrator site polls `GET /api/v/result/:nonce` to retrieve it. After 60 seconds the proof evicts automatically — it contains no personal data.
+
+### React Native example
+
+Complete end-to-end handler for handling a Cardless ID deep link:
+
+```typescript
+import algosdk from 'algosdk';
+
+// Called when the app receives a deep link:
+// cardlessid://verify?nonce=eyJ...&minAge=21
+// or https://cardlessid.org/app/wallet-verify?nonce=eyJ...&minAge=21
+async function handleVerificationDeepLink(url: string): Promise<void> {
+  const params = new URL(url).searchParams;
+  const nonce = params.get('nonce');
+  const minAge = parseInt(params.get('minAge') ?? '18', 10);
+
+  if (!nonce) throw new Error('Missing nonce in deep link');
+
+  // Load the user's Algorand account from secure storage
+  const account = await loadAccountFromSecureStorage();
+
+  // Read credential from Algorand and check age
+  const meetsRequirement = await checkAgeRequirement(account.addr, minAge);
+
+  // Build and sign the proof
+  const signedProof = signProof(nonce, minAge, meetsRequirement, account);
+
+  // Submit to Cardless ID relay
+  await submitProof(nonce, signedProof);
+
+  // Navigate to result screen
+  navigation.navigate('VerificationComplete', { meetsRequirement });
+}
+```
+
+**Error cases to handle:**
+
+| Error | Cause | Recovery |
+|---|---|---|
+| 400 `invalid nonce` | Nonce expired (>5 min) or tampered | Ask user to re-scan the QR |
+| 400 `signature verification failed` | Wrong key or malformed signature | Check signing implementation |
+| 400 `minAge mismatch` | Proof minAge doesn't match nonce minAge | Bug — ensure minAge comes from the QR/nonce |
+| 451 | EEA geo-blocking | Show "not available in your region" |
+
+---
+
+## Credential Issuance Flow
+
+This section covers the one-time KYC process that gives a user their credential. You only need this if you are building an app that issues credentials (delegated issuer). Most wallet apps simply read a credential that was already issued.
+
+### Getting Started
+
+To integrate Cardless ID credential issuance:
 
 1. Visit our contact page: https://cardlessid.org/contact
-2. Provide the following information:
-   - **Organization/Application Name**: Your company or app name
-   - **Primary Contact Email**: Technical contact email
-   - **Use Case Description**: How you plan to use Cardless ID
-   - **Expected Monthly Volume**: Estimated number of verifications per month
-   - **Algorand Wallet Address** (optional): If you have an existing Algorand wallet, provide the address. Otherwise, we'll generate one for you.
-
-3. We'll review your application and provide:
+2. Provide:
+   - **Organization/Application Name**
+   - **Primary Contact Email**
+   - **Use Case Description**
+   - **Expected Monthly Volume**
+   - **Algorand Wallet Address** (optional — we'll generate one if needed)
+3. We'll provide:
    - API key for authentication
    - Your unique issuer Algorand wallet address
-   - Access to testnet for development
-   - Documentation and sample code
+   - Testnet access for development
 
-### Development & Testing
+### Security Requirements
 
-- **Testnet**: Use testnet for development and testing (free)
-- **Mainnet**: Contact us when ready to deploy to production
+All mobile clients issuing credentials MUST comply with:
 
----
-
-## Security Requirements
-
-All mobile clients MUST comply with these security requirements:
-
-### 1. Credential Storage Security
+#### Credential Storage
 
 **REQUIREMENT**: Credentials MUST be stored securely and be tamper-proof.
 
-#### iOS Implementation:
-
+**iOS** — use Keychain:
 ```swift
-// Use iOS Keychain for secure storage
 import Security
 
 func storeCredential(_ credential: Data, forKey key: String) {
@@ -70,192 +251,68 @@ func storeCredential(_ credential: Data, forKey key: String) {
         kSecValueData as String: credential,
         kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly
     ]
-
-    SecItemDelete(query as CFDictionary) // Remove old credential
-    let status = SecItemAdd(query as CFDictionary, nil)
-
-    guard status == errSecSuccess else {
-        print("Error storing credential: \\(status)")
-        return
-    }
+    SecItemDelete(query as CFDictionary)
+    SecItemAdd(query as CFDictionary, nil)
 }
 ```
 
-#### Android Implementation:
-
+**Android** — use EncryptedSharedPreferences:
 ```kotlin
-// Use Android Keystore for secure storage
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
-
 val masterKey = MasterKey.Builder(context)
     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
     .build()
 
 val sharedPreferences = EncryptedSharedPreferences.create(
-    context,
-    "cardless_credentials",
-    masterKey,
+    context, "cardless_credentials", masterKey,
     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
 )
-
-// Store credential
-sharedPreferences.edit()
-    .putString("credential_id", credentialJson)
-    .apply()
-```
-
-#### Tamper Detection:
-
-```javascript
-// Verify credential integrity using HMAC
-const crypto = require("crypto");
-
-function verifyCredentialIntegrity(credential, expectedHmac, secret) {
-  const hmac = crypto.createHmac("sha256", secret);
-  hmac.update(JSON.stringify(credential));
-  const calculatedHmac = hmac.digest("hex");
-
-  if (calculatedHmac !== expectedHmac) {
-    throw new Error("Credential has been tampered with!");
-  }
-
-  return true;
-}
+sharedPreferences.edit().putString("credential_id", credentialJson).apply()
 ```
 
 **What NOT to do:**
+- ❌ Store credentials in plain text
+- ❌ Use unencrypted UserDefaults or SharedPreferences
+- ❌ Log credential contents or API keys
 
-- ❌ Store credentials in plain text files
-- ❌ Store credentials in UserDefaults (iOS) or SharedPreferences (Android) without encryption
-- ❌ Store credentials in app sandbox without encryption
-- ❌ Transmit credentials over unencrypted connections
-- ❌ Log credential contents
-
-### 2. Network Security
+#### Network Security
 
 - All API calls MUST use HTTPS
-- Implement certificate pinning (recommended)
 - Never log API keys in production builds
-- Implement request/response encryption for sensitive data
+- Implement certificate pinning (recommended)
 
-### 3. User Consent
+#### User Consent
 
-- Obtain explicit user consent before identity verification
+- Obtain explicit consent before identity verification
 - Clearly explain what data is collected and how it's used
-- Provide privacy policy and terms of service
 - Allow users to delete their credentials
 
----
+### API Authentication
 
-## API Authentication
-
-All API requests must include your API key in the `X-API-Key` header.
-
-### Request Headers:
+All credential issuance requests require an API key in the `X-API-Key` header:
 
 ```http
 POST /api/verification/start
-Host: cardlessid.org
 Content-Type: application/json
 X-API-Key: your_api_key_here
 ```
 
-### Example (cURL):
+> **Note:** The age verification endpoints (`/api/v/*`) do **not** require an API key.
 
-```bash
-curl -X POST https://cardlessid.org/api/verification/start \\
-  -H "Content-Type: application/json" \\
-  -H "X-API-Key: your_api_key_here" \\
-  -d '{"provider": "mock"}'
-```
-
-### Example (JavaScript/React Native):
-
-```javascript
-const response = await fetch("https://cardlessid.org/api/verification/start", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-API-Key": YOUR_API_KEY,
-  },
-  body: JSON.stringify({ provider: "mock" }),
-});
-
-const data = await response.json();
-```
-
----
-
-## Integration Flow
-
-### Complete Verification & Credential Issuance Flow:
-
-```
-┌─────────────┐      ┌─────────────┐      ┌──────────────┐
-│ Mobile App  │      │  Cardless ID │      │  Verification│
-│             │      │     API     │      │   Provider   │
-└──────┬──────┘      └──────┬──────┘      └──────┬───────┘
-       │                    │                     │
-       │ 1. Start Session   │                     │
-       ├───────────────────>│                     │
-       │  X-API-Key header  │                     │
-       │                    │                     │
-       │ 2. Session Info    │                     │
-       │<───────────────────┤                     │
-       │  sessionId,        │                     │
-       │  authToken         │                     │
-       │                    │                     │
-       │ 3. User captures ID photo & selfie       │
-       │    (using provider SDK with authToken)   │
-       ├──────────────────────────────────────────>
-       │                    │                     │
-       │ 4. Provider processes & verifies         │
-       │                    │<────────────────────┤
-       │                    │  Webhook callback   │
-       │                    │                     │
-       │ 5. Poll status     │                     │
-       ├───────────────────>│                     │
-       │                    │                     │
-       │ 6. Verified data   │                     │
-       │<───────────────────┤                     │
-       │  + verificationToken                     │
-       │                    │                     │
-       │ 7. Request credential with wallet address│
-       ├───────────────────>│                     │
-       │  verificationToken,│                     │
-       │  walletAddress,    │                     │
-       │  identity data     │                     │
-       │                    │                     │
-       │ 8. W3C Credential  │                     │
-       │<───────────────────┤                     │
-       │  + NFT on blockchain                     │
-       │                    │                     │
-       │ 9. Store securely  │                     │
-       │  (encrypted)       │                     │
-       │                    │                     │
-```
-
-### Step-by-Step:
+### Step-by-step
 
 #### 1. Start Verification Session
 
 ```javascript
 const startSession = async () => {
-  const response = await fetch(
-    "https://cardlessid.org/api/verification/start",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": YOUR_API_KEY,
-      },
-      body: JSON.stringify({
-        provider: "mock", // or 'aws-rekognition' in production
-      }),
-    }
-  );
+  const response = await fetch('https://cardlessid.org/api/verification/start', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': YOUR_API_KEY,
+    },
+    body: JSON.stringify({ provider: 'mock' }), // 'aws-rekognition' in production
+  });
 
   const { sessionId, authToken, expiresAt } = await response.json();
   return { sessionId, authToken };
@@ -264,21 +321,14 @@ const startSession = async () => {
 
 #### 2. Capture ID & Selfie
 
-Use the verification provider's SDK with the `authToken`:
+Use the verification provider SDK with the `authToken`. The exact implementation depends on the provider:
 
 ```javascript
-// Example pseudo-code (actual implementation depends on provider)
+// Pseudo-code — actual SDK depends on provider
 const captureIdentity = async (authToken) => {
-  // Initialize provider SDK
   const verificationSDK = new VerificationSDK({ authToken });
-
-  // Guide user to capture ID photo
-  const idPhoto = await verificationSDK.captureIDPhoto();
-
-  // Guide user to capture selfie
-  const selfie = await verificationSDK.captureSelfie();
-
-  // SDK uploads to provider and triggers processing
+  await verificationSDK.captureIDPhoto();
+  await verificationSDK.captureSelfie();
   await verificationSDK.submit();
 };
 ```
@@ -289,46 +339,33 @@ const captureIdentity = async (authToken) => {
 const pollStatus = async (sessionId) => {
   const response = await fetch(
     `https://cardlessid.org/api/verification/status/${sessionId}`,
-    {
-      headers: { "X-API-Key": YOUR_API_KEY },
-    }
+    { headers: { 'X-API-Key': YOUR_API_KEY } }
   );
-
   const status = await response.json();
 
-  if (status.status === "completed") {
-    return {
-      verificationToken: status.verificationToken,
-      extractedData: status.extractedData,
-    };
-  } else if (status.status === "failed") {
+  if (status.status === 'completed') {
+    return { verificationToken: status.verificationToken, extractedData: status.extractedData };
+  } else if (status.status === 'failed') {
     throw new Error(status.error);
-  } else {
-    // Still processing, poll again in 2 seconds
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return pollStatus(sessionId);
   }
+  await new Promise((r) => setTimeout(r, 2000));
+  return pollStatus(sessionId);
 };
 ```
 
 #### 4. Request Credential
 
 ```javascript
-const requestCredential = async (
-  verificationToken,
-  extractedData,
-  walletAddress
-) => {
-  const response = await fetch("https://cardlessid.org/api/credentials", {
-    method: "POST",
+const requestCredential = async (verificationToken, extractedData, walletAddress) => {
+  const response = await fetch('https://cardlessid.org/api/credentials', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": YOUR_API_KEY,
+      'Content-Type': 'application/json',
+      'X-API-Key': YOUR_API_KEY,
     },
     body: JSON.stringify({
       verificationToken,
       walletAddress,
-      // Re-submit extracted data for anti-tampering verification
       firstName: extractedData.firstName,
       lastName: extractedData.lastName,
       birthDate: extractedData.birthDate,
@@ -338,9 +375,7 @@ const requestCredential = async (
     }),
   });
 
-  const { credential, personalData, nft } = await response.json();
-
-  return { credential, personalData, nft };
+  return response.json(); // { credential, personalData, nft }
 };
 ```
 
@@ -348,47 +383,27 @@ const requestCredential = async (
 
 ```javascript
 const storeCredential = async (credential, personalData) => {
-  // Create credential package
   const credentialPackage = {
-    credential, // W3C Verifiable Credential (public)
-    personalData, // Unhashed personal data (private)
+    credential,      // W3C Verifiable Credential (public)
+    personalData,    // Personal data (private — keep encrypted)
     storedAt: new Date().toISOString(),
   };
-
-  // Generate HMAC for tamper detection
-  const hmac = generateHMAC(credentialPackage, SECRET_KEY);
-
-  // Store encrypted in secure storage
-  await secureStorage.setItem("cardless_credential", {
-    data: credentialPackage,
-    hmac,
-  });
+  await secureStorage.setItem('cardless_credential', credentialPackage);
 };
 ```
 
----
+### API Endpoints
 
-## API Endpoints
+#### POST /api/verification/start
 
-### POST /api/verification/start
+Start a new KYC verification session.
 
-Start a new verification session.
-
-**Headers:**
-
-- `X-API-Key`: Your API key (required)
-- `Content-Type`: application/json
-
-**Request Body:**
-
+**Request:**
 ```json
-{
-  "provider": "mock"
-}
+{ "provider": "mock" }
 ```
 
 **Response:**
-
 ```json
 {
   "sessionId": "session_12345",
@@ -399,25 +414,9 @@ Start a new verification session.
 }
 ```
 
-### GET /api/verification/status/:sessionId
-
-Check verification status.
-
-**Headers:**
-
-- `X-API-Key`: Your API key (required)
-
-**Response (pending):**
-
-```json
-{
-  "status": "pending",
-  "message": "Verification in progress"
-}
-```
+#### GET /api/verification/status/:sessionId
 
 **Response (completed):**
-
 ```json
 {
   "status": "completed",
@@ -433,17 +432,11 @@ Check verification status.
 }
 ```
 
-### POST /api/credentials
+#### POST /api/credentials
 
 Issue a W3C Verifiable Credential.
 
-**Headers:**
-
-- `X-API-Key`: Your API key (required)
-- `Content-Type`: application/json
-
-**Request Body:**
-
+**Request:**
 ```json
 {
   "verificationToken": "signed_token_xyz",
@@ -458,198 +451,167 @@ Issue a W3C Verifiable Credential.
 ```
 
 **Response:**
-
 ```json
 {
   "success": true,
   "credential": {
-    "@context": [...],
+    "@context": ["https://www.w3.org/ns/credentials/v2", "https://cardlessid.org/credentials/v1"],
     "id": "urn:uuid:...",
     "type": ["VerifiableCredential", "BirthDateCredential"],
     "issuer": { "id": "did:algo:YOUR_ISSUER_ADDRESS" },
     "credentialSubject": { ... },
     "proof": { ... }
   },
-  "personalData": {
-    "firstName": "John",
-    "lastName": "Doe",
-    "birthDate": "1990-01-15"
-  },
-  "nft": {
-    "assetId": "123456",
-    "requiresOptIn": true
-  }
+  "personalData": { "firstName": "John", "lastName": "Doe", "birthDate": "1990-01-15" },
+  "nft": { "assetId": "123456", "requiresOptIn": true }
 }
 ```
 
----
+### Credential Storage
 
-## Credential Storage
-
-### What to Store:
-
-1. **W3C Verifiable Credential** (public portion)
-   - Contains issuer DID, subject DID, composite hash
-   - Can be shared with verifiers
-   - Includes cryptographic proof
-
-2. **Personal Data** (private portion)
-   - Full name, birth date, etc.
-   - Keep encrypted in secure storage
-   - Only share when user explicitly consents
-
-3. **NFT Asset ID**
-   - Algorand blockchain asset ID
-   - Proves credential authenticity on-chain
-   - Can be queried by verifiers
-
-### Storage Architecture:
+What to store in secure encrypted storage:
 
 ```
-Secure Storage (Encrypted)
-├── credential
-│   ├── @context
-│   ├── id
-│   ├── issuer { id: "did:algo:YOUR_ISSUER" }
+Secure Storage
+├── credential (W3C VC — safe to share with verifiers)
+│   ├── @context, id, type
+│   ├── issuer { id: "did:algo:ISSUER" }
 │   ├── credentialSubject
 │   │   ├── id: "did:algo:USER_WALLET"
 │   │   └── compositeHash: "..."
 │   └── proof
-├── personalData (KEEP PRIVATE)
-│   ├── firstName
-│   ├── lastName
-│   ├── birthDate
-│   ├── governmentId
-│   └── state
+├── personalData (KEEP PRIVATE — never share without user consent)
+│   ├── firstName, lastName, birthDate
+│   ├── governmentId, state
 └── nft
-    └── assetId
+    └── assetId  (Algorand ASA ID — safe to share)
 ```
+
+---
+
+## Anti-Spoofing Architecture
+
+The protocol uses two independent layers to prevent a rogue wallet from faking a verification.
+
+### Layer 1 — Cryptographic signature
+
+Every proof is ed25519-signed with the wallet's Algorand private key. The signature covers the full payload including `nonce`, `walletAddress`, `minAge`, `meetsRequirement`, and `timestamp`. Any tampering (e.g. flipping `meetsRequirement` after signing) invalidates the signature.
+
+The server verifies this before storing the proof. The integrator's SDK (`verifyProof`) verifies it again when the proof is picked up.
+
+**What this prevents:** A rogue wallet cannot forge a proof for an address it doesn't control, and cannot tamper with the payload after signing.
+
+**What this does NOT prevent:** A wallet that controls its own private key can sign `meetsRequirement: true` regardless of whether it holds a real credential.
+
+### Layer 2 — On-chain credential check
+
+The integrator's `verifyProofOnChain()` function calls `GET /api/wallet/status/:address` after the signature check. This queries the Algorand blockchain to confirm the wallet holds a valid Cardless ID credential NFT — an ARC-69 NFT issued only after real KYC.
+
+```typescript
+import { verifyProofOnChain } from '@cardlessid/verify';
+
+const result = await verifyProofOnChain(proof);
+// valid only if: signature valid + timestamp fresh + wallet holds credential NFT
+if (result.valid && result.payload.meetsRequirement) {
+  grantAccess();
+}
+```
+
+**What this prevents:** A wallet that generates a fresh keypair and signs `meetsRequirement: true` — it won't have a credential NFT, so the check fails.
+
+### Attack/defense summary
+
+| Attack | Layer 1 (signature) | Layer 2 (on-chain) |
+|--------|--------------------|--------------------|
+| Tamper payload after signing | Blocks | — |
+| Sign with wrong key for claimed address | Blocks | — |
+| Sign `meetsRequirement: true` with own key, no credential | Passes | Blocks |
+| Replay a proof to a different site | Blocks (nonce mismatch) | — |
+| Replay the same proof twice | Blocked by nonce TTL (5 min) | — |
+
+The credential NFT is permanent and public on Algorand — there is no way to fake ownership without controlling the wallet's private key AND having passed real KYC.
+
+---
+
+## Future: Wallet App Registry (Planned — see DJS-19)
+
+The current protocol verifies that a wallet *address* holds a real credential, but does not verify which *app* submitted the proof. A rogue wallet app could sign `meetsRequirement: true` on behalf of a user who does hold a credential.
+
+A planned on-chain wallet app registry will close this gap:
+
+- Each approved wallet app registers a **dedicated signing keypair** (not user keys) in an Algorand smart contract app box
+- The wallet app signs the proof submission request with its app key
+- `/api/v/submit` verifies both (a) the user's wallet signature and (b) the wallet app's registration
+- Revocation: removing the app key immediately blocks all submissions from that app
+
+When enforced, wallet apps will need to include an `X-Wallet-App-Signature` header on all `POST /api/v/submit` requests. Contact me@derekscruggs.com to register early.
 
 ---
 
 ## Terms of Service & Penalties
 
-### Your Responsibilities:
+### Your Responsibilities
 
-1. **Security**: Implement all required security measures for credential storage
-2. **Privacy**: Comply with data protection regulations (GDPR, CCPA, etc.)
+1. **Security**: Implement all required credential storage security measures
+2. **Privacy**: Comply with GDPR, CCPA, and applicable data protection laws
 3. **User Consent**: Obtain explicit consent before verification
-4. **Compliance**: Follow Cardless ID Terms of Service
+4. **Honest Proofs**: Wallet apps must never sign a false `meetsRequirement`
 5. **Reporting**: Report security incidents immediately
 
-### Issuer Registry & Revocation:
+### Issuer Registry & Revocation
 
-Each mobile client receives their own **issuer address** registered in the on-chain **Issuer Registry**. This allows:
+Each issuer receives their own Algorand wallet address registered in the on-chain Issuer Registry. This enables:
 
-- **Independent Identity**: Your credentials are issued under your issuer address
-- **Vouching System**: Cardless ID vouches for your issuer when you're added
 - **Selective Revocation**: Only your issuer can be revoked without affecting others
+- **Independent Identity**: Credentials issued under your issuer address
+- **Vouching**: Cardless ID vouches for you when you're registered
 
-### Penalty System:
+#### Soft Revocation
 
-If you violate Terms of Service or experience security breaches:
-
-#### Soft Revocation:
-
-- Your API key is revoked
-- You cannot issue new credentials
-- **Existing credentials remain valid**
+- Your API key is revoked; you cannot issue new credentials
+- Existing credentials remain valid
 - Can be reinstated after issue resolution
 
-#### Hard Revocation (Severe Violations):
+#### Hard Revocation (Severe Violations)
 
-- Your API key is permanently revoked
-- Your issuer address is revoked in the Issuer Registry
-- **ALL credentials ever issued by your issuer are invalidated**
-- Cannot be easily reversed (requires new issuer address)
+- API key and issuer address permanently revoked from the Issuer Registry
+- All credentials ever issued by your issuer are invalidated
 - Used for: fraud, major security breaches, severe TOS violations
-
-### Examples of Violations:
-
-- Storing credentials in plain text
-- Sharing API keys
-- Issuing fraudulent credentials
-- Violating user privacy
-- Data breaches due to negligence
-- Not implementing required security measures
-
-**We will notify you before hard revocation except in cases of active fraud or severe security incidents.**
 
 ---
 
 ## Rate Limits
 
-Rate limits are configured per API key. Default limits:
+- **Testnet**: 1000 requests/hour (generous for development)
+- **Mainnet**: Varies by plan
 
-- **Testnet**: 1000 requests per hour (generous for development)
-- **Mainnet**: Varies by plan (contact us for custom limits)
-
-### Rate Limit Headers:
-
-Response headers include rate limit information:
-
-```
-X-RateLimit-Limit: 1000
-X-RateLimit-Remaining: 999
-X-RateLimit-Reset: 1642089600
-```
-
-### Rate Limit Exceeded:
-
-```json
-{
-  "error": "Rate limit exceeded. Maximum 1000 requests per hour."
-}
-```
-
-**HTTP Status**: 429 Too Many Requests
+> **Note:** The age verification endpoints (`/api/v/*`) are not rate-limited by API key since they require no authentication. Contact us for high-volume usage.
 
 ---
 
 ## Error Handling
 
-### HTTP Status Codes:
+### HTTP Status Codes
 
-- `200 OK`: Success
-- `400 Bad Request`: Invalid request data
-- `401 Unauthorized`: Missing or invalid API key
-- `404 Not Found`: Resource not found
-- `429 Too Many Requests`: Rate limit exceeded
-- `500 Internal Server Error`: Server error
+| Code | Meaning |
+|---|---|
+| 200 | Success |
+| 400 | Invalid request data |
+| 401 | Missing or invalid API key |
+| 404 | Resource not found |
+| 429 | Rate limit exceeded |
+| 451 | Service unavailable in EEA region |
+| 500 | Server error |
 
-### Common Errors:
-
-#### Missing API Key:
-
-```json
-{
-  "error": "Missing X-API-Key header. Mobile clients must provide an API key."
-}
-```
-
-#### Invalid API Key:
+### Common Errors
 
 ```json
-{
-  "error": "Invalid API key"
-}
-```
-
-#### Revoked API Key:
-
-```json
-{
-  "error": "API key has been revoked. Reason: Security violation. Contact support for assistance."
-}
-```
-
-#### Verification Failed:
-
-```json
-{
-  "error": "Identity verification failed",
-  "details": "Face match confidence too low"
-}
+{ "error": "Missing X-API-Key header." }           // 401
+{ "error": "Invalid API key" }                      // 401
+{ "error": "API key has been revoked." }            // 401
+{ "error": "invalid nonce" }                        // 400 — nonce expired or tampered
+{ "error": "signature verification failed" }        // 400 — bad ed25519 signature
+{ "error": "Service not available in your region" } // 451
 ```
 
 ---
@@ -657,17 +619,17 @@ X-RateLimit-Reset: 1642089600
 ## Support
 
 - **Documentation**: https://cardlessid.org/docs
+- **Verification Protocol**: https://cardlessid.org/docs/verification-protocol
 - **Contact**: https://cardlessid.org/contact
-- **Status Page**: https://status.cardlessid.org (coming soon)
 
 ---
 
 ## Sample Code
 
-Complete sample implementations are available:
+Complete sample implementations:
 
 - iOS (Swift): https://github.com/cardlessid/ios-sdk
 - Android (Kotlin): https://github.com/cardlessid/android-sdk
 - React Native: https://github.com/cardlessid/react-native-sdk
 
-(Links are placeholders - replace with actual repositories when available)
+(Links are placeholders — replace with actual repositories when available)

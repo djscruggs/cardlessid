@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import CardlessCredential from "~/components/credentials/w3c-minimal";
 
 /**
@@ -97,6 +97,7 @@ describe("Browser APIs", () => {
     expect(link.href).toContain("data:image/png");
   });
 });
+
 
 describe("Form Validation", () => {
   it("should validate Algorand address format", () => {
