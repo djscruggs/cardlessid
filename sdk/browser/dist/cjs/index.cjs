@@ -2266,7 +2266,8 @@ var require_nacl_fast = __commonJS({
 var index_exports = {};
 __export(index_exports, {
   CardlessIDVerify: () => CardlessIDVerify,
-  verifyProof: () => verifyProof
+  verifyProof: () => verifyProof,
+  verifyProofOnChain: () => verifyProofOnChain
 });
 module.exports = __toCommonJS(index_exports);
 var import_tweetnacl = __toESM(require_nacl_fast(), 1);
@@ -3978,6 +3979,26 @@ function verifyProof(proof) {
   }
   return { valid: true, payload };
 }
+async function verifyProofOnChain(proof, baseUrl = "https://cardlessid.org") {
+  const local = verifyProof(proof);
+  if (!local.valid) return local;
+  const { walletAddress } = local.payload;
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/api/wallet/status/${encodeURIComponent(walletAddress)}`);
+  } catch (err) {
+    return { valid: false, error: `Network error during on-chain check: ${err instanceof Error ? err.message : String(err)}` };
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    return { valid: false, error: body.error ?? `Wallet status check failed (HTTP ${res.status})` };
+  }
+  const status = await res.json();
+  if (!status.verified) {
+    return { valid: false, error: "Wallet does not hold a valid Cardless ID credential" };
+  }
+  return { valid: true, payload: local.payload, credentialCount: status.credentialCount ?? 0 };
+}
 function renderQRToCanvas(text, canvas) {
   const qr = qrcode_default(0, "M");
   qr.addData(text);
@@ -4292,7 +4313,8 @@ var CardlessIDVerify = class {
 if (typeof window !== "undefined") {
   window["CardlessIDVerify"] = CardlessIDVerify;
   window["CardlessIDVerifyProof"] = {
-    verifyProof
+    verifyProof,
+    verifyProofOnChain
   };
 }
 //# sourceMappingURL=index.cjs.map

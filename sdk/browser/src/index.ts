@@ -48,6 +48,10 @@ export type VerifyProofResult =
   | { valid: true; payload: SignedProofPayload }
   | { valid: false; error: string };
 
+export type VerifyProofOnChainResult =
+  | { valid: true; payload: SignedProofPayload; credentialCount: number }
+  | { valid: false; error: string };
+
 export interface VerifiedResult {
   meetsRequirement: boolean;
   walletAddress: string;
@@ -197,6 +201,51 @@ export function verifyProof(proof: SignedProof): VerifyProofResult {
   }
 
   return { valid: true, payload };
+}
+
+/**
+ * Verify a SignedProof and confirm the wallet holds a valid on-chain credential.
+ *
+ * Runs `verifyProof` first (signature + timestamp), then calls
+ * `GET /api/wallet/status/:address` to confirm the wallet actually passed
+ * identity verification and holds a Cardless ID credential NFT on Algorand.
+ *
+ * Use this for server-side re-verification in production. Do not use in the
+ * browser unless you trust the user's network — the signature check alone
+ * (`verifyProof`) is sufficient for client-side gating.
+ *
+ * @param proof - The SignedProof received from the polling endpoint
+ * @param baseUrl - Cardless ID API base URL (default: https://cardlessid.org)
+ * @returns Promise resolving to a discriminated union with credential count or error
+ */
+export async function verifyProofOnChain(
+  proof: SignedProof,
+  baseUrl = "https://cardlessid.org"
+): Promise<VerifyProofOnChainResult> {
+  // Step 1: fast local check (signature + timestamp)
+  const local = verifyProof(proof);
+  if (!local.valid) return local;
+
+  // Step 2: on-chain credential check
+  const { walletAddress } = local.payload;
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/api/wallet/status/${encodeURIComponent(walletAddress)}`);
+  } catch (err) {
+    return { valid: false, error: `Network error during on-chain check: ${err instanceof Error ? err.message : String(err)}` };
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    return { valid: false, error: (body as { error?: string }).error ?? `Wallet status check failed (HTTP ${res.status})` };
+  }
+
+  const status = (await res.json()) as { verified: boolean; credentialCount?: number };
+  if (!status.verified) {
+    return { valid: false, error: "Wallet does not hold a valid Cardless ID credential" };
+  }
+
+  return { valid: true, payload: local.payload, credentialCount: status.credentialCount ?? 0 };
 }
 
 // ---------------------------------------------------------------------------
@@ -585,5 +634,6 @@ if (typeof window !== "undefined") {
     CardlessIDVerify;
   (window as unknown as Record<string, unknown>)["CardlessIDVerifyProof"] = {
     verifyProof,
+    verifyProofOnChain,
   };
 }

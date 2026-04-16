@@ -4,12 +4,12 @@
  * that our tweetnacl-based browser implementation accepts them.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import algosdk from "algosdk";
 
 // Import the verify function from the SDK source (not the built output)
 // We reference it directly so vitest can resolve the @ts-ignore imports
-import { verifyProof } from "../../sdk/browser/src/index";
+import { verifyProof, verifyProofOnChain } from "../../sdk/browser/src/index";
 import type { SignedProof, SignedProofPayload } from "../../sdk/browser/src/index";
 
 function signProof(
@@ -126,6 +126,71 @@ describe("verifyProof", () => {
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.error).toMatch(/timestamp/);
+    }
+  });
+});
+
+describe("verifyProofOnChain", () => {
+  let account: algosdk.Account;
+  let basePayload: SignedProofPayload;
+
+  beforeEach(() => {
+    account = algosdk.generateAccount();
+    basePayload = {
+      nonce: "test-nonce-abc123",
+      walletAddress: algosdk.encodeAddress(account.addr.publicKey),
+      minAge: 21,
+      meetsRequirement: true,
+      timestamp: Date.now(),
+    };
+    vi.restoreAllMocks();
+  });
+
+  it("returns valid with credentialCount when wallet has credential on-chain", async () => {
+    const proof = signProof(account, basePayload);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ verified: true, credentialCount: 1 }),
+    }));
+    const result = await verifyProofOnChain(proof);
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.credentialCount).toBe(1);
+      expect(result.payload.meetsRequirement).toBe(true);
+    }
+  });
+
+  it("returns invalid when wallet has no on-chain credential", async () => {
+    const proof = signProof(account, basePayload);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ verified: false, credentialCount: 0 }),
+    }));
+    const result = await verifyProofOnChain(proof);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toMatch(/credential/);
+    }
+  });
+
+  it("returns invalid when signature check fails before hitting the network", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const proof = signProof(account, basePayload);
+    const tampered: SignedProof = { ...proof, payload: { ...proof.payload, meetsRequirement: false } };
+    const result = await verifyProofOnChain(tampered);
+    expect(result.valid).toBe(false);
+    // fetch should not have been called — failed at local signature check
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns invalid on network error during on-chain check", async () => {
+    const proof = signProof(account, basePayload);
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Connection refused")));
+    const result = await verifyProofOnChain(proof);
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toMatch(/Network error/);
     }
   });
 });
