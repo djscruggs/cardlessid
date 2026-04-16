@@ -245,7 +245,35 @@ GET /api/wallet/status/{address}
 Returns: { hasCredential: boolean, isVerified: boolean }
 ```
 
-### Integrator API (Website Integration)
+### Stateless Verification API (Current — no API key required)
+
+The preferred integration path. Uses HMAC-signed nonces and Algorand ed25519 proof signing. No API key or server-side session required.
+
+**Get Nonce**
+```
+GET /api/v/nonce?minAge=21&siteId=optional
+Returns: { nonce: string, deepLinkUrl: string, minAge: number, expiresAt: number }
+```
+The `nonce` is an HMAC-signed token encoding `minAge`, `siteId`, and a TTL. The `deepLinkUrl` is a QR-displayable deep link for the Cardless ID wallet app.
+
+**Submit Proof (wallet → server)**
+```
+POST /api/v/submit
+Body: { nonce: string, proof: SignedProof }
+SignedProof: { payload: { nonce, walletAddress, minAge, meetsRequirement, timestamp }, signature: string }
+Returns: { success: true } | { error: string }
+```
+The wallet signs `JSON.stringify(payload)` with the Algorand `algosdk.signBytes()` prefix ("MX"). The server caches the proof keyed by nonce for TTL polling.
+
+**Poll for Result**
+```
+GET /api/v/result/:nonce
+Returns: { status: 'pending' | 'approved' | 'rejected' | 'expired', proof?: SignedProof }
+```
+
+See [sdk/INTEGRATION_GUIDE.md](sdk/INTEGRATION_GUIDE.md) for the complete integration guide.
+
+### Integrator API (Legacy — requires API key)
 
 **Create Challenge**
 ```
@@ -270,6 +298,53 @@ Returns: { challenge: object, responses: array }
 ```
 
 See [docs/INTEGRATOR_README.md](docs/INTEGRATOR_README.md) for full integration guide.
+
+## SDKs
+
+### `@cardlessid/verify` — Browser SDK (Current)
+
+Drop-in browser SDK for stateless age verification. No API key required.
+
+- **Package:** `@cardlessid/verify` (npm)
+- **CDN:** `https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js` (IIFE, ~61KB minified)
+- **Source:** `sdk/browser/src/index.ts`
+- **Build:** `sdk/browser/build.mjs` (esbuild: IIFE + ESM + CJS + `.d.ts`)
+
+**API:**
+```typescript
+// Constructor options
+interface CardlessIDVerifyOptions {
+  minAge?: number;          // default: 18
+  siteId?: string;          // optional label for analytics
+  pollInterval?: number;    // ms between polls (default: 2000)
+  onVerified?: (proof: SignedProof) => void;   // called on meetsRequirement=true
+  onResult?: (proof: SignedProof) => void;     // called on any completed proof
+  onError?: (err: Error) => void;
+}
+
+const verifier = new CardlessIDVerify(options);
+verifier.mount(selector: string | HTMLElement): void;  // injects QR UI
+verifier.destroy(): void;                              // remove UI and stop polling
+verifier.getNonce(): Promise<string>;                  // fetch a nonce directly
+verifier.pollForResult(nonce, timeoutMs?): Promise<SignedProof>;
+```
+
+**Server-side proof verification:**
+```typescript
+import { verifyProof } from '@cardlessid/verify';
+const result = verifyProof(proof);  // synchronous, no network
+if (result.valid && result.payload.meetsRequirement) { /* allow */ }
+```
+
+`verifyProof` checks: ed25519 signature (Algorand MX prefix), timestamp within 5 minutes, `walletAddress` is valid Algorand address.
+
+### `@cardlessid/verifier` — Node.js SDK (Legacy, requires API key)
+
+Server-side SDK for the challenge-based integrator flow.
+
+- **Package:** `@cardlessid/verifier` (npm)
+- **Source:** `sdk/node/cardlessid-verifier.js`
+- **Methods:** `createChallenge({ minAge, callbackUrl })`, `verifyChallenge(challengeId)`, `pollChallenge(challengeId, options)`
 
 ## Components
 
@@ -471,7 +546,12 @@ All API routes return JSON responses. See [API Endpoints](#api-endpoints) sectio
 - `POST /api/age-verify/respond` - [app/routes/api/age-verify/respond.ts](app/routes/api/age-verify/respond.ts)
 - `GET /api/age-verify/session/:sessionId` - [app/routes/api/age-verify/session.$sessionId.ts](app/routes/api/age-verify/session.$sessionId.ts)
 
-**Integrator API:**
+**Stateless Verification API (Current):**
+- `GET /api/v/nonce` - fetch HMAC-signed nonce + deep link URL (query: `minAge`, `siteId`)
+- `POST /api/v/submit` - wallet submits signed proof (body: `{ nonce, proof: SignedProof }`)
+- `GET /api/v/result/:nonce` - poll for result; returns `{ status, proof? }`
+
+**Integrator API (Legacy — requires API key):**
 - `POST /api/integrator/challenge/create` - [app/routes/api/integrator/challenge/create.ts](app/routes/api/integrator/challenge/create.ts)
 - `GET /api/integrator/challenge/verify/:challengeId` - [app/routes/api/integrator/challenge/verify.$challengeId.ts](app/routes/api/integrator/challenge/verify.$challengeId.ts)
 - `GET /api/integrator/challenge/details/:challengeId` - [app/routes/api/integrator/challenge/details.$challengeId.ts](app/routes/api/integrator/challenge/details.$challengeId.ts)
@@ -709,6 +789,20 @@ See [docs/MOBILE_CLIENT_TESTING.md](docs/MOBILE_CLIENT_TESTING.md) for integrati
 ### Website Integration (Age Verification)
 
 For websites wanting to verify user age using Cardless ID:
+
+**Recommended: `@cardlessid/verify` browser SDK (no API key needed)**
+```html
+<script src="https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js"></script>
+<script>
+  new CardlessIDVerify({
+    minAge: 21,
+    onVerified: (proof) => { /* allow access */ }
+  }).mount('#age-gate');
+</script>
+```
+The SDK handles nonce fetching, QR rendering, deep linking, and result polling automatically. See [sdk/INTEGRATION_GUIDE.md](sdk/INTEGRATION_GUIDE.md) for full guide.
+
+**Legacy: API key challenge flow**
 
 1. **Get API Key** - Contact team for integrator API key
 2. **Create Challenge** - POST to `/api/integrator/challenge/create`

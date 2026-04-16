@@ -107,19 +107,19 @@ export default function IntegrationGuide() {
           key.
         </p>
         <div className="mb-6">
-          <CodeBlock language="html">{`<script src="https://cdn.cardlessid.com/verify.js"></script>
+          <CodeBlock language="html">{`<script src="https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js"></script>
 <div id="age-gate"></div>
 <script>
-  CardlessIDVerify.init({
-    el: '#age-gate',
+  const verify = new CardlessIDVerify({
     minAge: 21,
-    onResult: function(proof) {
-      if (proof.payload.meetsRequirement) {
+    onVerified: function({ meetsRequirement }) {
+      if (meetsRequirement) {
         // Age verified — grant access
         document.getElementById('protected-content').hidden = false;
       }
     }
   });
+  verify.mount('#age-gate');
 </script>`}</CodeBlock>
         </div>
 
@@ -132,15 +132,16 @@ export default function IntegrationGuide() {
         <div className="mb-6">
           <CodeBlock language="typescript">{`import { CardlessIDVerify } from '@cardlessid/verify';
 
-const verifier = new CardlessIDVerify({ minAge: 21 });
-
-verifier.on('result', (proof) => {
-  if (proof.payload.meetsRequirement) {
-    // grant access
-  }
+const verify = new CardlessIDVerify({
+  minAge: 21,
+  onVerified({ meetsRequirement, walletAddress }) {
+    if (meetsRequirement) {
+      // grant access
+    }
+  },
 });
 
-verifier.render('#age-gate');`}</CodeBlock>
+verify.mount('#age-gate');`}</CodeBlock>
         </div>
       </section>
 
@@ -166,22 +167,22 @@ verifier.render('#age-gate');`}</CodeBlock>
                 <td className="px-4 py-2">Minimum age to verify (1–150)</td>
               </tr>
               <tr>
+                <td className="px-4 py-2 font-mono text-sm">onVerified</td>
+                <td className="px-4 py-2">function</td>
+                <td className="px-4 py-2">No</td>
+                <td className="px-4 py-2">Called with <code className="bg-gray-100 px-1 rounded">{"{ meetsRequirement, walletAddress, proof }"}</code> — the simplified result</td>
+              </tr>
+              <tr>
                 <td className="px-4 py-2 font-mono text-sm">onResult</td>
                 <td className="px-4 py-2">function</td>
-                <td className="px-4 py-2">Yes</td>
-                <td className="px-4 py-2">Called with the signed proof when the user completes verification</td>
+                <td className="px-4 py-2">No</td>
+                <td className="px-4 py-2">Called with the raw <code className="bg-gray-100 px-1 rounded">SignedProof</code> — use to send proof to your backend for re-verification</td>
               </tr>
               <tr>
                 <td className="px-4 py-2 font-mono text-sm">siteId</td>
                 <td className="px-4 py-2">string</td>
                 <td className="px-4 py-2">No</td>
                 <td className="px-4 py-2">Public site identifier for usage analytics (not a secret)</td>
-              </tr>
-              <tr>
-                <td className="px-4 py-2 font-mono text-sm">el</td>
-                <td className="px-4 py-2">string | Element</td>
-                <td className="px-4 py-2">No</td>
-                <td className="px-4 py-2">CSS selector or DOM element to mount the QR widget into</td>
               </tr>
             </tbody>
           </table>
@@ -215,12 +216,10 @@ verifier.render('#age-gate');`}</CodeBlock>
         <div className="mb-6">
           <CodeBlock language="typescript">{`import { verifyProof } from '@cardlessid/verify';
 
-const result = await verifyProof(proof, {
-  checkOnChain: true, // confirm wallet holds a valid credential on Algorand
-});
+const result = verifyProof(proof);
 
-if (result.valid && result.meetsRequirement) {
-  // Age verified
+if (result.valid && result.payload.meetsRequirement) {
+  // Age verified — signature and timestamp checked
 }`}</CodeBlock>
         </div>
 
@@ -415,7 +414,7 @@ Content-Type: application/json
             </h3>
             <ul className="space-y-1 text-green-800">
               <li>• Always verify the Algorand signature server-side for sensitive decisions</li>
-              <li>• Enable <code className="bg-green-100 px-1 rounded">checkOnChain: true</code> to confirm the wallet holds a valid credential</li>
+              <li>• Use <code className="bg-green-100 px-1 rounded">verifyProof(proof)</code> from <code className="bg-green-100 px-1 rounded">@cardlessid/verify</code> — it checks the ed25519 signature and timestamp</li>
               <li>• Check <code className="bg-green-100 px-1 rounded">proof.payload.timestamp</code> is recent (within 5 minutes)</li>
               <li>• Confirm <code className="bg-green-100 px-1 rounded">proof.payload.minAge</code> matches what you required</li>
             </ul>

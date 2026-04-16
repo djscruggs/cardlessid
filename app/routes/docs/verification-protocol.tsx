@@ -164,18 +164,18 @@ export default function VerificationProtocol() {
             CDN embed
           </p>
           <CodeBlock language="html">
-            {`<script src="https://cdn.cardlessid.com/verify.js"></script>
+            {`<script src="https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js"></script>
 <div id="age-gate"></div>
 <script>
-  CardlessIDVerify.init({
-    el: '#age-gate',
+  const verify = new CardlessIDVerify({
     minAge: 21,
-    onResult: function(proof) {
-      if (proof.meetsRequirement) {
+    onVerified: function({ meetsRequirement }) {
+      if (meetsRequirement) {
         // User is 21+ — grant access
       }
     }
   });
+  verify.mount('#age-gate');
 </script>`}
           </CodeBlock>
         </div>
@@ -187,15 +187,16 @@ export default function VerificationProtocol() {
           <CodeBlock language="typescript">
             {`import { CardlessIDVerify } from '@cardlessid/verify';
 
-const verifier = new CardlessIDVerify({ minAge: 21 });
-
-verifier.on('result', (proof) => {
-  if (proof.meetsRequirement) {
-    // grant access
-  }
+const verify = new CardlessIDVerify({
+  minAge: 21,
+  onVerified({ meetsRequirement }) {
+    if (meetsRequirement) {
+      // grant access
+    }
+  },
 });
 
-verifier.render('#age-gate'); // shows QR code`}
+verify.mount('#age-gate'); // renders QR code`}
           </CodeBlock>
         </div>
 
@@ -354,8 +355,7 @@ verifier.render('#age-gate'); // shows QR code`}
     "meetsRequirement": true,
     "timestamp":        1744829470000
   },
-  "signature": "base64url-encoded-ed25519-signature",
-  "publicKey":  "base64url-encoded-algorand-public-key"
+  "signature": "base64url-encoded-ed25519-signature"
 }`}
           </CodeBlock>
         </div>
@@ -367,13 +367,10 @@ verifier.render('#age-gate'); // shows QR code`}
           <CodeBlock language="typescript">
             {`import { verifyProof } from '@cardlessid/verify';
 
-const result = await verifyProof(proof, {
-  // Optional: confirm wallet holds a valid credential on-chain
-  checkOnChain: true,
-});
+const result = verifyProof(proof);
 
-if (result.valid && result.meetsRequirement) {
-  // Age verified — grant access
+if (result.valid && result.payload.meetsRequirement) {
+  // Age verified — ed25519 signature and timestamp confirmed
 }`}
           </CodeBlock>
         </div>
@@ -396,11 +393,11 @@ if (result.valid && result.meetsRequirement) {
               What the on-chain check adds
             </h3>
             <p className="text-gray-700 text-sm">
-              The signature proves the wallet made the assertion; the on-chain
-              check proves Cardless ID (or a trusted delegated issuer) actually
-              issued a credential to that wallet. Without it, someone could
-              generate a fresh Algorand keypair and self-sign a proof with no
-              credential backing it.
+              The signature proves the wallet made the assertion. For higher
+              assurance, an integrator can independently query Algorand to
+              confirm the wallet holds a valid credential from a registered
+              issuer. Without this check, someone could generate a fresh
+              Algorand keypair and self-sign a proof with no credential backing it.
             </p>
           </div>
         </div>
@@ -539,11 +536,10 @@ if (result.valid && result.meetsRequirement) {
           </p>
         </div>
         <p className="text-gray-700 text-sm">
-          Integrators who require stronger guarantees should enable{" "}
-          <code className="bg-gray-100 px-1 rounded">checkOnChain: true</code>{" "}
-          in their proof verification. This independently confirms via Algorand
-          that the wallet address holds a valid credential, regardless of what
-          the wallet app claims.
+          Integrators who require stronger guarantees should independently query
+          Algorand to confirm the wallet holds a valid credential issued by a
+          registered issuer — regardless of what the wallet app claims. The
+          wallet address in the signed proof is the lookup key.
         </p>
       </section>
 
