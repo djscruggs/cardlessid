@@ -1,10 +1,5 @@
 /**
- * @deprecated Use @cardlessid/verify instead. This package wraps the legacy
- * /api/integrator/challenge/* endpoints which require an API key and a backend.
- * The new stateless protocol requires no API key and no backend.
- * See sdk/browser/ for @cardlessid/verify.
- *
- * Cardless ID Age Verification SDK for Node.js (legacy)
+ * Cardless ID Age Verification SDK for Node.js
  *
  * This SDK allows you to integrate Cardless ID age verification into your application.
  *
