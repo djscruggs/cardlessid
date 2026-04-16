@@ -1,4 +1,4 @@
-# Claude.md
+# AGENTS.md
 
 **Project Overview:**
 
@@ -6,7 +6,7 @@ This is a web site that issues a lightweight decentralize identity credential. A
 
 **Project Goals:**
 
-The goal is to use a third party tool still TBD to verify someone’s identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
+The goal is to use a third party tool still TBD to verify someone's identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
 
 **Technology Stack**
 
@@ -231,3 +231,23 @@ Use `console.log`/`warn`/`error` with a bracketed module prefix: `[Photo Storage
 console.log('[Photo Storage] Deleted:', filepath);
 console.error('[Rekognition] Face comparison error:', error);
 ```
+
+## Data Structure Conventions
+
+- **Use Set for constant lookup collections instead of arrays.** When defining a fixed set of values used for membership testing (like country codes, allowed statuses, etc.), define them as a \`Set\` rather than an array. This provides O(1) lookup and makes the intent clearer — the collection is used for 'contains' checks, not iteration.
+
+  **Good:**
+
+  const EEA\_COUNTRY\_CODES = new Set(\[
+  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
+  ...
+  ]);
+  return EEA\_COUNTRY\_CODES.has(country.toUpperCase());
+
+  **Bad:**
+
+  const EEA\_COUNTRY\_CODES = \[
+  "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
+  ...
+  ];
+  return EEA\_COUNTRY\_CODES.includes(country.toUpperCase());
