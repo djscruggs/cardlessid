@@ -1,392 +1,409 @@
-# Cardless ID Age Verification - Integration Guide
+# Cardless ID Integration Guide
 
-This guide explains how to integrate Cardless ID age verification into your application using the backend-required secure flow.
+Full API reference and integration examples for age verification.
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Security Model](#security-model)
-- [Getting Started](#getting-started)
-- [Node.js SDK](#nodejs-sdk)
-- [REST API](#rest-api)
-- [Example Integrations](#example-integrations)
+- [Age Verification — No Backend Required](#age-verification--no-backend-required)
+- [Age Verification — With Backend Proof Verification](#age-verification--with-backend-proof-verification)
+- [API Reference](#api-reference)
+- [Proof Verification](#proof-verification)
+- [Framework Examples](#framework-examples)
+
+---
 
 ## Overview
 
-Cardless ID provides zero-knowledge age verification using decentralized identity credentials on the Algorand blockchain. Users prove they meet an age requirement without revealing their actual birthdate.
+Cardless ID lets any website verify a user's age against their blockchain-backed credential — without collecting or storing personal data.
 
-**Key Features:**
+**What happens:**
 
-- ✅ Privacy-preserving (only returns true/false)
-- ✅ Secure challenge-response flow
-- ✅ Single-use verification tokens
-- ✅ 10-minute expiration
-- ✅ Optional webhook callbacks
+1. Your page requests a nonce from the Cardless ID API
+2. The user scans a QR code with the Cardless ID wallet app
+3. The wallet reads the credential from Algorand, signs a proof, and submits it
+4. Your page receives a `{ meetsRequirement: boolean, walletAddress: string }` result
 
-## Security Model
+No API key. No backend required. No personal data shared with your servers.
 
-The verification flow uses a **challenge-response pattern** to prevent tampering:
+---
 
-1. **Your backend** creates a challenge with your required age
-2. Cardless ID generates a unique, single-use challenge ID
-3. User scans QR code with their wallet
-4. Wallet verifies age requirement and responds to Cardless ID
-5. **Your backend** polls or receives webhook to confirm verification
-6. Challenge cannot be reused or modified
+## Age Verification — No Backend Required
 
-**Why this is secure:**
+### Script tag
 
-- Challenge ID is cryptographically tied to your minAge requirement
-- User cannot modify the age requirement (it's stored server-side)
-- Challenge is single-use and expires after 10 minutes
-- Only you (with your API key) can verify the challenge result
+The fastest path: one `<script>` tag, no npm, no build step.
 
-## Getting Started
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Age Verification</title>
+</head>
+<body>
+  <div id="age-gate"></div>
 
-### 1. Get Your API Key
-
-Contact Cardless ID to receive your API key. For development, you can create a test key:
-
-```bash
-# In production, this would be done via admin panel
-# For now, use the createIntegrator function
-```
-
-### 2. Install the SDK
-
-**Node.js:**
-
-```bash
-npm install @cardlessid/verifier
-```
-
-### 3. Basic Usage
-
-```javascript
-const Cardless ID = require("@cardlessid/verifier");
-
-const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY,
-});
-
-// Create challenge
-const challenge = await verifier.createChallenge({ minAge: 21 });
-
-// Show QR code to user
-console.log("Scan this:", challenge.qrCodeUrl);
-
-// Poll for result
-const result = await verifier.pollChallenge(challenge.challengeId);
-
-if (result.verified) {
-  console.log("User is 21+");
-}
-```
-
-## Node.js SDK
-
-### Installation
-
-```bash
-npm install @cardlessid/verifier
-```
-
-### API Reference
-
-#### Constructor
-
-```javascript
-const verifier = new CardlessID({
-  apiKey: "your_api_key",
-  baseUrl: "https://cardlessid.com", // optional
-});
-```
-
-#### createChallenge(params)
-
-Creates a new age verification challenge.
-
-**Parameters:**
-
-- `minAge` (number, required): Age requirement (1-150)
-- `callbackUrl` (string, optional): Webhook URL for notifications
-
-**Returns:**
-
-```javascript
-{
-  challengeId: 'chal_1234567890_abc123',
-  qrCodeUrl: 'https://cardlessid.com/app/age-verify?challenge=chal_...',
-  deepLinkUrl: 'cardlessid://verify?challenge=chal_...',
-  createdAt: 1234567890000,
-  expiresAt: 1234568490000
-}
-```
-
-#### verifyChallenge(challengeId)
-
-Checks the current status of a challenge.
-
-**Parameters:**
-
-- `challengeId` (string, required): Challenge ID
-
-**Returns:**
-
-```javascript
-{
-  challengeId: 'chal_1234567890_abc123',
-  verified: true,
-  status: 'approved', // pending | approved | rejected | expired
-  minAge: 21,
-  walletAddress: 'ALGORAND_ADDRESS...',
-  createdAt: 1234567890000,
-  expiresAt: 1234568490000,
-  respondedAt: 1234568123000
-}
-```
-
-#### pollChallenge(challengeId, options)
-
-Polls a challenge until completed or expired.
-
-**Parameters:**
-
-- `challengeId` (string, required): Challenge ID
-- `options.interval` (number, optional): Polling interval in ms (default: 2000)
-- `options.timeout` (number, optional): Total timeout in ms (default: 600000)
-
-**Returns:** Same as `verifyChallenge()`
-
-## REST API
-
-### Authentication
-
-All API requests require your API key:
-
-**Header:**
-
-```
-X-API-Key: your_api_key_here
-```
-
-**Or in request body:**
-
-```json
-{
-  "apiKey": "your_api_key_here",
-  ...
-}
-```
-
-### Endpoints
-
-#### POST /api/integrator/challenge/create
-
-Create a new verification challenge.
-
-**Request:**
-
-```json
-{
-  "apiKey": "your_api_key",
-  "minAge": 21,
-  "callbackUrl": "https://yourapp.com/verify-callback"
-}
-```
-
-**Response:**
-
-```json
-{
-  "challengeId": "chal_1234567890_abc123",
-  "qrCodeUrl": "https://cardlessid.com/app/age-verify?challenge=chal_...",
-  "deepLinkUrl": "cardlessid://verify?challenge=chal_...",
-  "createdAt": 1234567890000,
-  "expiresAt": 1234568490000
-}
-```
-
-#### GET /api/integrator/challenge/verify/:challengeId
-
-Verify a challenge status.
-
-**Headers:**
-
-```
-X-API-Key: your_api_key
-```
-
-**Response:**
-
-```json
-{
-  "challengeId": "chal_1234567890_abc123",
-  "verified": true,
-  "status": "approved",
-  "minAge": 21,
-  "walletAddress": "ALGORAND_ADDRESS...",
-  "createdAt": 1234567890000,
-  "expiresAt": 1234568490000,
-  "respondedAt": 1234568123000
-}
-```
-
-## Example Integrations
-
-### Express.js Example
-
-```javascript
-const express = require("express");
-const Cardless ID = require("@cardlessid/verifier");
-
-const app = express();
-const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY,
-});
-
-// Temporary storage (use Redis/DB in production)
-const pendingVerifications = new Map();
-
-// Start verification
-app.post("/verify-age", async (req, res) => {
-  const sessionId = generateSessionId();
-
-  // Create challenge
-  const challenge = await verifier.createChallenge({
-    minAge: 21,
-    callbackUrl: `https://yourapp.com/verify-callback`,
-  });
-
-  pendingVerifications.set(sessionId, {
-    challengeId: challenge.challengeId,
-    status: "pending",
-  });
-
-  res.json({
-    sessionId,
-    qrCodeUrl: challenge.qrCodeUrl,
-  });
-});
-
-// Check verification status
-app.get("/verify-status/:sessionId", async (req, res) => {
-  const pending = pendingVerifications.get(req.params.sessionId);
-
-  if (!pending) {
-    return res.status(404).json({ error: "Session not found" });
-  }
-
-  const result = await verifier.verifyChallenge(pending.challengeId);
-
-  if (result.status !== "pending") {
-    pendingVerifications.delete(req.params.sessionId);
-  }
-
-  res.json({
-    verified: result.verified,
-    status: result.status,
-  });
-});
-
-// Optional: Webhook callback
-app.post("/verify-callback", express.json(), (req, res) => {
-  const { challengeId, approved, walletAddress } = req.body;
-
-  console.log("Verification completed:", {
-    challengeId,
-    approved,
-    walletAddress,
-  });
-
-  // Update your database, trigger next steps, etc.
-
-  res.sendStatus(200);
-});
-
-app.listen(3000);
-```
-
-### Next.js API Route Example
-
-```typescript
-// pages/api/verify-age.ts
-import type { NextApiRequest, NextApiResponse } from "next";
-import Cardless ID from "@cardlessid/verifier";
-
-const verifier = new CardlessID({
-  apiKey: process.env.CARDLESSID_API_KEY!,
-});
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === "POST") {
-    // Create challenge
-    const challenge = await verifier.createChallenge({
+  <script src="https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js"></script>
+  <script>
+    const verify = new CardlessIDVerify({
       minAge: 21,
+      onVerified({ meetsRequirement, walletAddress }) {
+        if (meetsRequirement) {
+          document.getElementById('age-gate').innerHTML =
+            '<h2>Access granted</h2><p>Wallet: ' + walletAddress + '</p>';
+        } else {
+          document.getElementById('age-gate').innerHTML =
+            '<h2>Access denied</h2><p>Age requirement not met.</p>';
+        }
+      },
+      onError(err) {
+        console.error('Verification error:', err.message);
+      },
     });
 
-    return res.json(challenge);
+    verify.mount('#age-gate');
+  </script>
+</body>
+</html>
+```
+
+### npm + bundler
+
+```bash
+npm install @cardlessid/verify
+```
+
+```js
+import { CardlessIDVerify } from '@cardlessid/verify';
+
+const verify = new CardlessIDVerify({
+  minAge: 21,
+  siteId: 'my-site',          // optional — used for analytics
+  pollInterval: 1500,          // optional — ms between polls (default 1500)
+  onVerified({ meetsRequirement, walletAddress }) {
+    // Called once, with the simplified result
+    grantAccess(meetsRequirement, walletAddress);
+  },
+  onResult(proof) {
+    // Optional — called with the raw SignedProof
+    // Use this if you want to send the proof to your backend for re-verification
+    sendToBackend(proof);
+  },
+  onError(err) {
+    console.error(err.message);
+  },
+});
+
+verify.mount('#container');
+
+// Later, clean up:
+verify.destroy();
+```
+
+### Constructor options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `minAge` | `number` | Yes | Age requirement (1–150) |
+| `baseUrl` | `string` | No | API base URL (default: `https://cardlessid.org`) |
+| `siteId` | `string` | No | Public identifier for analytics — safe to embed in client JS |
+| `pollInterval` | `number` | No | Polling interval in ms (default: 1500) |
+| `onVerified` | `function` | No | Called with `{ meetsRequirement, walletAddress, proof }` |
+| `onResult` | `function` | No | Called with the raw `SignedProof` object |
+| `onError` | `function` | No | Called on unrecoverable errors |
+
+### Methods
+
+#### `mount(selector)`
+
+Mount the widget into a DOM element. Fetches a nonce, renders a QR code, and starts polling.
+
+```js
+verify.mount('#container');      // CSS selector
+verify.mount(document.getElementById('container')); // or Element
+```
+
+#### `destroy()`
+
+Stop polling and clear the widget.
+
+#### `getNonce()` — headless
+
+Fetch a nonce and QR content without rendering anything. Use this for custom UI.
+
+```js
+const { nonce, deepLink } = await verify.getNonce();
+// deepLink = 'https://cardlessid.org/app/wallet-verify?nonce=...&minAge=21'
+// Render deepLink as a QR code with your own library
+```
+
+#### `pollForResult(nonce, timeoutMs?)` — headless
+
+Poll until a proof arrives for the given nonce.
+
+```js
+const proof = await verify.pollForResult(nonce, 300_000); // 5-minute timeout
+```
+
+---
+
+## Age Verification — With Backend Proof Verification
+
+If you want to verify the Algorand signature on your server instead of in the browser:
+
+### Frontend
+
+```js
+const verify = new CardlessIDVerify({
+  minAge: 21,
+  onResult(proof) {
+    // Send the raw proof to your backend
+    fetch('/api/verify-age', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(proof),
+    })
+    .then(res => res.json())
+    .then(({ meetsRequirement }) => {
+      if (meetsRequirement) grantAccess();
+    });
+  },
+});
+verify.mount('#container');
+```
+
+### Backend (Node.js)
+
+Install the verification helper from the browser package (works in Node too):
+
+```bash
+npm install @cardlessid/verify
+```
+
+```js
+import { verifyProof } from '@cardlessid/verify';
+
+app.post('/api/verify-age', (req, res) => {
+  const proof = req.body;
+  const result = verifyProof(proof);
+
+  if (!result.valid) {
+    return res.status(400).json({ error: result.error });
   }
 
-  if (req.method === "GET") {
-    // Check status
-    const { challengeId } = req.query;
-    const result = await verifier.verifyChallenge(challengeId as string);
+  const { meetsRequirement, walletAddress, minAge } = result.payload;
 
-    return res.json(result);
+  // Optional: check minAge matches your requirement
+  if (minAge !== 21) {
+    return res.status(400).json({ error: 'Unexpected minAge in proof' });
   }
 
-  res.status(405).end();
+  res.json({ meetsRequirement, walletAddress });
+});
+```
+
+`verifyProof` performs:
+1. Algorand ed25519 signature verification (no network call)
+2. Timestamp freshness check (5-minute window)
+
+---
+
+## API Reference
+
+All endpoints are on `https://cardlessid.org`. No authentication required.
+
+### GET /api/v/nonce
+
+Issue a signed, expiring nonce. No database write.
+
+**Query parameters:**
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `minAge` | No | Age requirement (default: 18, range: 1–150) |
+| `siteId` | No | Public integrator identifier for analytics |
+
+**Response:**
+
+```json
+{
+  "nonce": "eyJhbGciOiJIUzI1NiJ9...",
+  "expiresIn": 300
 }
 ```
 
-### Frontend Integration
+The nonce is a signed token that encodes `minAge`, `siteId`, and expiry. It cannot be forged or modified.
 
-```javascript
-// React example
-async function startAgeVerification() {
-  // Call your backend to create challenge
-  const response = await fetch("/api/verify-age", {
-    method: "POST",
+---
+
+### POST /api/v/submit
+
+Submit a signed proof from the wallet. Called by the wallet app — not directly by integrators.
+
+**Request body:**
+
+```json
+{
+  "nonce": "eyJhbGciOiJIUzI1NiJ9...",
+  "signedProof": {
+    "payload": {
+      "nonce": "eyJhbGciOiJIUzI1NiJ9...",
+      "walletAddress": "ALGORAND_ADDRESS...",
+      "minAge": 21,
+      "meetsRequirement": true,
+      "timestamp": 1714000000000
+    },
+    "signature": "base64url-encoded-ed25519-signature"
+  }
+}
+```
+
+**Response:**
+
+```json
+{ "success": true }
+```
+
+**Error responses:**
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Invalid nonce, expired nonce, bad signature, minAge mismatch |
+| 451 | Service not available in your region (EEA) |
+
+---
+
+### GET /api/v/result/:nonce
+
+Poll for a submitted proof. Returns 404 until the wallet submits.
+
+**Response (found):**
+
+```json
+{
+  "proof": {
+    "payload": {
+      "nonce": "...",
+      "walletAddress": "ALGORAND_ADDRESS...",
+      "minAge": 21,
+      "meetsRequirement": true,
+      "timestamp": 1714000000000
+    },
+    "signature": "base64url-encoded-ed25519-signature"
+  }
+}
+```
+
+**Response (not yet submitted):** `404`
+
+Proofs are evicted from the cache 60 seconds after submission. The nonce itself expires after 5 minutes.
+
+---
+
+## Proof Verification
+
+The `SignedProof` structure:
+
+```ts
+interface SignedProof {
+  payload: {
+    nonce: string;           // The nonce issued by /api/v/nonce
+    walletAddress: string;   // Algorand wallet address (base32)
+    minAge: number;          // Age requirement from the nonce
+    meetsRequirement: boolean;
+    timestamp: number;       // Unix ms — must be within 5 minutes of now
+  };
+  signature: string;         // Base64url ed25519 signature over JSON.stringify(payload)
+}
+```
+
+The signature is produced by `algosdk.signBytes(Buffer.from(JSON.stringify(payload)), sk)`, which prepends the Algorand domain prefix `"MX"` before signing. `verifyProof` from `@cardlessid/verify` handles this prefix correctly.
+
+**Things to check in your own verifier:**
+1. `algosdk.verifyBytes(Buffer.from(JSON.stringify(proof.payload)), sigBytes, proof.payload.walletAddress)`
+2. `proof.payload.nonce` matches the nonce you issued
+3. `proof.payload.minAge` matches your requirement
+4. `proof.payload.timestamp` is within an acceptable window (recommended: 5 minutes)
+
+---
+
+## Framework Examples
+
+### React
+
+```tsx
+import { useEffect, useRef } from 'react';
+import { CardlessIDVerify } from '@cardlessid/verify';
+
+function AgeGate({ minAge, onVerified }) {
+  const containerRef = useRef(null);
+  const verifyRef = useRef(null);
+
+  useEffect(() => {
+    verifyRef.current = new CardlessIDVerify({
+      minAge,
+      onVerified,
+    });
+    verifyRef.current.mount(containerRef.current);
+
+    return () => verifyRef.current?.destroy();
+  }, [minAge]);
+
+  return <div ref={containerRef} />;
+}
+```
+
+### Vue 3
+
+```vue
+<template>
+  <div ref="container" />
+</template>
+
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+import { CardlessIDVerify } from '@cardlessid/verify';
+
+const props = defineProps({ minAge: Number });
+const emit = defineEmits(['verified']);
+const container = ref(null);
+let verify;
+
+onMounted(() => {
+  verify = new CardlessIDVerify({
+    minAge: props.minAge,
+    onVerified: (result) => emit('verified', result),
   });
+  verify.mount(container.value);
+});
 
-  const { challengeId, qrCodeUrl } = await response.json();
-
-  // Show QR code to user
-  showQRCode(qrCodeUrl);
-
-  // Poll for completion
-  const pollInterval = setInterval(async () => {
-    const statusRes = await fetch(`/api/verify-status/${challengeId}`);
-    const status = await statusRes.json();
-
-    if (status.status === "approved") {
-      clearInterval(pollInterval);
-      onVerificationSuccess();
-    } else if (status.status === "rejected" || status.status === "expired") {
-      clearInterval(pollInterval);
-      onVerificationFailed();
-    }
-  }, 2000);
-}
+onUnmounted(() => verify?.destroy());
+</script>
 ```
 
-## Best Practices
+### Next.js (App Router)
 
-1. **Store API keys securely** - Use environment variables, never commit to git
-2. **Use webhooks when possible** - More efficient than polling
-3. **Set appropriate timeouts** - Challenges expire in 10 minutes
-4. **Handle all status states** - pending, approved, rejected, expired
-5. **Use HTTPS** - Always use secure connections in production
-6. **Rate limit verification attempts** - Prevent abuse
-7. **Log verification events** - For audit and compliance
+```tsx
+'use client';
 
-## Support
+import { useEffect, useRef } from 'react';
+import { CardlessIDVerify } from '@cardlessid/verify';
 
-For questions or issues:
+export function AgeVerification({ minAge }: { minAge: number }) {
+  const ref = useRef<HTMLDivElement>(null);
 
-- GitHub: https://github.com/djscruggs/cardlessid
-- Email: me@djscruggs.com
+  useEffect(() => {
+    if (!ref.current) return;
+    const verify = new CardlessIDVerify({
+      minAge,
+      onVerified({ meetsRequirement }) {
+        if (meetsRequirement) window.location.href = '/protected';
+      },
+    });
+    verify.mount(ref.current);
+    return () => verify.destroy();
+  }, []);
+
+  return <div ref={ref} />;
+}
+```

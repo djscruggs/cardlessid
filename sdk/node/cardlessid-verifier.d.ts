@@ -1,5 +1,11 @@
 /**
- * Configuration for Cardless ID Verifier
+ * @deprecated Use @cardlessid/verify instead. This package wraps the legacy
+ * /api/integrator/challenge/* endpoints. The new stateless protocol in
+ * sdk/browser/ requires no API key and no backend.
+ */
+
+/**
+ * Configuration for Cardless ID Verifier (legacy)
  */
 export interface CardlessIDConfig {
   /** Your Cardless ID API key */

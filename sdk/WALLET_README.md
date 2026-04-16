@@ -1,156 +1,235 @@
 # Building a Cardless ID-Compatible Wallet App
 
-Quick reference for wallet app developers.
+Quick reference for wallet app developers integrating with the stateless verification protocol.
 
 ## What You're Building
 
-A mobile wallet app that:
+A mobile wallet that:
 
-1. Stores users' age credentials (birth date)
-2. Scans QR codes for age verification requests
-3. Responds with yes/no (without revealing actual age)
+1. Stores the user's age credential (issued during KYC, stored on Algorand)
+2. Handles deep links / QR scans from age verification requests
+3. Reads the credential from Algorand, checks if the age requirement is met
+4. Signs a cryptographic proof with the wallet's Algorand private key
+5. Submits the signed proof to the Cardless ID API
 
-## Quick Start
+The Cardless ID server is stateless in this flow. No challenge ID, no polling a database — the wallet signs a proof and posts it directly.
 
-### 1. Set Up Deep Linking
+---
 
-Your app needs to handle these URLs:
+## Deep Link Format
 
-**Universal Links (recommended):**
-
-```
-https://cardlessid.com/app/wallet-verify?challenge=chal_123...
-https://cardlessid.com/app/wallet-verify?session=age_123...
-```
-
-**Custom Scheme (fallback):**
+The QR code and universal link encode:
 
 ```
-cardlessid://verify?challenge=chal_123...
-cardlessid://verify?session=age_123...
+https://cardlessid.org/app/wallet-verify?nonce=<NONCE>&minAge=<MIN_AGE>
 ```
 
-See [DEEP_LINKING.md](../DEEP_LINKING.md) for setup instructions.
+| Parameter | Description |
+|-----------|-------------|
+| `nonce` | Signed expiring token issued by `GET /api/v/nonce` (5-minute TTL) |
+| `minAge` | Age requirement (integer, 1–150) |
 
-### 2. Implement API Calls
+Your app must handle this URL via universal links (iOS) or app links (Android).
 
-**Fetch verification details:**
+---
 
-```http
-GET https://cardlessid.com/api/integrator/challenge/details/{challengeId}
+## Verification Flow
+
+```
+1. User scans QR or taps deep link
+
+2. Wallet decodes nonce and minAge from the URL
+
+3. Wallet reads the credential from Algorand:
+   - Look up the ARC-69 NFT in the user's wallet
+   - Extract the birthdate from the metadata
+   - Check: age >= minAge?
+
+4. Wallet builds a proof payload:
+   {
+     nonce,
+     walletAddress,   // base32 Algorand address
+     minAge,
+     meetsRequirement: boolean,
+     timestamp: Date.now()
+   }
+
+5. Wallet signs the payload with the Algorand private key:
+   signature = algosdk.signBytes(Buffer.from(JSON.stringify(payload)), sk)
+
+6. Wallet POSTs to POST /api/v/submit:
+   {
+     nonce,
+     signedProof: { payload, signature: base64url(signature) }
+   }
+
+7. Server verifies the nonce and signature, stores proof in 60s TTL cache
+
+8. Integrator snippet picks up the proof from GET /api/v/result/{nonce}
 ```
 
-**Submit response:**
+---
 
-```http
-POST https://cardlessid.com/api/integrator/challenge/respond
+## Signing a Proof
 
+The signing must use `algosdk.signBytes`, which prepends the Algorand domain prefix `"MX"` (bytes `[77, 88]`) before the ed25519 operation. Any Algorand-compatible ed25519 library that applies the same prefix will work.
+
+### TypeScript / React Native
+
+```typescript
+import algosdk from 'algosdk';
+
+interface ProofPayload {
+  nonce: string;
+  walletAddress: string;
+  minAge: number;
+  meetsRequirement: boolean;
+  timestamp: number;
+}
+
+interface SignedProof {
+  payload: ProofPayload;
+  signature: string; // base64url
+}
+
+function signProof(
+  nonce: string,
+  minAge: number,
+  meetsRequirement: boolean,
+  account: algosdk.Account
+): SignedProof {
+  const payload: ProofPayload = {
+    nonce,
+    walletAddress: algosdk.encodeAddress(account.addr.publicKey),
+    minAge,
+    meetsRequirement,
+    timestamp: Date.now(),
+  };
+
+  const message = Buffer.from(JSON.stringify(payload));
+  const sigBytes = algosdk.signBytes(message, account.sk);
+
+  return {
+    payload,
+    signature: Buffer.from(sigBytes).toString('base64url'),
+  };
+}
+
+async function submitProof(proof: SignedProof): Promise<void> {
+  const res = await fetch('https://cardlessid.org/api/v/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nonce: proof.payload.nonce,
+      signedProof: proof,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.error ?? `HTTP ${res.status}`);
+  }
+}
+```
+
+### Deep link handler (React Native)
+
+```typescript
+import { Linking } from 'react-native';
+
+function useDeepLinkHandler(account: algosdk.Account) {
+  useEffect(() => {
+    const handleUrl = async ({ url }: { url: string }) => {
+      const parsed = new URL(url);
+      const nonce = parsed.searchParams.get('nonce');
+      const minAge = parseInt(parsed.searchParams.get('minAge') ?? '18', 10);
+
+      if (!nonce) return;
+
+      // 1. Read credential from Algorand and check age
+      const meetsRequirement = await checkAgeRequirement(account.addr, minAge);
+
+      // 2. Sign and submit proof
+      const proof = signProof(nonce, minAge, meetsRequirement, account);
+      await submitProof(proof);
+    };
+
+    Linking.addEventListener('url', handleUrl);
+    return () => Linking.removeEventListener('url', handleUrl);
+  }, [account]);
+}
+```
+
+---
+
+## API Endpoints
+
+### POST /api/v/submit
+
+Submit a signed proof. No API key required.
+
+**Request:**
+
+```json
 {
-  "challengeId": "chal_123...",
-  "approved": true,
-  "walletAddress": "ALGORAND_ADDRESS"
+  "nonce": "eyJhbGciOiJIUzI1NiJ9...",
+  "signedProof": {
+    "payload": {
+      "nonce": "eyJhbGciOiJIUzI1NiJ9...",
+      "walletAddress": "ALGORAND_ADDRESS...",
+      "minAge": 21,
+      "meetsRequirement": true,
+      "timestamp": 1714000000000
+    },
+    "signature": "base64url-encoded-signature"
+  }
 }
 ```
 
-### 3. User Flow
+**Success response:**
 
-```
-User scans QR → App opens → Fetch details → Show consent screen
-              → User approves/declines → Submit response → Success!
-```
-
-## Full Documentation
-
-👉 **[Complete Wallet App Developer Guide](../WALLET_APP_GUIDE.md)**
-
-Includes:
-
-- ✅ Detailed API documentation
-- ✅ iOS (Swift) example code
-- ✅ Android (Kotlin) example code
-- ✅ React Native example code
-- ✅ Deep linking setup (iOS & Android)
-- ✅ Testing guide
-- ✅ Security requirements
-
-## Key Files
-
-| File                                                               | Purpose                            |
-| ------------------------------------------------------------------ | ---------------------------------- |
-| [WALLET_APP_GUIDE.md](../WALLET_APP_GUIDE.md)                      | Complete implementation guide      |
-| [DEEP_LINKING.md](../DEEP_LINKING.md)                              | Deep linking setup (iOS & Android) |
-| [Integration Guide](https://cardlessid.com/docs/integration-guide) | Web docs (for context)             |
-| [Credential Schema](https://cardlessid.com/docs/credential-schema) | W3C credential format              |
-
-## API Endpoints Reference
-
-### For Integrator Challenges
-
-| Endpoint                                | Method | Purpose                        |
-| --------------------------------------- | ------ | ------------------------------ |
-| `/api/integrator/challenge/details/:id` | GET    | Get challenge details (public) |
-| `/api/integrator/challenge/respond`     | POST   | Submit verification response   |
-
-### For Demo Sessions
-
-| Endpoint                      | Method | Purpose                      |
-| ----------------------------- | ------ | ---------------------------- |
-| `/api/age-verify/session/:id` | GET    | Get session details          |
-| `/api/age-verify/respond`     | POST   | Submit verification response |
-
-## Example Implementation
-
-### Minimal iOS Example
-
-```swift
-// 1. Handle deep link
-func application(_ app: UIApplication, open url: URL, ...) -> Bool {
-    if let challengeId = extractChallengeId(from: url) {
-        handleVerification(challengeId: challengeId)
-        return true
-    }
-    return false
-}
-
-// 2. Fetch & verify
-func handleVerification(challengeId: String) async {
-    let details = try await fetch("/api/integrator/challenge/details/\(challengeId)")
-    let userAge = calculateUserAge()
-    let approved = userAge >= details.minAge
-
-    // 3. Submit
-    try await post("/api/integrator/challenge/respond", body: [
-        "challengeId": challengeId,
-        "approved": approved,
-        "walletAddress": getUserWalletAddress()
-    ])
-}
+```json
+{ "success": true }
 ```
 
-## Testing
+**Error responses:**
 
-1. Visit: https://cardlessid.com/app/age-verify
-2. Set age requirement and generate QR
-3. Scan with your app
-4. Verify the flow works end-to-end
+| Status | `error` | Meaning |
+|--------|---------|---------|
+| 400 | `Invalid nonce: expired` | Nonce older than 5 minutes — ask user to retry |
+| 400 | `Invalid nonce: ...` | Nonce tampered or malformed |
+| 400 | `Invalid proof: signature verification failed` | Signature doesn't match walletAddress |
+| 400 | `Proof nonce does not match submitted nonce` | Payload nonce ≠ request nonce |
+| 400 | `Proof minAge does not match nonce minAge` | Don't modify minAge between nonce and proof |
+| 451 | `Service not available in your region` | EEA geo-block |
+
+---
 
 ## Requirements
 
-Your app MUST:
+Your wallet app must:
 
-- ✅ Store user credentials securely
-- ✅ Only share yes/no (not actual birth date)
-- ✅ Get explicit user consent
-- ✅ Use HTTPS for all API calls
-- ✅ Handle expired challenges
-- ✅ Validate challenge status
+- Only share `meetsRequirement: boolean` — never expose the actual birthdate in the proof
+- Get explicit user consent before submitting a proof
+- Display the `minAge` requirement to the user before they approve
+- Handle the `nonce` as opaque — do not parse or modify it
+- Use HTTPS for all API calls
+- Handle the 400/expired error gracefully — prompt the user to scan again
+
+---
+
+## Testing
+
+1. Navigate to `https://cardlessid.org/app/wallet-verify?nonce=test&minAge=21` in a browser
+2. Or use the verification demo at `https://cardlessid.org/app/demo`
+3. Scan the QR code with your wallet under development
+4. Check the server logs for `[API /v/submit] proof stored`
+
+For unit tests, use `algosdk.generateAccount()` to create a test account and sign proofs locally — the server only verifies the signature and nonce, so generated accounts work fine.
+
+---
 
 ## Support
 
-- **Full Guide**: [WALLET_APP_GUIDE.md](../WALLET_APP_GUIDE.md)
-- **GitHub**: https://github.com/djscruggs/cardlessid
-- **Email**: me@djscruggs.com
-
-## License
-
-MIT - Build freely!
+- **GitHub**: https://github.com/djscruggs/cardlessid/issues
+- **Email**: me@derekscruggs.com
