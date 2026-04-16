@@ -265,6 +265,25 @@ Your wallet app must:
 
 ---
 
+## Future: Wallet App Registry (Planned)
+
+The current protocol verifies that a wallet *address* holds a real credential, but does not verify which *app* submitted the proof. A rogue wallet app could theoretically sign `meetsRequirement: true` on behalf of a user who does hold a credential.
+
+To close this gap, a future on-chain wallet app registry is planned:
+
+- Each approved wallet app registers a **dedicated signing keypair** (separate from user keys) in an Algorand smart contract app box
+- The wallet app signs the proof submission request with this app key
+- `/api/v/submit` verifies both the user's wallet signature and the wallet app's registration signature
+- Revocation: removing the app key from the registry immediately blocks all submissions from that app
+
+When this is enforced, wallet apps will need to:
+1. Register with Cardless ID to receive an app signing keypair
+2. Include an `X-Wallet-App-Signature` header on all `POST /api/v/submit` requests
+
+This is not yet enforced — watch for updates or contact me@derekscruggs.com to get early access.
+
+---
+
 ## Testing
 
 1. Navigate to `https://cardlessid.org/app/wallet-verify?nonce=test&minAge=21` in a browser

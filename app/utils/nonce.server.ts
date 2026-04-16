@@ -20,6 +20,8 @@ export interface NoncePayload {
   minAge: number;
   /** Optional public site identifier for analytics */
   siteId?: string;
+  /** Integrator ID if the request was authenticated with an API key */
+  integratorId?: string;
 }
 
 function getSecret(): string {
@@ -36,15 +38,17 @@ function sign(payload: string): string {
  * Issue a signed nonce JWT-style token.
  * @param minAge Minimum age requirement to embed in the nonce
  * @param siteId Optional public site ID for analytics attribution
+ * @param integratorId Optional integrator ID if request was authenticated with an API key
  * @returns Dot-separated base64url string: payload.signature
  */
-export function issueNonce(minAge: number, siteId?: string): string {
+export function issueNonce(minAge: number, siteId?: string, integratorId?: string): string {
   const payload: NoncePayload = {
     jti: Math.random().toString(36).slice(2) + Date.now().toString(36),
     iat: Date.now(),
     exp: Date.now() + NONCE_EXPIRY_MS,
     minAge,
     ...(siteId ? { siteId } : {}),
+    ...(integratorId ? { integratorId } : {}),
   };
   const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
   const sig = sign(encoded);

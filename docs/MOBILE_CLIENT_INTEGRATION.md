@@ -533,6 +533,21 @@ The credential NFT is permanent and public on Algorand — there is no way to fa
 
 ---
 
+## Future: Wallet App Registry (Planned — see DJS-19)
+
+The current protocol verifies that a wallet *address* holds a real credential, but does not verify which *app* submitted the proof. A rogue wallet app could sign `meetsRequirement: true` on behalf of a user who does hold a credential.
+
+A planned on-chain wallet app registry will close this gap:
+
+- Each approved wallet app registers a **dedicated signing keypair** (not user keys) in an Algorand smart contract app box
+- The wallet app signs the proof submission request with its app key
+- `/api/v/submit` verifies both (a) the user's wallet signature and (b) the wallet app's registration
+- Revocation: removing the app key immediately blocks all submissions from that app
+
+When enforced, wallet apps will need to include an `X-Wallet-App-Signature` header on all `POST /api/v/submit` requests. Contact me@derekscruggs.com to register early.
+
+---
+
 ## Terms of Service & Penalties
 
 ### Your Responsibilities
