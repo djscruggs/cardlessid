@@ -1,369 +1,127 @@
 # Cardless ID Integrator System
 
-This document describes the secure age verification integration system for Cardless ID.
+This document describes the age verification integration system for Cardless ID.
 
 ## Overview
 
-The integrator system allows external companies to integrate Cardless ID's privacy-preserving age verification into their applications. It uses a secure challenge-response flow that prevents users from tampering with age requirements.
+Integrators embed a JS snippet (or use the Node SDK) to verify a user's age on their site. The wallet app scans a QR code, signs a cryptographic proof, and the integrator receives a verified result — no personal data transmitted.
 
-## Architecture
+## Current Architecture (`/api/v/*`)
 
-### Challenge-Response Flow
+The current flow is stateless. The server issues a signed nonce; the wallet signs and submits a proof; the integrator polls for the result.
 
 ```
-Company Backend     Cardless ID API      User's Wallet
-     |                   |                    |
-     |-- Create -------->|                    |
-     |   Challenge       |                    |
-     |                   |                    |
-     |<-- Challenge -----|                    |
-     |    ID + QR        |                    |
-     |                   |                    |
-     | Display QR        |                    |
-     |=================================>      |
-     |                   |                    |
-     |                   |<--- Scan QR -------|
-     |                   |                    |
-     |                   |<--- Verify --------|
-     |                   |    Age >= minAge   |
-     |                   |                    |
-     |                   |--- Approve ------->|
-     |                   |                    |
-     |-- Poll/Webhook -->|                    |
-     |                   |                    |
-     |<-- Verified ------|                    |
-     |   Result          |                    |
+Integrator Page          Cardless ID API       User's Wallet
+     |                        |                     |
+     |-- GET /api/v/nonce --->|                     |
+     |<-- signed nonce -------|                     |
+     |                        |                     |
+     | Display QR code        |                     |
+     |=====================================>        |
+     |                        |                     |
+     |                        |<-- POST /api/v/submit (signed proof)
+     |                        |                     |
+     |-- GET /api/v/result -->|                     |
+     |<-- signedProof --------|                     |
+     |                        |                     |
+     | Verify proof locally   |                     |
 ```
 
-## Security Features
+### Endpoints
 
-1. **API Key Authentication** - Only authorized integrators can create challenges
-2. **Server-Side Validation** - Age requirements stored server-side, not in URL
-3. **Single-Use Challenges** - Each challenge can only be used once
-4. **Time-Limited** - Challenges expire after 10 minutes
-5. **Cryptographic Binding** - Challenge ID is tied to the age requirement
-6. **Ownership Verification** - Only the creating integrator can verify results
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/v/nonce` | GET | Issue a signed nonce (no API key needed) |
+| `/api/v/submit` | POST | Wallet submits signed proof |
+| `/api/v/result/:nonce` | GET | Integrator polls for proof |
 
-## Components
+### Verifying the proof
 
-### Backend API Endpoints
+Use `@cardlessid/verify` to verify the proof on the integrator side:
 
-Located in `app/routes/api/integrator/challenge/`:
+```typescript
+import { verifyProofOnChain } from '@cardlessid/verify';
 
-1. **`create.ts`** - Create new verification challenge
-   - POST `/api/integrator/challenge/create`
-   - Requires API key in request body
-   - Returns challenge ID and QR code URL
+const result = await verifyProofOnChain(proof);
+if (result.valid && result.payload.meetsRequirement) {
+  grantAccess();
+}
+```
 
-2. **`verify.$challengeId.ts`** - Verify challenge status
-   - GET `/api/integrator/challenge/verify/:challengeId`
-   - Requires API key in `X-API-Key` header
-   - Returns verification result
+`verifyProofOnChain` checks both the ed25519 signature **and** that the wallet holds a valid credential NFT on Algorand. See [MOBILE_CLIENT_INTEGRATION.md](./MOBILE_CLIENT_INTEGRATION.md) for the full anti-spoofing architecture.
 
-3. **`details.$challengeId.ts`** - Get challenge details (public)
-   - GET `/api/integrator/challenge/details/:challengeId`
-   - No authentication required
-   - Returns only public info (minAge, status, expiry)
+---
 
-4. **`respond.ts`** - Handle wallet response
-   - POST `/api/integrator/challenge/respond`
-   - Called by wallet when user approves/rejects
-   - Updates challenge status
+## Legacy System (`/api/integrator/challenge/*`)
 
-### Server Utilities
+The challenge-response system backed by Firebase Realtime Database is still operational but is no longer the recommended integration path. It is maintained for backwards compatibility.
 
-Located in `app/utils/`:
+### Legacy endpoints
 
-1. **`integrator-challenges.server.ts`**
-   - Challenge CRUD operations
-   - Firebase Realtime Database integration
-   - Challenge expiration logic
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/integrator/challenge/create` | POST | Create challenge (requires API key in body) |
+| `/api/integrator/challenge/verify/:id` | GET | Poll result (requires `X-API-Key` header) |
+| `/api/integrator/challenge/details/:id` | GET | Public challenge info |
+| `/api/integrator/challenge/respond` | POST | Wallet submits response |
 
-2. **`api-keys.server.ts`**
-   - API key validation
-   - Integrator management
-   - Key generation and revocation
+New integrations should use `/api/v/*` instead.
 
-### Frontend Components
+---
 
-Updated routes in `app/routes/app/`:
+## Credential Structure
 
-1. **`age-verify.tsx`** - Verification page
-   - Supports both demo mode (session) and integrator mode (challenge)
-   - Displays QR code for scanning
-   - Polls for verification status
+Each verified credential on-chain includes:
 
-2. **`wallet-verify.tsx`** - Wallet response page
-   - Handles both demo and integrator flows
-   - Allows user to approve/reject verification
-   - Submits response to appropriate endpoint
+- `credentialSubject.compositeHash` — unique identity hash (for duplicate detection)
+- `evidence` — W3C verification metadata (fraud detection, OCR confidence, biometric scores)
+- `proof` — ed25519 cryptographic signature
 
-## SDK
+### System Attestation
 
-### Node.js SDK
+Credentials issued after October 2025 include a `service` array:
+
+```json
+"service": [{
+  "id": "#system-attestation",
+  "type": "SystemAttestation",
+  "serviceEndpoint": "https://github.com/owner/repo/commit/abc123"
+}]
+```
+
+This links the credential to the exact code version that issued it.
+
+---
+
+## Node.js SDK
 
 Located in `sdk/node/`:
 
-- **`cardlessid-verifier.js`** - Main SDK implementation
-- **`cardlessid-verifier.d.ts`** - TypeScript type definitions
-- **`package.json`** - NPM package configuration
-
-### Example Applications
-
-Located in `sdk/examples/`:
-
-- **`simple-express/`** - Complete Express.js integration example
-
-## Documentation
-
-### Web Documentation
-
-- **Route**: `/docs/integration-guide`
-- **File**: `app/routes/docs/integration-guide.tsx`
-- **Features**: Interactive guide with code examples, API reference, best practices
-
-### Markdown Documentation
-
-Located in `sdk/`:
-
-- **`INTEGRATION_GUIDE.md`** - Complete integration guide
-- **`README.md`** - SDK overview and quick start
-
-## Database Schema
-
-### Firebase Realtime Database
-
-```
-integratorChallenges/
-  {challengeId}/
-    id: string
-    integratorId: string
-    minAge: number
-    status: "pending" | "approved" | "rejected" | "expired"
-    createdAt: number
-    expiresAt: number
-    callbackUrl?: string
-    walletAddress?: string
-    respondedAt?: number
-
-integrators/
-  {integratorId}/
-    name: string
-    apiKey: string
-    createdAt: number
-    active: boolean
-    domain?: string
-```
-
-## API Reference
-
-### Create Challenge
-
-```http
-POST /api/integrator/challenge/create
-Content-Type: application/json
-
-{
-  "apiKey": "your_api_key",
-  "minAge": 21,
-  "callbackUrl": "https://yourapp.com/webhook"
-}
-```
-
-**Response:**
-
-```json
-{
-  "challengeId": "chal_1234567890_abc123",
-  "qrCodeUrl": "https://cardlessid.com/app/age-verify?challenge=chal_...",
-  "deepLinkUrl": "cardlessid://verify?challenge=chal_...",
-  "createdAt": 1234567890000,
-  "expiresAt": 1234568490000
-}
-```
-
-### Verify Challenge
-
-```http
-GET /api/integrator/challenge/verify/:challengeId
-X-API-Key: your_api_key
-```
-
-**Response:**
-
-```json
-{
-  "challengeId": "chal_1234567890_abc123",
-  "verified": true,
-  "status": "approved",
-  "minAge": 21,
-  "walletAddress": "ALGORAND_ADDRESS...",
-  "createdAt": 1234567890000,
-  "expiresAt": 1234568490000,
-  "respondedAt": 1234568123000
-}
-```
-
-## Integration Example
+- `cardlessid-verifier.js` — main SDK
+- `cardlessid-verifier.d.ts` — TypeScript types
 
 ```javascript
-const Cardless ID = require("@cardlessid/verifier");
+const CardlessID = require('@cardlessid/verifier');
 
 const verifier = new CardlessID({
   apiKey: process.env.CARDLESSID_API_KEY,
 });
 
-// Create challenge
 const challenge = await verifier.createChallenge({ minAge: 21 });
-
-// Show QR code to user
 displayQRCode(challenge.qrCodeUrl);
 
-// Poll for result
 const result = await verifier.pollChallenge(challenge.challengeId);
-
 if (result.verified) {
-  console.log("User verified as 21+");
-  console.log("Wallet:", result.walletAddress);
+  console.log('User verified as 21+');
 }
 ```
 
-## Advanced Verification
+See `sdk/examples/simple-express/` for a complete Express.js example.
 
-### Credential Structure
-
-While the basic integration flow returns only `verified` (true/false) and `walletAddress`, integrators who need deeper verification can inspect the W3C Verifiable Credential stored on-chain.
-
-Each credential includes:
-
-- **credentialSubject**: Contains a composite hash of identity (for duplicate detection)
-- **evidence**: W3C-standard verification metadata including:
-  - Fraud detection results (Google Document AI)
-  - OCR confidence levels (AWS Textract)
-  - Biometric matching scores (AWS Rekognition face match + liveness)
-- **service** (optional): System attestation metadata
-- **proof**: Ed25519 cryptographic signature for verification
-
-### System Attestation (service field)
-
-Credentials issued after October 2025 may include a `service` array with system attestation:
-
-```json
-"service": [
-  {
-    "id": "#system-attestation",
-    "type": "SystemAttestation",
-    "serviceEndpoint": "https://github.com/owner/repo/commit/abc123def456"
-  }
-]
-```
-
-**Benefits for Integrators:**
-
-1. **Auditability**: Inspect the exact code version that issued the credential
-2. **Trust**: Verify the issuer's transparency and commitment to open processes
-3. **Version Tracking**: Identify credentials from specific code versions
-4. **Security Review**: Review the issuing code for security vulnerabilities
-
-**Usage:**
-
-```javascript
-// After receiving walletAddress from verification
-const credentials = await getWalletCredentials(result.walletAddress);
-const credential = credentials[0];
-
-// Check if system attestation is available
-if (credential.service) {
-  const attestation = credential.service.find(s => s.type === "SystemAttestation");
-  if (attestation) {
-    console.log("Issued by code version:", attestation.serviceEndpoint);
-    // Optional: Fetch and review the code at that commit
-  }
-}
-
-// Check verification quality
-const evidence = credential.evidence[0];
-if (evidence.documentAnalysis.qualityLevel === "high" &&
-    evidence.fraudDetection.passed &&
-    evidence.biometricVerification.faceMatch.confidence > 0.9) {
-  // High-confidence verification
-}
-```
-
-**Note:** The service field is only included when git information is available at build time. Development builds will not include this field.
-
-For complete credential schema details, see [NFT-CREDENTIAL-CLIENT-GUIDE.md](./NFT-CREDENTIAL-CLIENT-GUIDE.md).
-
-## Testing
-
-### Local Development
-
-1. Set environment variables:
-
-   ```bash
-   export CARDLESSID_API_KEY=test_key
-   export CARDLESSID_URL=http://localhost:5173
-   ```
-
-2. Request a test API key (via contact form at [cardlessid.org/contact](https://cardlessid.org/contact)):
-
-   ```javascript
-   const { createIntegrator } = require("./app/utils/api-keys.server");
-
-   const integrator = await createIntegrator({
-     name: "Test Company",
-     domain: "localhost",
-   });
-
-   console.log("API Key:", integrator.apiKey);
-   ```
-
-3. Run the example:
-   ```bash
-   cd sdk/examples/simple-express
-   npm install
-   npm start
-   ```
-
-### Production Deployment
-
-1. Request a production API key (via contact form at [cardlessid.org/contact](https://cardlessid.org/contact)):
-2. Store keys securely (environment variables, secrets manager)
-3. Configure HTTPS endpoints
-4. Set up webhook URLs
-5. Implement rate limiting
-6. Add logging and monitoring
-
-## Route Configuration
-
-Routes are defined in `app/routes.ts`:
-
-```typescript
-...prefix("integrator/challenge", [
-  route("create", "routes/api/integrator/challenge/create.ts"),
-  route("respond", "routes/api/integrator/challenge/respond.ts"),
-  route("verify/:challengeId", "routes/api/integrator/challenge/verify.$challengeId.ts"),
-  route("details/:challengeId", "routes/api/integrator/challenge/details.$challengeId.ts"),
-]),
-```
-
-## Future Enhancements
-
-- [ ] Admin panel for API key management
-- [ ] Rate limiting per integrator
-- [ ] Usage analytics and reporting
-- [ ] Additional SDKs (Python, Ruby, PHP, Go)
-- [ ] CDN-hosted JavaScript widget
-- [ ] Webhook signature verification
-- [ ] Challenge templates
-- [ ] Multi-requirement challenges (age + location, etc.)
+---
 
 ## Support
 
-- **Documentation**: https://cardlessid.com/docs/integration-guide
-- **GitHub**: https://github.com/djscruggs/cardlessid
-- **Email**: me@djscruggs.com
-
-## License
-
-MIT
+- Docs: https://cardlessid.org/docs
+- Contact: https://cardlessid.org/contact
+- GitHub: https://github.com/djscruggs/cardlessid

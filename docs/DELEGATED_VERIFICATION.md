@@ -146,18 +146,17 @@ Use the API endpoint to issue credentials to your users.
 ### Endpoint
 
 ```
-POST https://cardlessid.com/api/delegated-verification/issue
+POST https://cardlessid.org/api/delegated-verification/issue
 ```
 
 ### Authentication
 
-Include your API key in the request body.
+Include your API key in the `X-API-Key` request header.
 
 ### Request Body
 
 ```json
 {
-  "apiKey": "your_api_key_here_not_real_example",
   "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
   "identity": {
     "firstName": "Jane",
@@ -270,14 +269,14 @@ async function issueCardlessId(
   }
 ) {
   const response = await fetch(
-    "https://cardlessid.com/api/delegated-verification/issue",
+    "https://cardlessid.org/api/delegated-verification/issue",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-API-Key": process.env.CARDLESSID_API_KEY!,
       },
       body: JSON.stringify({
-        apiKey: process.env.CARDLESSID_API_KEY,
         walletAddress,
         identity: userData,
       }),
@@ -314,9 +313,9 @@ import os
 
 def issue_cardless_id(wallet_address, user_data):
     response = requests.post(
-        'https://cardlessid.com/api/delegated-verification/issue',
+        'https://cardlessid.org/api/delegated-verification/issue',
+        headers={'X-API-Key': os.environ['CARDLESSID_API_KEY']},
         json={
-            'apiKey': os.environ['CARDLESSID_API_KEY'],
             'walletAddress': wallet_address,
             'identity': user_data
         }
@@ -342,10 +341,10 @@ issue_cardless_id(
 ### cURL
 
 ```bash
-curl -X POST https://cardlessid.com/api/delegated-verification/issue \
+curl -X POST https://cardlessid.org/api/delegated-verification/issue \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: $CARDLESSID_API_KEY" \
   -d '{
-    "apiKey": "your_api_key_here_not_real_example",
     "walletAddress": "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
     "identity": {
       "firstName": "Jane",
@@ -456,42 +455,22 @@ curl -X POST https://cardlessid.com/api/delegated-verification/issue \
 
 ## Testing
 
-### Sandbox Environment
+### Testing
 
-Use test API key for development:
+Use `provider: "mock"` and your development API key. No separate sandbox URL — point at `http://localhost:5173` during development.
 
-```
-test_api_key_here_not_real_example
-```
-
-**Sandbox URL:**
-
-```
-POST https://sandbox.cardlessid.com/api/delegated-verification/issue
-```
-
-### Test Wallet Addresses
-
-Use these test wallet addresses in sandbox:
-
-```
-TESTADDRESS1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
-TESTADDRESS2234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
-TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
-```
-
-### Test Data
-
-```json
-{
-  "apiKey": "test_api_key_here_not_real_example",
-  "walletAddress": "TESTADDRESS1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456",
-  "identity": {
-    "firstName": "Test",
-    "lastName": "User",
-    "dateOfBirth": "1990-01-01"
-  }
-}
+```bash
+curl -X POST http://localhost:5173/api/delegated-verification/issue \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $MOBILE_API_KEY" \
+  -d '{
+    "walletAddress": "YOUR_ALGORAND_ADDRESS_58_CHARS",
+    "identity": {
+      "firstName": "Test",
+      "lastName": "User",
+      "dateOfBirth": "1990-01-01"
+    }
+  }'
 ```
 
 ---
@@ -524,9 +503,9 @@ TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 ### Documentation
 
-- **API Docs:** https://cardlessid.com/docs/integration-guide
-- **Custom Verification Guide:** https://cardlessid.com/docs/custom-verification-guide
-- **Credential Schema:** https://cardlessid.com/docs/credential-schema
+- **API Docs:** https://cardlessid.org/docs/integration-guide
+- **Custom Verification Guide:** https://cardlessid.org/docs/custom-verification-guide
+- **Credential Schema:** https://cardlessid.org/docs/credential-schema
 
 ### Contact
 
@@ -543,7 +522,7 @@ TESTADDRESS3234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 ## Pricing
 
-Contact partnerships@cardlessid.com for pricing information.
+Contact partnerships@cardlessid.org for pricing information.
 
 **Factors:**
 
@@ -595,7 +574,7 @@ Cardless ID API is proprietary. Contact us for licensing terms.
 
 ### Q: How much does it cost per credential?
 
-**A:** Contact partnerships@cardlessid.com for pricing.
+**A:** Contact partnerships@cardlessid.org for pricing.
 
 ### Q: Is this compliant with [regulation]?
 
@@ -607,4 +586,4 @@ Cardless ID API is proprietary. Contact us for licensing terms.
 
 ---
 
-**Ready to get started?** Contact partnerships@cardlessid.com to request your API key.
+**Ready to get started?** Contact partnerships@cardlessid.org to request your API key.

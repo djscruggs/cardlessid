@@ -29,6 +29,7 @@
 - [Verification API](docs/VERIFICATION_API.md "Verification API")
 - [VPN Age Verification Risks](docs/VPN-AGE-VERIFICATION-RISKS.md "VPN Age Verification Risks")
 - [Wallet App Guide](docs/WALLET_APP_GUIDE.md "Wallet App Guide")
+- [Biometric Embedding PRD](docs/PRD-BIOMETRIC-EMBEDDING.md "Biometric Embedding PRD") — planned face-embedding on-chain feature
 
 ## API Documentation
 

@@ -547,14 +547,14 @@ export async function verifyApiKey(apiKey: string): Promise<Issuer | null> {
 ```typescript
 // Bank or DMV issues credential
 const response = await fetch(
-  "https://cardlessid.com/api/delegated-verification/issue",
+  "https://cardlessid.org/api/delegated-verification/issue",
   {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "X-API-Key": process.env.CARDLESSID_API_KEY!,
     },
     body: JSON.stringify({
-      apiKey: "sk_live_bank_xxxxxxxxxxxxxx",
       walletAddress:
         "MWCAXBUMUK3I2NTVEHDA6JVQ2W7IMKJUJSGEKQTRMFYYE3W6GJUSHUAGJM",
       identity: {
@@ -730,8 +730,8 @@ curl -X POST http://localhost:5173/api/delegated-verification/issue \
 For questions or issues:
 
 - GitHub Issues: https://github.com/your-repo/cardlessid/issues
-- Email: support@cardlessid.com
-- Docs: https://cardlessid.com/docs
+- Email: support@cardlessid.org
+- Docs: https://cardlessid.org/docs
 
 ---
 

@@ -1,243 +1,193 @@
----
-{}
----
-# Verification API Documentation
+# Verification API
 
 ## Overview
 
-The verification system uses a session-based flow with pluggable identity verification providers.
+Two API layers exist:
 
-## Architecture
+| Layer | Endpoints | Purpose |
+|---|---|---|
+| **Age Verification** | `/api/v/*` | Stateless QR-code age check; no API key |
+| **Credential Issuance** | `/api/verification/*` + `/api/credentials` | One-time KYC; requires API key |
+
+---
+
+## Age Verification (`/api/v/*`)
+
+No API key required. See [MOBILE_CLIENT_INTEGRATION.md](./MOBILE_CLIENT_INTEGRATION.md) for the full flow.
+
+### GET `/api/v/nonce`
+
+Returns a signed, expiring nonce.
 
 ```
-Mobile App → Start Session → Provider SDK → Webhook → Issue Credential
+GET /api/v/nonce?minAge=21&siteId=my-site
 ```
 
-## API Endpoints
+Response:
+```json
+{ "nonce": "<hmac-signed-token>", "expiresIn": 300 }
+```
 
-### 1\. Start Verification Session
+### POST `/api/v/submit`
 
-**POST** `/api/verification/start`
-
-Create a new verification session and get auth token for mobile SDK.
+Wallet submits a signed proof.
 
 ```json
-// Request (optional)
-{
-  "provider": "mock" | "idenfy" | "stripe_identity"
-}
-
-// Response
-{
-  "sessionId": "session_1727890123_abc123",
-  "authToken": "mock_token_...",
-  "expiresAt": "2025-10-01T16:30:00.000Z",
-  "provider": "mock"
-}
+{ "nonce": "...", "signedProof": { "payload": {...}, "signature": "..." } }
 ```
 
-### 2\. Check Session Status
+Response: `{ "success": true }`
 
-**GET** `/api/verification/status/:sessionId`
+### GET `/api/v/result/:nonce`
 
-Poll to check if verification is complete.
+Integrator polls for the proof. Returns 404 until wallet submits; auto-expires after 60 seconds.
+
+---
+
+## Credential Issuance (`/api/verification/*`)
+
+Requires `X-API-Key` header on all requests.
+
+### POST `/api/verification/start`
+
+Start a KYC session.
 
 ```json
-// Response
+{ "provider": "mock" }
+```
+
+Response:
+```json
 {
-  "sessionId": "session_1727890123_abc123",
-  "status": "pending" | "approved" | "rejected" | "expired",
+  "sessionId": "session_xxx",
+  "authToken": "token_for_provider_sdk",
+  "expiresAt": "...",
   "provider": "mock",
-  "ready": true,  // true if can issue credential
-  "expiresAt": "2025-10-01T16:30:00.000Z",
+  "providerSessionId": "..."
+}
+```
+
+### GET `/api/verification/status/:sessionId`
+
+Poll session status.
+
+```json
+{
+  "sessionId": "...",
+  "status": "pending | approved | rejected | expired",
+  "ready": true,
+  "provider": "mock",
   "credentialIssued": false
 }
 ```
 
-### 3\. Webhook (Provider → Server)
+### POST `/api/verification/webhook?provider=mock`
 
-**POST** `/api/verification/webhook?provider=mock`
-
-Verification provider calls this when verification completes.
+Called by the verification provider when the user completes KYC (or simulate directly in dev).
 
 ```json
-// Request (provider-specific format)
 {
   "providerSessionId": "mock_session_xxx",
   "status": "approved",
   "firstName": "John",
   "lastName": "Doe",
-  "birthDate": "1990-01-01",
+  "birthDate": "1990-01-15",
   "governmentId": "D1234567",
   "idType": "government_id",
   "state": "CA"
 }
+```
 
-// Response
+---
+
+## Credential Issuance (`/api/credentials`)
+
+Requires `X-API-Key` header.
+
+### POST `/api/credentials`
+
+Issue a W3C Verifiable Credential after KYC is approved.
+
+```json
 {
-  "success": true,
-  "sessionId": "session_1727890123_abc123",
-  "status": "approved"
+  "verificationToken": "signed_token_xyz",
+  "walletAddress": "ALGORAND_ADDRESS_58_CHARS",
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthDate": "1990-01-15",
+  "governmentId": "D1234567",
+  "idType": "drivers_license",
+  "state": "CA"
 }
 ```
 
-### 4\. Issue Credential
-
-**POST** `/api/credentials`
-
-Issue credential after verification is approved.
-
+Response (production mode — valid API key):
 ```json
-// Request
-{
-  "verificationSessionId": "session_1727890123_abc123",
-  "walletAddress": "ALGORAND_ADDRESS_HERE"
-}
-
-// Response
 {
   "success": true,
+  "credential": { "@context": [...], "type": ["VerifiableCredential", "BirthDateCredential"], ... },
+  "personalData": { "firstName": "John", "lastName": "Doe", "birthDate": "1990-01-15" },
+  "nft": { "assetId": "123456", "requiresOptIn": true },
+  "blockchain": { "transaction": { "id": "TX_HASH", "explorerUrl": "..." } }
+}
+```
+
+Response (demo mode — no API key):
+```json
+{
+  "success": true,
+  "demoMode": true,
   "credential": { ... },
-  "personalData": { ... },
-  "blockchain": { ... },
-  "duplicateDetection": { ... }
+  "nft": { "assetId": "DEMO_ASSET_ID", "requiresOptIn": false }
 }
 ```
 
-## Testing with Mock Provider
+---
 
-### Step 1: Start Session
+## Dev Testing
+
+### Test age verification end-to-end
 
 ```bash
-curl -X POST http://localhost:5173/api/verification/start \
+# 1. Get nonce
+NONCE=$(curl -s "http://localhost:5173/api/v/nonce?minAge=21" | jq -r '.nonce')
+
+# 2. Submit a signed proof (from wallet)
+# (Use algosdk in your wallet app to sign — see MOBILE_CLIENT_INTEGRATION.md)
+
+# 3. Poll result
+curl "http://localhost:5173/api/v/result/$NONCE"
+```
+
+### Test credential issuance with mock provider
+
+```bash
+# 1. Start session
+RESPONSE=$(curl -s -X POST http://localhost:5173/api/verification/start \
   -H "Content-Type: application/json" \
-  -d '{"provider": "mock"}'
-```
+  -H "X-API-Key: $MOBILE_API_KEY" \
+  -d '{"provider": "mock"}')
 
-Response:
+SESSION_ID=$(echo $RESPONSE | jq -r '.sessionId')
+PROVIDER_SESSION_ID=$(echo $RESPONSE | jq -r '.providerSessionId')
 
-```json
-{
-  "sessionId": "session_1727890123_abc123",
-  "authToken": "mock_token_...",
-  "expiresAt": "2025-10-01T16:30:00.000Z",
-  "provider": "mock"
-}
-```
-
-### Step 2: Simulate Webhook (Approve Verification)
-
-```bash
-curl -X POST 'http://localhost:5173/api/verification/webhook?provider=mock' \
+# 2. Simulate webhook
+curl -X POST "http://localhost:5173/api/verification/webhook?provider=mock" \
   -H "Content-Type: application/json" \
-  -d '{
-    "providerSessionId": "mock_session_session_1727890123_abc123",
-    "status": "approved",
-    "firstName": "John",
-    "middleName": "",
-    "lastName": "Doe",
-    "birthDate": "1990-01-15",
-    "governmentId": "D1234567",
-    "idType": "government_id",
-    "state": "CA"
-  }'
-```
+  -d "{
+    \"providerSessionId\": \"$PROVIDER_SESSION_ID\",
+    \"status\": \"approved\",
+    \"firstName\": \"John\", \"lastName\": \"Doe\",
+    \"birthDate\": \"1990-01-15\", \"governmentId\": \"D1234567\",
+    \"idType\": \"government_id\", \"state\": \"CA\"
+  }"
 
-### Step 3: Check Status
+# 3. Check status
+curl "http://localhost:5173/api/verification/status/$SESSION_ID"
 
-```bash
-curl http://localhost:5173/api/verification/status/session_1727890123_abc123
-```
-
-Response:
-
-```json
-{
-  "sessionId": "session_1727890123_abc123",
-  "status": "approved",
-  "ready": true,
-  "provider": "mock"
-}
-```
-
-### Step 4: Issue Credential
-
-```bash
+# 4. Issue credential
 curl -X POST http://localhost:5173/api/credentials \
   -H "Content-Type: application/json" \
-  -d '{
-    "verificationSessionId": "session_1727890123_abc123",
-    "walletAddress": "YOUR_ALGORAND_ADDRESS_HERE"
-  }'
+  -H "X-API-Key: $MOBILE_API_KEY" \
+  -d "{\"verificationSessionId\": \"$SESSION_ID\", \"walletAddress\": \"YOUR_ALGORAND_ADDRESS\"}"
 ```
-
-## Mobile App Flow
-
-**How it works:**
-
-1.  Mobile app requests a verification session from YOUR server
-2.  YOUR server creates a session and gets a token from the verification provider
-3.  Mobile app launches the provider's SDK with the token
-4.  User completes verification in the provider's SDK (may take several minutes)
-5.  **Provider sends webhook to YOUR server** when verification completes
-6.  Mobile app polls YOUR server to check if webhook was received
-7.  If approved, mobile app requests credential issuance
-
-**Important:** The mobile app ONLY communicates with YOUR server. It never polls the provider directly. The provider sends a webhook to your server when verification is complete.
-
-**Session Timeout:** 30 minutes from creation
-
-```typescript
-// 1. Start verification session on YOUR server
-const { sessionId, authToken, provider } = await fetch('/api/verification/start', {
-  method: 'POST',
-  body: JSON.stringify({ provider: 'idenfy' }) // or 'mock' for testing
-}).then(r => r.json());
-
-// 2. Launch provider SDK with the auth token
-// User completes ID verification (takes 1-5 minutes typically)
-await IdenfyReactNative.start({ authToken });
-// SDK closes automatically when user finishes
-
-// 3. Poll YOUR server to check if provider's webhook arrived
-// The provider sends a webhook to YOUR server when verification completes
-let status;
-let attempts = 0;
-const maxAttempts = 90; // 3 minutes with 2s intervals
-
-do {
-  const response = await fetch(`/api/verification/status/${sessionId}`);
-  status = await response.json();
-
-  if (status.status !== 'pending') break;
-
-  await new Promise(r => setTimeout(r, 2000)); // Wait 2 seconds
-  attempts++;
-} while (attempts < maxAttempts);
-
-// 4. If approved, issue credential
-if (status.ready) {
-  const credential = await fetch('/api/credentials', {
-    method: 'POST',
-    body: JSON.stringify({
-      verificationSessionId: sessionId,
-      walletAddress: myWalletAddress
-    })
-  }).then(r => r.json());
-
-  // Store credential locally in wallet
-  await saveCredentialToWallet(credential);
-} else {
-  // Handle rejection or timeout
-  console.error('Verification failed:', status.status);
-}
-```
-
-## Adding New Providers
-
-1.  Create provider class in `app/utils/verification-providers/`
-2.  Implement `IVerificationProvider` interface
-3.  Register in `app/utils/verification-providers/index.ts`
-4.  Set environment variable: `VERIFICATION_PROVIDER=your_provider`
-
-See `mock.ts` for reference implementation.
