@@ -107,6 +107,26 @@ We partner with content companies, technology providers, media and regulators to
 
 This project is in active development. We're collaborating with partners to integrate existing decentralized identity tools that give end users maximum control of what information is shared. This ensures compatibility with all major blockchain networks.
 
+## Liveness Detection
+
+Verification uses **passive liveness detection** via Azure Face API (`/detectliveness`). The mobile client silently records a short video clip while the user frames their selfie. The clip and still frame are submitted server-side, processed in memory, and immediately discarded — nothing is persisted.
+
+### Current: sessionless passive liveness
+
+Uses Azure's `/detectliveness` endpoint without a session. No client SDK dependency — any client can POST a short video clip + still frame. Defeats common spoofing attacks (printed photos, screen replays).
+
+**Not ISO/IEC 30107-3 certified.** This is a deliberate tradeoff for the current phase — it avoids requiring third-party integrators to adopt Azure's SDK.
+
+### Future: ISO-certified liveness
+
+When compliance with regulated industries (finance, healthcare, government) is required, migrate to Azure's session-based flow:
+
+1. Server creates a liveness session via Azure Face API
+2. Client integrates Azure's React Native SDK (`@azure/react-native-face-analyzer`) for capture
+3. Full ISO 30107-3 certification applies
+
+**Breaking change for integrators:** third-party clients building their own capture UI will need to adopt the Azure SDK at that point. Document this migration prominently in the SDK changelog when it happens.
+
 ## Privacy & Data Storage
 
 **Transient Data Model** - Identity data is never stored permanently on our servers:
