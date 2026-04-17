@@ -1,0 +1,8 @@
+name = "cardlessid-cdn"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+no_bundle = false
+
+routes = [
+  { pattern = "cdn.cardlessid.org/*", zone_name = "cardlessid.org" }
+]
