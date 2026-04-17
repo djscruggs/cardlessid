@@ -11,6 +11,7 @@ export default [
   route("about", "routes/about.tsx"),
   route("for-websites", "routes/for-websites.tsx"),
   route("contact", "routes/contact.tsx"),
+  route("support/user-help", "routes/support/user-help.tsx"),
   route("demo", "routes/demo.tsx"),
   route("demo/verify/:vid", "routes/verify.tsx"),
   route("credentials/v1", "routes/credentials/v1.ts"),
