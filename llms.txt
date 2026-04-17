@@ -471,8 +471,8 @@ Server-side SDK for the challenge-based integrator flow.
 ### Other Utils
 
 **age-verification.server.ts** - [app/utils/age-verification.server.ts](app/utils/age-verification.server.ts)
-- Age verification challenge management
-- Functions: `createChallenge()`, `verifyAge()`, `recordResponse()`
+- Age verification session management
+- Functions: `createAgeVerificationSession()`, `getAgeVerificationSession()`, `updateAgeVerificationSession()`, `approveAgeVerificationSession()`, `rejectAgeVerificationSession()`, `purgeExpiredAgeVerificationSessions()`
 
 **integrator-challenges.server.ts** - [app/utils/integrator-challenges.server.ts](app/utils/integrator-challenges.server.ts)
 - Integrator API challenge handling

@@ -201,26 +201,29 @@ const ForCompanies: React.FC = () => {
                 <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
                 <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-gray-400 text-sm ml-2">cardlessid-verifier.js</span>
+                <span className="text-gray-400 text-sm ml-2">cardlessid-verify.js</span>
               </div>
               <pre className="text-green-400 text-sm overflow-x-auto">
-{`// Initialize Cardless ID
-const cardlessID = new CardlessID({
-  apiKey: 'your-api-key',
-  environment: 'production'
-});
+{`<!-- 1. Add the script tag -->
+<script src="https://cdn.cardlessid.org/verify/latest/cardlessid-verify.js"></script>
 
-// Check age verification
-cardlessID.verifyAge()
-  .then(result => {
-    if (result.verified) {
-      // User is verified, show content
-      showAdultContent();
-    } else {
-      // Show verification prompt
-      showVerificationModal();
+<!-- 2. Add a mount point -->
+<div id="age-gate"></div>
+
+<!-- 3. Initialize the widget -->
+<script>
+  const verify = new CardlessIDVerify({
+    minAge: 21,
+    onVerified: ({ meetsRequirement, walletAddress }) => {
+      if (meetsRequirement) {
+        showAdultContent();
+      } else {
+        showVerificationFailed();
+      }
     }
-  });`}
+  });
+  verify.mount('#age-gate');
+</script>`}
               </pre>
             </div>
           </div>
