@@ -392,7 +392,7 @@ export async function action({ request }: ActionFunctionArgs) {
       bothSidesProcessed: session.providerMetadata?.bothSidesProcessed || false,
       faceMatchConfidence:
         session.providerMetadata?.faceMatchConfidence || null,
-      livenessConfidence: session.providerMetadata?.livenessConfidence || null,
+      livenessConfidence: session.providerMetadata?.livenessResult?.confidence ?? session.providerMetadata?.livenessConfidence ?? null,
       verificationLevel: determineVerificationLevel(session.providerMetadata),
     };
 
@@ -459,7 +459,9 @@ export async function action({ request }: ActionFunctionArgs) {
             },
             liveness: {
               confidence: verificationQuality.livenessConfidence,
-              provider: "AWS Rekognition",
+              provider: session.providerMetadata?.livenessProvider === 'azure'
+                ? 'Azure Face API'
+                : 'AWS Rekognition',
             },
           },
         },

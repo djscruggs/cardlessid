@@ -1,11 +1,23 @@
 /**
- * API endpoint for uploading selfie, checking liveness, and comparing with ID photo
+ * POST /api/verification/upload-selfie
+ *
+ * Accepts a selfie image and an optional pre-selfie video clip for passive liveness detection.
+ * When a video is present, Azure Face API /detectliveness/singlemodal is used (in-memory,
+ * nothing written to disk). When no video is provided, falls back to the existing AWS
+ * Rekognition heuristic liveness check.
+ *
+ * Multipart fields:
+ *   sessionId        string   — verification session ID
+ *   selfie           string   — base64-encoded still frame (used as reference + face match)
+ *   idPhoto          string   — base64-encoded ID photo for face comparison
+ *   video            File?    — optional short video clip (mp4/webm, ≤10s) for Azure liveness
  */
 
 import type { ActionFunctionArgs } from 'react-router';
 import { getVerificationSession, updateVerificationSession } from '~/utils/verification.server';
 import { saveSelfiePhoto, deletePhoto } from '~/utils/temp-photo-storage.server';
 import { compareFaces, checkLiveness } from '~/utils/face-comparison.server';
+import { checkPassiveLiveness } from '~/utils/azure-liveness.server';
 import { isEEARequest } from '~/utils/geo.server';
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -21,99 +33,122 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     const formData = await request.formData();
-    
-    // Debug: Log all form data keys received
-    const receivedKeys = Array.from(formData.keys());
-    console.log('[Upload Selfie] Received form data keys:', receivedKeys);
-    
+
     const sessionId = formData.get('sessionId') as string;
     const selfieData = formData.get('selfie') as string;
     const idPhotoData = formData.get('idPhoto') as string;
-    
-    // Debug: Check each field
-    console.log('[Upload Selfie] Field values:', {
+    const videoFile = formData.get('video') as File | null;
+
+    console.log('[Upload Selfie] Received fields:', {
       sessionId: sessionId ? `✓ ${sessionId.substring(0, 30)}...` : '✗ MISSING',
       selfie: selfieData ? `✓ ${selfieData.length} chars` : '✗ MISSING',
-      idPhoto: idPhotoData ? `✓ ${idPhotoData.length} chars` : '✗ MISSING'
+      idPhoto: idPhotoData ? `✓ ${idPhotoData.length} chars` : '✗ MISSING',
+      video: videoFile ? `✓ ${(videoFile.size / 1024).toFixed(1)}KB ${videoFile.type}` : '— not provided',
     });
-    
+
     if (!sessionId || !selfieData || !idPhotoData) {
-      const missingFields = [];
-      if (!sessionId) missingFields.push('sessionId');
-      if (!selfieData) missingFields.push('selfie');
-      if (!idPhotoData) missingFields.push('idPhoto');
-      
-      console.error('[Upload Selfie] ❌ Missing required fields:', missingFields);
-      return Response.json({ 
-        error: 'Missing required fields',
-        missingFields,
-        receivedKeys
-      }, { status: 400 });
+      const missingFields = [
+        !sessionId && 'sessionId',
+        !selfieData && 'selfie',
+        !idPhotoData && 'idPhoto',
+      ].filter(Boolean);
+      return Response.json({ error: 'Missing required fields', missingFields }, { status: 400 });
     }
 
-    // Get verification session
     const session = await getVerificationSession(sessionId);
     if (!session) {
       return Response.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    // Remove data URL prefix if present
     const selfieBase64 = selfieData.replace(/^data:image\/\w+;base64,/, '');
     const idPhotoBase64 = idPhotoData.replace(/^data:image\/\w+;base64,/, '');
 
-    // Step 1: Check for liveness
-    console.log('[Upload Selfie] Performing liveness check...');
-    const livenessResult = await checkLiveness(selfieBase64);
+    // ── Liveness check ─────────────────────────────────────────────────────────
+    let livenessResult: {
+      isLive: boolean;
+      confidence: number;
+      qualityScore?: number;
+      issues?: string[];
+      livenessDecision?: string;
+      provider: 'azure' | 'rekognition';
+      error?: string;
+    };
+
+    const MAX_VIDEO_BYTES = 10 * 1024 * 1024; // 10 MB
+    if (videoFile && videoFile.size > MAX_VIDEO_BYTES) {
+      return Response.json({ error: 'Video too large (max 10 MB)' }, { status: 413 });
+    }
+
+    if (videoFile && videoFile.size > 0) {
+      // Passive liveness: Azure Face API — video + reference frame, fully in-memory
+      console.log('[Upload Selfie] Running Azure passive liveness check...');
+      const videoBuffer = Buffer.from(await videoFile.arrayBuffer());
+      const azureResult = await checkPassiveLiveness(videoBuffer, videoFile.type || 'video/mp4', selfieBase64);
+
+      livenessResult = {
+        isLive: azureResult.isLive,
+        confidence: azureResult.confidence,
+        livenessDecision: azureResult.livenessDecision,
+        provider: 'azure',
+        error: azureResult.error,
+      };
+    } else {
+      // Fallback: Rekognition heuristic (existing behaviour for clients without video)
+      console.log('[Upload Selfie] No video provided — falling back to Rekognition liveness check...');
+      const rekognitionResult = await checkLiveness(selfieBase64);
+
+      livenessResult = {
+        isLive: rekognitionResult.isLive,
+        confidence: rekognitionResult.confidence,
+        qualityScore: rekognitionResult.qualityScore,
+        issues: rekognitionResult.issues,
+        provider: 'rekognition',
+        error: rekognitionResult.error,
+      };
+    }
 
     if (!livenessResult.isLive) {
-      console.warn('[Upload Selfie] Liveness check failed:', livenessResult.issues);
-      // No photo saved yet, so nothing to delete
+      console.warn('[Upload Selfie] Liveness check failed:', livenessResult);
       return Response.json({
         success: false,
         error: livenessResult.error || 'Liveness check failed',
         issues: livenessResult.issues,
-        livenessResult
+        livenessResult,
       }, { status: 400 });
     }
 
-    console.log('[Upload Selfie] Liveness check passed');
+    console.log(`[Upload Selfie] Liveness passed (${livenessResult.provider}, confidence: ${livenessResult.confidence.toFixed(3)})`);
 
-    // Step 2: Save the selfie photo temporarily
+    // ── Save selfie temporarily for face comparison ─────────────────────────
     selfieUrl = await saveSelfiePhoto(sessionId, selfieBase64);
 
-    // Step 3: Compare faces using both photos from client (never stored on server/Firebase)
+    // ── Face comparison ─────────────────────────────────────────────────────
     console.log('[Upload Selfie] Comparing faces...');
     const comparisonResult = await compareFaces(idPhotoBase64, selfieBase64);
 
     if (comparisonResult.error) {
       console.error('[Upload Selfie] Face comparison error:', comparisonResult.error);
-      // Delete selfie immediately on failure
       if (selfieUrl) await deletePhoto(selfieUrl);
-      return Response.json({
-        success: false,
-        error: comparisonResult.error
-      }, { status: 400 });
+      return Response.json({ success: false, error: comparisonResult.error }, { status: 400 });
     }
 
-    // Update session with results (merge with existing metadata to preserve fraud signals)
+    // ── Update session ──────────────────────────────────────────────────────
     await updateVerificationSession(sessionId, {
       status: comparisonResult.match ? 'approved' : 'rejected',
       providerMetadata: {
-        ...session.providerMetadata, // Preserve fraud signals, lowConfidenceFields, etc.
+        ...session.providerMetadata,
         faceMatchResult: comparisonResult,
         faceMatchConfidence: comparisonResult.confidence,
-        livenessResult: livenessResult,
-        livenessConfidence: livenessResult.confidence
-      }
+        livenessResult,
+        livenessProvider: livenessResult.provider,
+      },
     });
 
     console.log('[Upload Selfie] Verification complete:', {
       match: comparisonResult.match,
-      confidence: comparisonResult.confidence
+      confidence: comparisonResult.confidence,
     });
 
-    // Delete selfie immediately after successful processing
-    console.log('[Upload Selfie] Deleting selfie from disk after processing');
     if (selfieUrl) await deletePhoto(selfieUrl);
 
     return Response.json({
@@ -123,19 +158,22 @@ export async function action({ request }: ActionFunctionArgs) {
       livenessResult: {
         isLive: livenessResult.isLive,
         confidence: livenessResult.confidence,
-        qualityScore: livenessResult.qualityScore
+        provider: livenessResult.provider,
+        ...(livenessResult.livenessDecision && { livenessDecision: livenessResult.livenessDecision }),
+        ...(livenessResult.qualityScore !== undefined && { qualityScore: livenessResult.qualityScore }),
       },
       sessionId,
     });
   } catch (error) {
-    console.error('Upload selfie error:', error);
-    // Delete selfie on any unexpected error
+    console.error('[Upload Selfie] Unexpected error:', error);
     if (selfieUrl) await deletePhoto(selfieUrl);
     return Response.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     }, { status: 500 });
   }
 }
 
-
+export async function loader() {
+  return Response.json({ error: 'Method not allowed' }, { status: 405 });
+}

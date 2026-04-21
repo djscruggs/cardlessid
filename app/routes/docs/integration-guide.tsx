@@ -112,6 +112,7 @@ export default function IntegrationGuide() {
 <script>
   const verify = new CardlessIDVerify({
     minAge: 21,
+    siteId: 'my-website',
     onVerified: function({ meetsRequirement }) {
       if (meetsRequirement) {
         // Age verified — grant access
@@ -134,6 +135,7 @@ export default function IntegrationGuide() {
 
 const verify = new CardlessIDVerify({
   minAge: 21,
+  siteId: 'my-website',
   onVerified({ meetsRequirement, walletAddress }) {
     if (meetsRequirement) {
       // grant access

@@ -109,7 +109,7 @@ This project is in active development. We're collaborating with partners to inte
 
 ## Liveness Detection
 
-Verification uses **passive liveness detection** via Azure Face API (`/detectliveness`). The mobile client silently records a short video clip while the user frames their selfie. The clip and still frame are submitted server-side, processed in memory, and immediately discarded — nothing is persisted.
+Verification uses **passive liveness detection** via Azure Face API (`/detectliveness`). The mobile client silently records a short video clip while the user frames their selfie. The clip is processed in memory server-side. The still frame is briefly written to disk for face comparison, then immediately deleted — whether verification passes or fails.
 
 ### Current: sessionless passive liveness
 
