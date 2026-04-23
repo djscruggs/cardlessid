@@ -6,7 +6,7 @@ This is a web site that issues a lightweight decentralize identity credential. A
 
 **Project Goals:**
 
-The goal is to use a third party tool still TBD to verify someone’s identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
+The goal is to use a third party tool still TBD to verify someone's identity, then write the credentials to a custom wallet for the Algorand blockchain. The wallet will only be used to verify credentials to sites that request them. They will do so with QR code which asks if they were born before a certain date (configurable), and the wallet merely replies true or false along with the wallet address
 
 **Technology Stack**
 
@@ -231,3 +231,31 @@ Use `console.log`/`warn`/`error` with a bracketed module prefix: `[Photo Storage
 console.log('[Photo Storage] Deleted:', filepath);
 console.error('[Rekognition] Face comparison error:', error);
 ```
+
+## Discriminated Union Result Types for Verification Utilities
+
+- **Use discriminated union Result types for fallible operations.** All verification/validation utility functions return a discriminated union type with a \`valid\` boolean discriminant rather than throwing. Success returns \`{ valid: true, payload: T }\`, failure returns \`{ valid: false, error: string }\`. The caller narrows the type via \`if (result.valid)\` checks. This pattern is used consistently across nonce verification, Algorand signature verification, and browser SDK proof verification.
+
+  **Good:**
+
+  ```typescript
+  export type VerifyNonceResult =
+    | { valid: true; payload: NoncePayload }
+    | { valid: false; error: string };
+
+  export function verifyNonce(token: string): VerifyNonceResult {
+    if (parts.length !== 2) return { valid: false, error: "malformed nonce" };
+    // ...
+    return { valid: true, payload };
+  }
+  ```
+
+  **Bad:**
+
+  ```typescript
+  export function verifyNonce(token: string): NoncePayload {
+    if (parts.length !== 2) throw new Error("malformed nonce");
+    // ...
+    return payload;
+  }
+  ```
